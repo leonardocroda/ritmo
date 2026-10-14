@@ -306,9 +306,9 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] Lifespan marca jobs ativos como `error` com mensagem "interrompido por restart do servidor"
-- [ ] Jobs `done|error` não são tocados
-- [ ] Testes: job `running` pré-existente vira `error` após startup; job `done` permanece (≥ 2 novos; total ≥ 68)
+- [x] Lifespan marca jobs ativos como `error` com mensagem "interrompido por restart do servidor"
+- [x] Jobs `done|error` não são tocados
+- [x] Testes: job `running` pré-existente vira `error` após startup; job `done` permanece (≥ 2 novos; total ≥ 68)
 
 **Tests**: integration (estende `backend/tests/test_garmin_service.py`)
 **Gate**: full

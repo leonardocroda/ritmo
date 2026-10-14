@@ -7,9 +7,10 @@ do spec/design, nunca constantes compartilhadas com a implementação
 (lição L-001). "Hoje" fica congelado em 2026-10-14 via seam `_today()`.
 """
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 
 from app.db.engine import SessionLocal, init_db
@@ -31,6 +32,7 @@ from app.garmin import service
 from app.garmin.client import GarminAuthExpiredError, SyncBudgetExceededError
 from app.garmin.service import JobConflictError, create_job, run_sync
 from app.garmin.upserts import get_sync_state
+from app.main import app
 from fake_garmin import CYCLING_ID, FakeGateway
 
 TODAY = date(2026, 10, 14)
@@ -448,3 +450,48 @@ def test_per_item_progress_during_health_phase(db, monkeypatch):
     assert captured[0]["step"] == "hrv"
     assert captured[0]["hrv_days"] == 4
     assert captured[0]["message"] == "Puxando HRV: 4 dias…"
+
+
+def test_startup_recovers_orphan_running_job(db):
+    """SYNC-02 (T9): job running órfão vira error no startup — nenhum 409 eterno."""
+    job = create_job(db, DEFAULT_USER_ID)
+    job.status = "running"  # simula o processo morto no meio do sync
+    job.started_at = datetime(2026, 10, 14, 12, 0, 0)
+    db.commit()
+
+    with TestClient(app):  # o lifespan roda a recovery
+        pass
+
+    reloaded = _load_job(job.id)
+    assert reloaded.status == "error"
+    assert reloaded.error == "interrompido por restart do servidor"
+    assert reloaded.finished_at is not None
+
+    with SessionLocal() as s:  # lock liberado: novo sync é aceito
+        assert create_job(s, DEFAULT_USER_ID).status == "pending"
+
+
+def test_startup_leaves_finished_jobs_untouched(db, monkeypatch):
+    """T9: jobs done|error não são tocados pelo recovery do lifespan."""
+    monkeypatch.setattr(service, "GarminGateway", FakeGateway)
+    done_job = _create_job()
+    run_sync(done_job.id)
+    done_before = _load_job(done_job.id)
+    with SessionLocal() as s:
+        error_job = create_job(s, DEFAULT_USER_ID)
+        error_job.status = "error"
+        error_job.error = "falha anterior"
+        error_job.finished_at = datetime(2026, 10, 13, 8, 0, 0)
+        s.commit()
+
+    with TestClient(app):
+        pass
+
+    done_after = _load_job(done_job.id)
+    assert done_after.status == "done"
+    assert done_after.error is None
+    assert done_after.finished_at == done_before.finished_at
+    error_after = _load_job(error_job.id)
+    assert error_after.status == "error"
+    assert error_after.error == "falha anterior"
+    assert error_after.finished_at == datetime(2026, 10, 13, 8, 0, 0)

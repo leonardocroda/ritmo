@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
 from app.db.engine import init_db
+from app.garmin.service import recover_stale_jobs
 
 settings = get_settings()
 
@@ -21,6 +22,7 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     init_db()
+    recover_stale_jobs()  # SYNC-02: nenhum 409 eterno após restart
     yield
 
 

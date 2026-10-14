@@ -348,3 +348,22 @@ def run_sync(job_id: int) -> None:
             if gateway is not None:
                 stats["calls_made"] = gateway.calls_made
             _finish(db, job, stats, "error", error_text=str(exc))
+
+
+def recover_stale_jobs() -> int:
+    """Marca jobs ativos órfãos como error (SYNC-02) — chamado no startup.
+
+    Escape operacional fora da máquina do `run_sync`: um restart mata o
+    processo no meio do ciclo e o índice parcial deixaria o 409 eterno.
+    Seguro na v1 porque é single-instância (design).
+    """
+    with SessionLocal() as db:
+        stale = db.execute(
+            select(SyncJob).where(SyncJob.status.in_(("pending", "running")))
+        ).scalars().all()
+        for job in stale:
+            job.status = "error"
+            job.error = "interrompido por restart do servidor"
+            job.finished_at = _now()
+        db.commit()
+        return len(stale)
