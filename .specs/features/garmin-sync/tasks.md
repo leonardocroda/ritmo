@@ -279,14 +279,14 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `pending → running` grava `started_at`; fim → `done|error` grava `finished_at`; transições fora dessa sequência levantam (SYNC-04)
-- [ ] Job ativo existente → `IntegrityError` → `JobConflictError` (base do 409)
-- [ ] Janelas: sem `sync_state` → backfill (180d/60d); senão `last_date − repull` até hoje (SYNC-10/15)
-- [ ] Falha de atividades após retries → `error` (SYNC-14); falha de tipo de saúde/recordes → `done` + `warnings` e os demais tipos continuam (SYNC-20)
-- [ ] `sync_state` atualizado só em tipo bem-sucedido (SYNC-13/21)
-- [ ] `stats_json` com todos os contadores do design + `calls_made` + `duration_s` + `message` PT-BR (ex.: "Puxando 12 atividades…") (SYNC-05/06/17)
-- [ ] `GarminAuthExpiredError` → `error` + `reauth_needed: true` (SYNC-25); `SyncBudgetExceededError` → `error` com stats das chamadas feitas (SYNC-09)
-- [ ] `FakeGateway` em `backend/tests/fake_garmin.py` + testes: happy path completo, idempotência (2× sync → contagens idênticas), incremental após backfill (SYNC-27) (≥ 12 novos; total ≥ 66)
+- [x] `pending → running` grava `started_at`; fim → `done|error` grava `finished_at`; transições fora dessa sequência levantam (SYNC-04)
+- [x] Job ativo existente → `IntegrityError` → `JobConflictError` (base do 409)
+- [x] Janelas: sem `sync_state` → backfill (180d/60d); senão `last_date − repull` até hoje (SYNC-10/15)
+- [x] Falha de atividades após retries → `error` (SYNC-14); falha de tipo de saúde/recordes → `done` + `warnings` e os demais tipos continuam (SYNC-20)
+- [x] `sync_state` atualizado só em tipo bem-sucedido (SYNC-13/21)
+- [x] `stats_json` com todos os contadores do design + `calls_made` + `duration_s` + `message` PT-BR (ex.: "Puxando 12 atividades…") (SYNC-05/06/17)
+- [x] `GarminAuthExpiredError` → `error` + `reauth_needed: true` (SYNC-25); `SyncBudgetExceededError` → `error` com stats das chamadas feitas (SYNC-09)
+- [x] `FakeGateway` em `backend/tests/fake_garmin.py` + testes: happy path completo, idempotência (2× sync → contagens idênticas), incremental após backfill (SYNC-27) (≥ 12 novos; total ≥ 66)
 
 **Tests**: integration (`backend/tests/test_garmin_service.py`)
 **Gate**: full

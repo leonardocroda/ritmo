@@ -184,9 +184,9 @@ Edge cases como critérios indesejados (IF/THEN) ou de fronteira (WHEN):
 | SYNC-01 | P1 Botão/job · AC1 (POST cria job, 201) | Design | In Tasks |
 | SYNC-02 | P1 Botão/job · AC2 (409 se running) | Design | Implementing |
 | SYNC-03 | P1 Botão/job · AC3 (sequencial + intervalo) | Design | Implementing |
-| SYNC-04 | P1 Botão/job · AC4 (máquina de estados) | Design | In Tasks |
-| SYNC-05 | P1 Botão/job · AC5 (stats parciais via GET) | Design | In Tasks |
-| SYNC-06 | P1 Botão/job · AC6 (stats finais por tipo) | Design | In Tasks |
+| SYNC-04 | P1 Botão/job · AC4 (máquina de estados) | Design | Implementing |
+| SYNC-05 | P1 Botão/job · AC5 (stats parciais via GET) | Design | Implementing |
+| SYNC-06 | P1 Botão/job · AC6 (stats finais por tipo) | Design | Implementing |
 | SYNC-07 | P1 Botão/job · AC7 (retry backoff 429) | Design | Implementing |
 | SYNC-08 | P1 Botão/job · AC8 (UI: progresso/resumo) | Design | In Tasks |
 | SYNC-09 | P1 Botão/job · AC9 (guard rail SYNC_MAX_CALLS) | Design | Implementing |
@@ -194,20 +194,20 @@ Edge cases como critérios indesejados (IF/THEN) ou de fronteira (WHEN):
 | SYNC-11 | P1 Atividades · AC2 (upsert dedup garmin_id/idx) | Design | Implementing |
 | SYNC-12 | P1 Atividades · AC3 (splits só corrida) | Design | Implementing |
 | SYNC-13 | P1 Atividades · AC4 (last_sync_activities) | Design | Implementing |
-| SYNC-14 | P1 Atividades · AC5 (falha → job error) | Design | In Tasks |
+| SYNC-14 | P1 Atividades · AC5 (falha → job error) | Design | Implementing |
 | SYNC-15 | P1 Backfill · AC1 (janelas 180d/60d) | Design | Implementing |
 | SYNC-16 | P1 Backfill · AC2 (recordes todo sync) | Design | Implementing |
-| SYNC-17 | P1 Backfill · AC3 (calls_made auditável) | Design | In Tasks |
+| SYNC-17 | P1 Backfill · AC3 (calls_made auditável) | Design | Implementing |
 | SYNC-18 | P1 Saúde · AC1 (re-pull 3d, upsert (user,date)) | Design | Implementing |
 | SYNC-19 | P1 Saúde · AC2 (dia vazio → skip) | Design | Implementing |
-| SYNC-20 | P1 Saúde · AC3 (falha tipo → done + warnings) | Design | In Tasks |
+| SYNC-20 | P1 Saúde · AC3 (falha tipo → done + warnings) | Design | Implementing |
 | SYNC-21 | P1 Saúde · AC4 (last_sync por tipo) | Design | Implementing |
 | SYNC-22 | P1 PMC · AC1 (CTL/ATL/TSB/ACWR de training_load) | Design | Implementing |
 | SYNC-23 | P1 PMC · AC2 (recompute janela afetada) | Design | Implementing |
 | SYNC-24 | P1 PMC · AC3 (sem load → carga 0) | Design | Implementing |
 | SYNC-25 | P2 Reconectar · AC1 (error + reauth_needed) | Design | Implementing |
 | SYNC-26 | P2 Reconectar · AC2 (UI estado reconectar) | Design | In Tasks |
-| SYNC-27 | P2 Reconectar · AC3 (retomada incremental) | Design | In Tasks |
+| SYNC-27 | P2 Reconectar · AC3 (retomada incremental) | Design | Implementing |
 
 **ID format**: `SYNC-NN` · **Status values**: Pending → In Design → In Tasks → Implementing → Verified
 
