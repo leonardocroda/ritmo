@@ -328,12 +328,12 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `POST /api/sync` cria job `pending` + agenda background task → 201 `{id, status}` (SYNC-01)
-- [ ] Job ativo → 409 com id/status/started_at do corrente (SYNC-02)
-- [ ] `GET /jobs/{id}` → `JobOut` completo; 404 para id inexistente
-- [ ] `GET /jobs/latest` → último job; `{job: null}` quando nunca houve sync
-- [ ] Router montado no `app/main.py`
-- [ ] TestClient + FakeGateway: POST executa o sync de fundo sincronamente → job `done` com stats (≥ 7 novos; total ≥ 75)
+- [x] `POST /api/sync` cria job `pending` + agenda background task → 201 `{id, status}` (SYNC-01)
+- [x] Job ativo → 409 com id/status/started_at do corrente (SYNC-02)
+- [x] `GET /jobs/{id}` → `JobOut` completo; 404 para id inexistente
+- [x] `GET /jobs/latest` → último job; `{job: null}` quando nunca houve sync
+- [x] Router montado no `app/main.py`
+- [x] TestClient + FakeGateway: POST executa o sync de fundo sincronamente → job `done` com stats (≥ 7 novos; total ≥ 75)
 
 **Tests**: integration (`backend/tests/test_sync_api.py`)
 **Gate**: full

@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
 from app.db.engine import init_db
+from app.garmin.router import router as sync_router
 from app.garmin.service import recover_stale_jobs
 
 settings = get_settings()
@@ -40,6 +41,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(sync_router)
 
 
 @app.get("/api/health")

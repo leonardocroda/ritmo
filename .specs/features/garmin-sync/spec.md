@@ -181,7 +181,7 @@ Edge cases como critérios indesejados (IF/THEN) ou de fronteira (WHEN):
 
 | Requirement ID | Story (AC) | Phase | Status |
 | -------------- | ---------- | ----- | ------ |
-| SYNC-01 | P1 Botão/job · AC1 (POST cria job, 201) | Design | In Tasks |
+| SYNC-01 | P1 Botão/job · AC1 (POST cria job, 201) | Design | Implementing |
 | SYNC-02 | P1 Botão/job · AC2 (409 se running) | Design | Implementing |
 | SYNC-03 | P1 Botão/job · AC3 (sequencial + intervalo) | Design | Implementing |
 | SYNC-04 | P1 Botão/job · AC4 (máquina de estados) | Design | Implementing |
