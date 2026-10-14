@@ -125,12 +125,14 @@ T8
 
 **Done when**:
 
-- [ ] Nenhuma referência a `sqlite`, `PRAGMA` ou `check_same_thread` no engine
-- [ ] `init_db` continua criando schema + seed do usuário default (coberto pela suite existente)
-- [ ] Gate check passes: `uv run pytest` — 5 tests pass (nenhum deletado)
+- [x] Nenhuma referência a `sqlite`, `PRAGMA` ou `check_same_thread` no engine
+- [x] `init_db` continua criando schema + seed do usuário default (coberto pela suite existente)
+- [x] Gate check passes: `uv run pytest` — 5 tests pass (nenhum deletado)
 
 **Tests**: integration (suite existente; sem novos asserts — remoção de código morto)
 **Gate**: quick
+
+**Status**: ✅ Complete — gate 5/5 (2026-10-14)
 
 **Commit**: `refactor(db): drop sqlite-specific engine code for postgres-only path`
 

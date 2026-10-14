@@ -1,12 +1,12 @@
 """Engine e sessão SQLAlchemy.
 
-SQLite em modo WAL na v1 (zero ops, requisito do plano).
-Postgres na Fase 2.5 = trocar DATABASE_URL, nada mais.
+Postgres desde a v1 (AD-007), driver psycopg3 — caminho único, sem código
+específico de dialeto. Config 100% via DATABASE_URL (requisito travado).
 """
 
 from collections.abc import Iterator
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import get_settings
@@ -14,18 +14,7 @@ from app.db.base import Base
 
 settings = get_settings()
 
-_connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
-
-engine = create_engine(settings.database_url, connect_args=_connect_args)
-
-if engine.url.drivername.startswith("sqlite"):
-
-    @event.listens_for(engine, "connect")
-    def _sqlite_pragmas(dbapi_connection, _connection_record) -> None:
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA journal_mode=WAL")
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
+engine = create_engine(settings.database_url)
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
