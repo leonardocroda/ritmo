@@ -39,6 +39,8 @@ def test_schema_created() -> None:
         "races",
         "patterns",
         "sync_jobs",
+        "personal_records",
+        "sync_state",
     }
     assert expected <= table_names, f"Faltando: {expected - table_names}"
 

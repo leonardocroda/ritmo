@@ -17,10 +17,12 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -69,6 +71,7 @@ class Activity(Base):
 
 class Split(Base):
     __tablename__ = "splits"
+    __table_args__ = (UniqueConstraint("activity_id", "idx", name="uq_split_activity_idx"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), default=DEFAULT_USER_ID, index=True)
@@ -245,6 +248,16 @@ class SyncJob(Base):
     """
 
     __tablename__ = "sync_jobs"
+    # Lock por usuário no nível do banco (SYNC-02): um job ativo por usuário,
+    # sem janela de corrida entre check e insert.
+    __table_args__ = (
+        Index(
+            "uq_syncjobs_user_active",
+            "user_id",
+            unique=True,
+            postgresql_where=text("status IN ('pending', 'running')"),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), default=DEFAULT_USER_ID, index=True)
@@ -255,3 +268,29 @@ class SyncJob(Base):
     error: Mapped[str | None] = mapped_column(Text)
     stats_json: Mapped[dict | None] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
+class PersonalRecord(Base):
+    """Recorde pessoal de corrida — upsert por (user_id, event)."""
+
+    __tablename__ = "personal_records"
+    __table_args__ = (UniqueConstraint("user_id", "event", name="uq_pr_user_event"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), default=DEFAULT_USER_ID, index=True)
+    event: Mapped[str] = mapped_column(String(60))  # ex.: "FASTEST_5K" / "5K"
+    value: Mapped[float | None] = mapped_column(Float)
+    pr_date: Mapped[date | None] = mapped_column(Date)
+    raw_json: Mapped[dict | None] = mapped_column(JSON)  # sempre preservado (spec)
+
+
+class SyncState(Base):
+    """last_sync por tipo de dado — memória do incremental."""
+
+    __tablename__ = "sync_state"
+    __table_args__ = (UniqueConstraint("user_id", "data_type", name="uq_syncstate_user_type"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), default=DEFAULT_USER_ID, index=True)
+    data_type: Mapped[str] = mapped_column(String(40))  # activities|sleep|hrv|rhr|stress|body_battery|records
+    last_date: Mapped[date] = mapped_column(Date)  # fim da última janela concluída com sucesso

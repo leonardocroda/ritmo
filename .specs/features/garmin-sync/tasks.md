@@ -108,12 +108,12 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `personal_records` com `(user_id, event)` único, `value`, `pr_date`, `raw_json`, `user_id` com default
-- [ ] `sync_state` com `(user_id, data_type)` único e `last_date`
-- [ ] `splits` com `UniqueConstraint("activity_id", "idx", name="uq_split_activity_idx")`
-- [ ] `sync_jobs` com índice parcial único `(user_id) WHERE status IN ('pending', 'running')`
-- [ ] `test_schema_created` estendido: expected set passa a incluir `personal_records` e `sync_state`
-- [ ] Gate: suite completa passa (contagem de testes inalterada: 9 — só a asserção existente cresce)
+- [x] `personal_records` com `(user_id, event)` único, `value`, `pr_date`, `raw_json`, `user_id` com default
+- [x] `sync_state` com `(user_id, data_type)` único e `last_date`
+- [x] `splits` com `UniqueConstraint("activity_id", "idx", name="uq_split_activity_idx")`
+- [x] `sync_jobs` com índice parcial único `(user_id) WHERE status IN ('pending', 'running')`
+- [x] `test_schema_created` estendido: expected set passa a incluir `personal_records` e `sync_state`
+- [x] Gate: suite completa passa (contagem de testes inalterada: 9 — só a asserção existente cresce)
 
 **Tests**: none (entity layer — matriz; schema coberto pela extensão do `test_schema_created` acima)
 **Gate**: build
