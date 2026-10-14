@@ -255,11 +255,11 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `aggregate_daily_loads`: soma de `training_load` por data local; atividade sem load conta 0 (SYNC-24)
-- [ ] CTL = EWMA α=1/42, ATL = EWMA α=1/7, TSB = CTL−ATL (SYNC-22)
-- [ ] ACWR = soma(7d)/(soma(28d)/4); `None` até a janela de 28d existir completa
-- [ ] `recompute(from_date)` recalcula só da janela afetada até hoje; semente CTL/ATL vem da última linha anterior de `load`; linhas anteriores intocadas (SYNC-23)
-- [ ] Valores de ≥ 3 dias conferidos contra cálculo manual em fixtures (Independent Test do spec) (≥ 8 novos; total ≥ 54)
+- [x] `aggregate_daily_loads`: soma de `training_load` por data local; atividade sem load conta 0 (SYNC-24)
+- [x] CTL = EWMA α=1/42, ATL = EWMA α=1/7, TSB = CTL−ATL (SYNC-22)
+- [x] ACWR = soma(7d)/(soma(28d)/4); `None` até a janela de 28d existir completa
+- [x] `recompute(from_date)` recalcula só da janela afetada até hoje; semente CTL/ATL vem da última linha anterior de `load`; linhas anteriores intocadas (SYNC-23)
+- [x] Valores de ≥ 3 dias conferidos contra cálculo manual em fixtures (Independent Test do spec) (≥ 8 novos; total ≥ 54)
 
 **Tests**: unit + integration (`backend/tests/test_garmin_pmc.py`)
 **Gate**: full
