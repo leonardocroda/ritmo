@@ -77,6 +77,59 @@ services:
 Dentro do compose nada muda (o backend usa o hostname `postgres`); apenas o
 `DATABASE_URL` do `.env` passa a apontar para `localhost:5433`.
 
+## Sync do Garmin
+
+O botão **Puxar do Garmin** (header global, visível de qualquer painel) roda
+um job sequencial que popula o banco: atividades + splits, sono, HRV, RHR,
+body battery, stress, recordes de corrida e a série de carga
+(CTL/ATL/TSB/ACWR, calculada localmente a partir do `training_load` — zero
+chamadas extras à API).
+
+- **Primeira sync (backfill)**: 180 dias de atividades + 60 dias de saúde +
+  recordes. São ~400 chamadas sequenciais (1 por segundo, nunca em paralelo) —
+  cerca de 10 minutos com o progresso visível no botão ("Puxando 231
+  atividades…", "Puxando sono: 47 dias…").
+- **Syncs seguintes**: janela incremental (re-puxa os últimos 3 dias) — ~23
+  chamadas em ~35s. Rodar 2× não cria duplicatas: toda escrita é upsert por
+  chave natural (`garmin_id`, `(user_id, data)`, `(user_id, evento)`,
+  `(activity_id, idx)`).
+- **Guard rails** (todas as `SYNC_*` documentadas em `backend/.env.example`):
+  teto `SYNC_MAX_CALLS` (default 1500), intervalo mínimo
+  `SYNC_CALL_INTERVAL_S` (default 1s), retry com backoff 2/4/8s.
+
+Validação real (14/10/2026): backfill com 232 atividades + 1563 splits +
+60–61 dias de cada tipo de saúde + 7 recordes, `calls_made` 408 em 606s;
+sync incremental seguinte com 23 chamadas e contagens idênticas; PMC de 3
+dias conferida contra cálculo manual; token inválido termina `error` com
+`reauth_needed` e nenhuma chamada de dados feita.
+
+### Reconectar Garmin (token expirado)
+
+O token dura ~6 meses. Quando expira, o job termina `error` com
+`reauth_needed` e o botão mostra **Reconectar Garmin** com a instrução da
+CLI — a UI nunca pede credenciais (decisão do spec: re-auth é CLI):
+
+```bash
+cd backend
+uv run python -m app.garmin.login   # email via input, senha via getpass, MFA quando exigido
+```
+
+No compose: `docker compose exec backend python -m app.garmin.login` — os
+tokens do host (`~/.garminconnect`) já estão montados em `/garminconnect`.
+Depois do login, clicar de novo no botão retoma o sync incremental, sem
+backfill.
+
+### Acessando pela LAN
+
+O frontend chama a API pela URL de `NEXT_PUBLIC_API_URL` (default
+`http://localhost:8000`), inlada no build do Next — mudar o valor exige
+rebuild do frontend, não basta restart. Para usar o Ritmo de outro aparelho
+da rede (ex.: celular), aponte para o IP do host:
+
+```bash
+NEXT_PUBLIC_API_URL=http://192.168.0.10:8000 docker compose up -d --build frontend
+```
+
 ## Workflow de desenvolvimento — spec-driven
 
 Toda feature nasce de um **spec validado**, vira **tasks atômicas** e termina em

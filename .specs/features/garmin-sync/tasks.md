@@ -444,13 +444,13 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] Sync real termina `done` com dados em todas as tabelas e `calls_made` registrado
-- [ ] Spot-check de mapeamentos contra `raw_json` (mitigação do risco #3 do design); divergência → correção de mapper + teste de fixture
-- [ ] PMC de 3 dias conferida contra cálculo manual em Python puro (Independent Test do spec)
-- [ ] Segundo sync usa janela incremental (`calls_made` muito menor que o backfill)
-- [ ] Logs comprovam sequência com intervalo (nenhuma chamada paralela)
-- [ ] README ganha seção "Sync do Garmin": botão, primeira sync, re-auth via CLI, acesso pela LAN
-- [ ] Suite completa passa: ≥ 78 testes
+- [x] Sync real termina `done` com dados em todas as tabelas e `calls_made` registrado
+- [x] Spot-check de mapeamentos contra `raw_json` (mitigação do risco #3 do design); divergência → correção de mapper + teste de fixture
+- [x] PMC de 3 dias conferida contra cálculo manual em Python puro (Independent Test do spec)
+- [x] Segundo sync usa janela incremental (`calls_made` muito menor que o backfill)
+- [x] Logs comprovam sequência com intervalo (nenhuma chamada paralela)
+- [x] README ganha seção "Sync do Garmin": botão, primeira sync, re-auth via CLI, acesso pela LAN
+- [x] Suite completa passa: ≥ 78 testes
 
 **Tests**: none (UAT real com evidência; o Verificador independente roda depois por contrato da skill)
 **Gate**: build

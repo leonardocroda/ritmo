@@ -219,9 +219,9 @@ Edge cases como critérios indesejados (IF/THEN) ou de fronteira (WHEN):
 
 Como sabemos que a feature é um sucesso:
 
-- [ ] Clicar "Puxar do Garmin" com tokens válidos termina em `done` com dados no banco e zero chamadas paralelas (verificável: log sequencial + `calls_made`)
-- [ ] Steady-state (pós-backfill) faz ≤ ~20 chamadas sequenciais por sync — dentro do espírito do teto do plano
-- [ ] Rodar o sync 2× não altera contagens de nenhuma tabela (idempotente)
-- [ ] Primeiro sync em banco vazio: ~180d de atividades, 60d de saúde, recordes gravados
-- [ ] Token inválido → job `error` com `reauth_needed`, UI clara, nenhum dado corrompido; renovar tokens retoma incremental
-- [ ] Toda escrita carrega `user_id` (AD-001) e toda configuração vem de env vars (requisito travado)
+- [x] Clicar "Puxar do Garmin" com tokens válidos termina em `done` com dados no banco e zero chamadas paralelas (verificável: log sequencial + `calls_made`)
+- [x] Steady-state (pós-backfill) faz ≤ ~20 chamadas sequenciais por sync — dentro do espírito do teto do plano
+- [x] Rodar o sync 2× não altera contagens de nenhuma tabela (idempotente)
+- [x] Primeiro sync em banco vazio: ~180d de atividades, 60d de saúde, recordes gravados
+- [x] Token inválido → job `error` com `reauth_needed`, UI clara, nenhum dado corrompido; renovar tokens retoma incremental
+- [x] Toda escrita carrega `user_id` (AD-001) e toda configuração vem de env vars (requisito travado)
