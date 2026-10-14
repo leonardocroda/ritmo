@@ -353,9 +353,9 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] Base lê `process.env.NEXT_PUBLIC_API_URL` com fallback `http://localhost:8000`
-- [ ] `startSync()` e `getLatestJob()` tipados (`JobOut` espelhando o schema de stats do design)
-- [ ] `npm run build` e `npm run lint` passam
+- [x] Base lê `process.env.NEXT_PUBLIC_API_URL` com fallback `http://localhost:8000`
+- [x] `startSync()` e `getLatestJob()` tipados (`JobOut` espelhando o schema de stats do design)
+- [x] `npm run build` e `npm run lint` passam
 
 **Tests**: none (frontend sem infra de testes — matriz: build + UAT)
 **Gate**: build

@@ -188,7 +188,7 @@ Edge cases como critérios indesejados (IF/THEN) ou de fronteira (WHEN):
 | SYNC-05 | P1 Botão/job · AC5 (stats parciais via GET) | Design | Implementing |
 | SYNC-06 | P1 Botão/job · AC6 (stats finais por tipo) | Design | Implementing |
 | SYNC-07 | P1 Botão/job · AC7 (retry backoff 429) | Design | Implementing |
-| SYNC-08 | P1 Botão/job · AC8 (UI: progresso/resumo) | Design | In Tasks |
+| SYNC-08 | P1 Botão/job · AC8 (UI: progresso/resumo) | Design | Implementing |
 | SYNC-09 | P1 Botão/job · AC9 (guard rail SYNC_MAX_CALLS) | Design | Implementing |
 | SYNC-10 | P1 Atividades · AC1 (janela incremental) | Design | Implementing |
 | SYNC-11 | P1 Atividades · AC2 (upsert dedup garmin_id/idx) | Design | Implementing |
