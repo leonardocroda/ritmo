@@ -275,12 +275,14 @@ T8
 
 **Done when**:
 
-- [ ] Env example mostra `DATABASE_URL=postgresql+psycopg://ritmo:ritmo@localhost:5432/ritmo` (sem `sqlite://`)
-- [ ] README cobre: primeiro `up`, dev diário, pytest, override de porta
-- [ ] Gate check passes: build-lite (`docker compose config -q`)
+- [x] Env example mostra `DATABASE_URL=postgresql+psycopg://ritmo:ritmo@localhost:5432/ritmo` (sem `sqlite://`)
+- [x] README cobre: primeiro `up`, dev diário, pytest, override de porta
+- [x] Gate check passes: build-lite (`docker compose config -q`)
 
 **Tests**: none (camada docs — matriz diz none)
 **Gate**: build
+
+**Status**: ✅ Complete — env example UTF-8 limpo, README com stack/dev/testes/porta; também atualizadas as menções a SQLite que esta feature invalidou (2026-10-14)
 
 **Commit**: `docs(readme): document local postgres setup via docker compose`
 
