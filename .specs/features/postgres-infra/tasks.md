@@ -184,15 +184,17 @@ T8
 
 **Done when**:
 
-- [ ] `uv run pytest` roda contra `ritmo_test` (localhost:5432) e termina verde — 8 tests (5 + 3 novos)
-- [ ] Teste novo: engine conectado ao dialeto `postgresql+psycopg` (INFRA-09)
-- [ ] Teste novo: cada teste vê só o usuário seed (estado limpo — INFRA-05)
-- [ ] Teste novo: `ensure_postgres_available` em URL morta levanta erro citando `docker compose up -d postgres` (INFRA-06)
-- [ ] Com postgres fora do ar: pytest falha imediatamente com a mensagem de instrução
-- [ ] Gate check passes: full — 8 tests pass
+- [x] `uv run pytest` roda contra `ritmo_test` (localhost:5432) e termina verde — 9 tests (5 + 4 novos)
+- [x] Teste novo: engine conectado ao dialeto `postgresql+psycopg` (INFRA-09)
+- [x] Teste novo: cada teste vê só o usuário seed (estado limpo — INFRA-05; par de testes polui → verifica)
+- [x] Teste novo: `ensure_postgres_available` em URL morta levanta erro citando `docker compose up -d postgres` (INFRA-06)
+- [x] Com postgres fora do ar: pytest falha imediatamente com a mensagem de instrução (demostrado: `docker compose stop postgres` → RuntimeError com hint, teto de 3s/endereço)
+- [x] Gate check passes: full — 9 tests pass em ~10s
 
-**Tests**: integration (3 novos)
+**Tests**: integration (4 novos)
 **Gate**: full
+
+**Status**: ✅ Complete — gate 9/9 em 9.62s; demo com banco fora do ar OK (2026-10-14)
 
 **Commit**: `test(backend): run pytest against compose postgres with clean state per test`
 
@@ -299,7 +301,7 @@ T8
 
 - [ ] `docker compose down -v && docker compose up -d --build`: 3 serviços saudáveis, backend após postgres healthy
 - [ ] `curl -fsS http://localhost:8000/api/health` → 200 com `"status": "ok"`; `curl -fsSI http://localhost:3000` → 200
-- [ ] `uv run pytest` → 8 tests pass contra o Postgres do compose
+- [ ] `uv run pytest` → 9 tests pass contra o Postgres do compose
 - [ ] `docker compose down && docker compose up -d`: schema e usuário default persistem (volume)
 - [ ] Resultados registrados neste tasks.md (evidência do gate Build)
 
