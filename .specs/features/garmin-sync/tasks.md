@@ -230,12 +230,12 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `upsert_activity` por `garmin_id` retorna `"new"`/`"updated"`
-- [ ] `upsert_splits` por `(activity_id, idx)` + prune de `idx >= len(rows)`
-- [ ] `upsert_health_rows` genérico por `(user_id, date)` para sleep/hrv/rhr/battery/stress
-- [ ] `upsert_records` por `(user_id, event)`
-- [ ] `set_sync_state`/`get_sync_state` por `(user_id, data_type)`
-- [ ] Testes no Postgres real: reexecutar 2× → contagens estáveis (Independent Test do spec) (≥ 10 novos; total ≥ 46)
+- [x] `upsert_activity` por `garmin_id` retorna `"new"`/`"updated"`
+- [x] `upsert_splits` por `(activity_id, idx)` + prune de `idx >= len(rows)`
+- [x] `upsert_health_rows` genérico por `(user_id, date)` para sleep/hrv/rhr/battery/stress
+- [x] `upsert_records` por `(user_id, event)`
+- [x] `set_sync_state`/`get_sync_state` por `(user_id, data_type)`
+- [x] Testes no Postgres real: reexecutar 2× → contagens estáveis (Independent Test do spec) (≥ 10 novos; total ≥ 46)
 
 **Tests**: integration (`backend/tests/test_garmin_upserts.py`)
 **Gate**: full
