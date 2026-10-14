@@ -206,7 +206,7 @@ Edge cases como critérios indesejados (IF/THEN) ou de fronteira (WHEN):
 | SYNC-23 | P1 PMC · AC2 (recompute janela afetada) | Design | Implementing |
 | SYNC-24 | P1 PMC · AC3 (sem load → carga 0) | Design | Implementing |
 | SYNC-25 | P2 Reconectar · AC1 (error + reauth_needed) | Design | Implementing |
-| SYNC-26 | P2 Reconectar · AC2 (UI estado reconectar) | Design | In Tasks |
+| SYNC-26 | P2 Reconectar · AC2 (UI estado reconectar) | Design | Implementing |
 | SYNC-27 | P2 Reconectar · AC3 (retomada incremental) | Design | Implementing |
 
 **ID format**: `SYNC-NN` · **Status values**: Pending → In Design → In Tasks → Implementing → Verified

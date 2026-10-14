@@ -375,12 +375,12 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] Docs do Next 16 lidos antes de codar (`frontend/node_modules/next/dist/docs/` — aviso do `frontend/AGENTS.md`)
-- [ ] Botão desabilita durante `pending|running` e exibe `stats.message` ("Puxando 12 atividades…") (SYNC-08)
-- [ ] `done` → resumo PT-BR dos contadores; `error` → mensagem do erro
-- [ ] `reauth_needed` → estado "Reconectar Garmin" com o comando CLI no lugar do resumo (SYNC-26)
-- [ ] Polling para quando o job chega a estado final; retoma ao clicar de novo
-- [ ] `npm run build` e `npm run lint` passam
+- [x] Docs do Next 16 lidos antes de codar (`frontend/node_modules/next/dist/docs/` — aviso do `frontend/AGENTS.md`)
+- [x] Botão desabilita durante `pending|running` e exibe `stats.message` ("Puxando 12 atividades…") (SYNC-08)
+- [x] `done` → resumo PT-BR dos contadores; `error` → mensagem do erro
+- [x] `reauth_needed` → estado "Reconectar Garmin" com o comando CLI no lugar do resumo (SYNC-26)
+- [x] Polling para quando o job chega a estado final; retoma ao clicar de novo
+- [x] `npm run build` e `npm run lint` passam
 
 **Tests**: none (frontend sem infra de testes — matriz: build + UAT)
 **Gate**: build
