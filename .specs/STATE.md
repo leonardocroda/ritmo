@@ -60,11 +60,11 @@
 
 ## Handoff
 
-- **Feature**: `garmin-sync` — spec completo e aprovado, aguardando Design → Tasks. Pré-requisito `postgres-infra` concluído e validado.
-- **Phase / Task**: n/a (feature não iniciada; `.specs/features/garmin-sync/spec.md` tem 27 requisitos SYNC-01..27, 5 histórias P1 + 1 P2)
-- **Completed**: `postgres-infra` — commits `2d97924`..`90d1363` + validação PASS em `83d8408` (veredito em `.specs/features/postgres-infra/validation.md`; 9/9 ACs, sensor 3/3 mortos, `validate_state.py` exit 0)
-- **In-progress**: none
-- **Next step**: Design → Tasks do `garmin-sync` (stack compose no ar: postgres healthy, backend :8000, frontend :3000; suite roda no Postgres `ritmo_test` via `docker compose up -d postgres`)
-- **Blockers**: none (`NVIDIA_API_KEY` só na feature de avaliação IA; garmin-sync usa tokens existentes em `~/.garminconnect`)
+- **Feature**: `garmin-sync` — design aprovado + tasks aprovadas (15 tasks, 6 fases); Execute em andamento via 3 lotes sequenciais de sub-agentes
+- **Phase / Task**: Execute · Lote 1 de 3 (T1–T5: models, config, compose, gateway, mappers) despachado
+- **Completed**: spec (27 reqs SYNC-01..27) → design (`design.md`) → tasks (`tasks.md`, gate `validate_tasks.py` 0 erros); postgres-infra concluída antes (commits `2d97924`..`90d1363`, PASS em `83d8408`)
+- **In-progress**: Lote 1 (T1–T5) no worker; Lotes 2 (T6–T10) e 3 (T11–T15) pendentes; após o último task, Verifier automático (author ≠ verifier) + `validate_state.py`
+- **Next step**: receber resumo do Lote 1 → atualizar tasks.md → despachar Lote 2 → Lote 3 → Verifier → distilar lições
+- **Blockers**: none (`NVIDIA_API_KEY` é da feature de avaliação IA; garmin-sync usa tokens de `~/.garminconnect`, montados no compose pela T3)
 - **Uncommitted files**: none
 - **Branch**: main
