@@ -422,9 +422,9 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] Pede email/senha via `input`/`getpass`; MFA via prompt quando a lib sinaliza
-- [ ] Grava tokens no path de `GARMINTOKENS` e aplica `secure_token_dir`
-- [ ] Testes com `Garmin` stubado: fluxo direto, fluxo MFA, dump no path (≥ 3 novos; total ≥ 78)
+- [x] Pede email/senha via `input`/`getpass`; MFA via prompt quando a lib sinaliza
+- [x] Grava tokens no path de `GARMINTOKENS` e aplica `secure_token_dir`
+- [x] Testes com `Garmin` stubado: fluxo direto, fluxo MFA, dump no path (≥ 3 novos; total ≥ 78)
 
 **Tests**: unit (`backend/tests/test_garmin_login.py`)
 **Gate**: quick
