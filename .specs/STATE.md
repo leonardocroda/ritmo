@@ -61,10 +61,10 @@
 ## Handoff
 
 - **Feature**: `garmin-sync` — design aprovado + tasks aprovadas (15 tasks, 6 fases); Execute em andamento via 3 lotes sequenciais de sub-agentes
-- **Phase / Task**: Execute · Lote 1 concluído (T1–T5, commits `61729ce`..`31ffa21`, 45 testes); Lote 2 de 3 (T6–T10: upserts, PMC, service, recovery, router) em dispatch
-- **Completed**: spec (27 reqs SYNC-01..27) → design → tasks (commits `793361b`); Lote 1: models/config/compose/gateway/mappers
-- **In-progress**: Lote 2 (T6–T10) no worker; Lote 3 (T11–T15) pendente; depois Verifier automático + `validate_state.py`
-- **Next step**: resumo do Lote 2 → Lote 3 → Verifier → distilar lições. Gaps de payload do Lote 1 (nomes de campos de atividades/battery/recordes) são validados na T15 contra `raw_json` da primeira sync real
+- **Phase / Task**: Execute · Lotes 1–2 concluídos (T1–T10; Lote 2: `d8f6a57`..`ea69d3a`, 90 testes reconciliados); Lote 3 de 3 (T11–T15: frontend, CLI login, primeira sync real) em dispatch
+- **Completed**: spec → design → tasks (`793361b`); Lote 1 (`61729ce`..`31ffa21`, 45 testes); Lote 2 (`d8f6a57`..`ea69d3a`, 90 testes)
+- **In-progress**: Lote 3 (T11–T15) no worker; depois Verifier automático + `validate_state.py`
+- **Next step**: resumo do Lote 3 → reconciliação → Verifier (author ≠ verifier, sensor de mutação, `validation.md`) → lições. Lembretes: imagens do compose (backend/frontend) são pré-Lote-1 e precisam `--build` na T15; gaps de payload do Lote 1 são validados na T15 contra `raw_json`
 - **Blockers**: none (`NVIDIA_API_KEY` é da feature de avaliação IA; garmin-sync usa tokens de `~/.garminconnect`, montados no compose pela T3)
 - **Uncommitted files**: none
 - **Branch**: main
