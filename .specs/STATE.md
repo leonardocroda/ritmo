@@ -61,10 +61,10 @@
 ## Handoff
 
 - **Feature**: `garmin-sync` — design aprovado + tasks aprovadas (15 tasks, 6 fases); Execute em andamento via 3 lotes sequenciais de sub-agentes
-- **Phase / Task**: Execute · Lote 1 de 3 (T1–T5: models, config, compose, gateway, mappers) despachado
-- **Completed**: spec (27 reqs SYNC-01..27) → design (`design.md`) → tasks (`tasks.md`, gate `validate_tasks.py` 0 erros); postgres-infra concluída antes (commits `2d97924`..`90d1363`, PASS em `83d8408`)
-- **In-progress**: Lote 1 (T1–T5) no worker; Lotes 2 (T6–T10) e 3 (T11–T15) pendentes; após o último task, Verifier automático (author ≠ verifier) + `validate_state.py`
-- **Next step**: receber resumo do Lote 1 → atualizar tasks.md → despachar Lote 2 → Lote 3 → Verifier → distilar lições
+- **Phase / Task**: Execute · Lote 1 concluído (T1–T5, commits `61729ce`..`31ffa21`, 45 testes); Lote 2 de 3 (T6–T10: upserts, PMC, service, recovery, router) em dispatch
+- **Completed**: spec (27 reqs SYNC-01..27) → design → tasks (commits `793361b`); Lote 1: models/config/compose/gateway/mappers
+- **In-progress**: Lote 2 (T6–T10) no worker; Lote 3 (T11–T15) pendente; depois Verifier automático + `validate_state.py`
+- **Next step**: resumo do Lote 2 → Lote 3 → Verifier → distilar lições. Gaps de payload do Lote 1 (nomes de campos de atividades/battery/recordes) são validados na T15 contra `raw_json` da primeira sync real
 - **Blockers**: none (`NVIDIA_API_KEY` é da feature de avaliação IA; garmin-sync usa tokens de `~/.garminconnect`, montados no compose pela T3)
 - **Uncommitted files**: none
 - **Branch**: main
