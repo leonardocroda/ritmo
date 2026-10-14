@@ -11,7 +11,7 @@ from app.core.config import Settings
 from app.db.engine import SessionLocal
 from app.db.models import DEFAULT_USER_ID, User
 from app.main import app
-from helpers import POSTGRES_UP_HINT, ensure_postgres_available
+from helpers import ensure_postgres_available
 
 
 def test_default_database_url_is_postgres(monkeypatch) -> None:
@@ -54,8 +54,12 @@ def test_clean_state_sees_only_seed() -> None:
 
 
 def test_fail_fast_message_when_postgres_down() -> None:
-    """URL morta → RuntimeError citando o comando de subida do compose (INFRA-06)."""
+    """URL morta → RuntimeError citando o comando de subida do compose (INFRA-06).
+
+    O literal é o resultado definido no spec — afirmar a constante compartilhada
+    com a implementação deixaria um mutante da mensagem sobreviver (lição L-001).
+    """
     dead_url = "postgresql+psycopg://ritmo:ritmo@localhost:59999/ritmo_test"
     with pytest.raises(RuntimeError) as exc_info:
         ensure_postgres_available(dead_url)
-    assert POSTGRES_UP_HINT in str(exc_info.value)
+    assert "docker compose up -d postgres" in str(exc_info.value)
