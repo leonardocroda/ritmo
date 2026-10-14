@@ -156,10 +156,10 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] Serviço `backend`: volume `~/.garminconnect` montado em caminho interno + `GARMINTOKENS` apontando para ele + `TZ=America/Sao_Paulo`
-- [ ] Serviço `frontend`: build arg `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`); `frontend/Dockerfile` declara o `ARG` antes do build
-- [ ] `docker compose config -q` passa
-- [ ] Stack sobe: `docker compose up -d` → `/api/health` 200 e frontend responde em `:3000`
+- [x] Serviço `backend`: volume `~/.garminconnect` montado em caminho interno + `GARMINTOKENS` apontando para ele + `TZ=America/Sao_Paulo`
+- [x] Serviço `frontend`: build arg `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`); `frontend/Dockerfile` declara o `ARG` antes do build
+- [x] `docker compose config -q` passa
+- [x] Stack sobe: `docker compose up -d` → `/api/health` 200 e frontend responde em `:3000`
 
 **Tests**: none (infra layer — matriz: build gate only)
 **Gate**: build

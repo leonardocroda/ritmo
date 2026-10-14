@@ -25,6 +25,12 @@ services:
     container_name: ritmo-backend
     environment:
       DATABASE_URL: postgresql+psycopg://ritmo:ritmo@postgres:5432/ritmo
+      # Tokens do host montados dentro do container (SYNC-25) — no Windows
+      # `~` não expande no compose, por isso USERPROFILE.
+      GARMINTOKENS: /garminconnect
+      TZ: America/Sao_Paulo
+    volumes:
+      - ${USERPROFILE}/.garminconnect:/garminconnect
     ports:
       - "8000:8000"
     depends_on:
@@ -32,7 +38,11 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        # O Next inlina NEXT_PUBLIC_* no build time — chega como build arg
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     container_name: ritmo-frontend
     ports:
       - "3000:3000"

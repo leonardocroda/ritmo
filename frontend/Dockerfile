@@ -5,6 +5,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
+# URL da API lida pelo cliente — o Next inlina NEXT_PUBLIC_* durante o
+# build, então o valor chega como build arg e vira env antes de `next build`.
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 COPY . .
 RUN npm run build
 
