@@ -1,0 +1,62 @@
+# STATE
+
+## Decisions
+
+### AD-001
+- **Decision**: Arquitetura multiusuário-pronta desde o dia 1, mesmo single-user: `user_id` em toda tabela, SQLAlchemy como ORM, SQLite (WAL) na v1 — migrar para Postgres é trocar a connection string.
+- **Reason**: As 5 decisões de custo zero (plano §10) destravam o beta controlado da Fase 2.5 sem refactor de isolamento.
+- **Trade-off**: Verbosidade agora (coluna `user_id` com `DEFAULT_USER_ID = 1`) em troca de escala depois.
+- **Scope**: Todo o schema (`backend/app/db/models.py`), toda query, todo job.
+- **Date**: 2026-10-14
+- **Status**: active
+
+### AD-002
+- **Decision**: Integração Garmin é sempre sequencial (nunca paralela), isolada em `SyncJob(user_id, janela)`, re-puxando os últimos 3 dias + atividades novas; a UI lê exclusivamente do banco próprio.
+- **Reason**: Lição paga: ~40 chamadas paralelas derrubaram uma sessão (rate limit + re-auth MFA); o Garmin reprocessa dados por até 72h.
+- **Trade-off**: Sync mais lento em troca de nunca matar a sessão OAuth. Teto ~15 chamadas sequenciais por sync.
+- **Scope**: `backend/app/garmin/`, qualquer código que toque a API do Garmin, botão "Puxar do Garmin".
+- **Date**: 2026-10-14
+- **Status**: active
+
+### AD-003
+- **Decision**: Motor de avaliação híbrido: Python calcula deterministicamente todos os números (zonas, drift, decoupling, splits) e o LLM só interpreta, devolvendo JSON estruturado de veredito; toda chamada grava `model`, `prompt_version` e tokens.
+- **Reason**: Zero alucinação de número; auditoria de custo por avaliação (medidor para futura cobrança por tokens); veredito consumível pela UI campo a campo.
+- **Trade-off**: Mais código Python testável vs. simplicidade de "mandar tudo pro LLM".
+- **Scope**: Endpoint de avaliação, payload builder, schema `evaluations`.
+- **Date**: 2026-10-14
+- **Status**: active
+
+### AD-004
+- **Decision**: "Potencial máximo" é exibido como faixa honesta — VDOT demonstrado em prova máxima (5K 19:23 ≈ 53) vs. VDOT corrente calibrado (50,2) — nunca um número único.
+- **Reason**: Número mágico único desrespeita a variabilidade real; a lacuna entre demonstrado e corrente é a narrativa do painel.
+- **Trade-off**: Menos "precision theater" no UI em troca de honestidade sobre o que o teste atual valida.
+- **Scope**: Painel Potencial, vereditos de IA, previsões de prova.
+- **Date**: 2026-10-14
+- **Status**: active
+
+### AD-005
+- **Decision**: Hierarquia de confiança de métricas: pace/GPS decide; FC de pulso (óptica) apenas corrobora, nunca fundamenta veredito sozinha.
+- **Reason**: FC óptica tem lag e deriva (desarranjo aeróbico, dias quentes); tratá-la como juiz gera veredito errado.
+- **Trade-off**: Exige contexto (clima, sono) antes de interpretar FC alta — julgamento menos automático, mais correto.
+- **Scope**: Motor de avaliação, painéis, qualquer análise de esforço.
+- **Date**: 2026-10-14
+- **Status**: active
+
+### AD-006
+- **Decision**: Postura de distribuição: local-first para uso pessoal; beta convidado (5–20 usuários) é viável com ~1–2 semanas (Fase 2.5); lançamento comercial é bloqueado pela API não-oficial `garminconnect` (ToS), não pela infra.
+- **Reason**: A API oficial (Garmin Health API) exige revisão e é paga; para uso pessoal e beta pequeno o risco é aceitável.
+- **Trade-off**: Teto de crescimento deliberado em troca de zero custo e zero burocracia agora.
+- **Scope**: Roadmap (Fases 2.5/3), qualquer feature que assuma dados Garmin.
+- **Date**: 2026-10-14
+- **Status**: active
+
+## Handoff
+
+- **Feature**: nenhuma em andamento — Fase 0 concluída (repo, esqueletos backend/frontend, skill instalada)
+- **Phase / Task**: n/a
+- **Completed**: Fase 0 — commits `2ea5c3c`..`71fbe65` (plano, README, backend FastAPI+SQLAlchemy com 15 tabelas e testes 3/3, frontend Next.js 16+Recharts, skill tlc-spec-driven v3.3.0)
+- **In-progress**: none
+- **Next step**: "specify feature: sync do Garmin" — primeira feature da Fase 1 (botão Puxar do Garmin, sync incremental)
+- **Blockers**: none (`NVIDIA_API_KEY` só é necessária na feature de avaliação IA, não no sync)
+- **Uncommitted files**: none
+- **Branch**: main
