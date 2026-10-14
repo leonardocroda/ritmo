@@ -155,13 +155,15 @@ T8
 
 **Done when**:
 
-- [ ] `docker compose config -q` passa
-- [ ] `docker compose up -d postgres` deixa o healthcheck `healthy` e `\l` mostra `ritmo` e `ritmo_test`
-- [ ] Volume `postgres-data` declarado; `docker compose down` (sem `-v`) preserva os dados
-- [ ] Gate check passes: build (compose config + up postgres healthy)
+- [x] `docker compose config -q` passa
+- [x] `docker compose up -d postgres` deixa o healthcheck `healthy` e `\l` mostra `ritmo` e `ritmo_test`
+- [x] Volume `postgres-data` declarado; `docker compose down` (sem `-v`) preserva os dados
+- [x] Gate check passes: build (compose config + up postgres healthy)
 
 **Tests**: none (camada Docker/compose — matriz diz none, build gate decide)
 **Gate**: build
+
+**Status**: ✅ Complete — config OK, health healthy, bancos ritmo + ritmo_test verificados via psql (2026-10-14)
 
 **Commit**: `feat(infra): add postgres service with healthcheck, volume and test db init`
 
