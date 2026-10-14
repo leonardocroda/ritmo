@@ -217,13 +217,15 @@ T8
 
 **Done when**:
 
-- [ ] `docker compose up -d --build` sobe o backend só após postgres `healthy`
-- [ ] `curl -fsS http://localhost:8000/api/health` retorna 200 (backend conectado ao Postgres por env)
-- [ ] Nenhuma URL de banco no Dockerfile (vem 100% de environment)
-- [ ] Gate check passes: build (compose config + up + curl 200)
+- [x] `docker compose up -d --build` sobe o backend só após postgres `healthy`
+- [x] `curl -fsS http://localhost:8000/api/health` retorna 200 (backend conectado ao Postgres por env)
+- [x] Nenhuma URL de banco no Dockerfile (vem 100% de environment)
+- [x] Gate check passes: build (compose config + up + curl 200)
 
 **Tests**: none (camada Docker/compose — matriz diz none, build gate decide)
 **Gate**: build
+
+**Status**: ✅ Complete — health 200 `{"status":"ok"}`, seed no Postgres do container, startup após `service_healthy` (2026-10-14)
 
 **Commit**: `feat(infra): containerize backend and wire it to postgres via compose`
 

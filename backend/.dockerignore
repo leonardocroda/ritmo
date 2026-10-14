@@ -1,0 +1,11 @@
+# Ritmo backend — o que não entra na imagem
+.venv
+.pytest_cache
+__pycache__
+**/__pycache__
+tests
+data
+*.db
+.env
+Dockerfile
+.dockerignore

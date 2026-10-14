@@ -20,5 +20,16 @@ services:
       timeout: 3s
       retries: 10
 
+  backend:
+    build: ./backend
+    container_name: ritmo-backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://ritmo:ritmo@postgres:5432/ritmo
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres-data:

@@ -85,7 +85,7 @@ Toda ambiguidade resolvida ou registrada aqui.
 | -------------- | ---------- | ----- | ------ |
 | INFRA-01 | P1 · AC1 (compose 3 serviços + healthcheck) | Design | Pending |
 | INFRA-02 | P1 · AC2 (backend 200 em 8000, frontend 200 em 3000) | Design | Pending |
-| INFRA-03 | P1 · AC3 (DATABASE_URL só por env) | Design | Implementing |
+| INFRA-03 | P1 · AC3 (DATABASE_URL só por env) | Design | Verified |
 | INFRA-04 | P1 · AC4 (create_all + seed no Postgres) | Design | Verified |
 | INFRA-05 | P1 · AC5 (pytest em ritmo_test, estado limpo) | Design | Verified |
 | INFRA-06 | P1 · AC6 (Postgres fora → erro claro) | Design | Verified |
