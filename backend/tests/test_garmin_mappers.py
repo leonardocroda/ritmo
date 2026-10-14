@@ -26,6 +26,7 @@ from helpers import (
     STRESS_PAYLOAD,
     TRAIL_ACTIVITY_PAYLOAD,
     YOGA_ACTIVITY_PAYLOAD,
+    YOGA_NO_DISTANCE_PAYLOAD,
 )
 from app.garmin.mappers import (
     is_running,
@@ -71,6 +72,20 @@ def test_map_activity_sparse_payload_preserves_raw_json() -> None:
     assert row["power"] is None
     assert row["aerobic_te"] is None
     assert row["raw_json"] == SPARSE_ACTIVITY_PAYLOAD
+
+
+def test_map_activity_without_distance_maps_to_zero() -> None:
+    """T15 spot-check real: yoga/força vêm com distance=None e a coluna
+    distance_m é NOT NULL — o mapper materializa 0.0 (a atividade não
+    cobre distância); os demais campos seguem o payload.
+    """
+    row = map_activity(YOGA_NO_DISTANCE_PAYLOAD)
+    assert row["distance_m"] == 0.0
+    assert row["activity_type"] == "yoga"
+    assert row["duration_s"] == 2681.52
+    assert row["avg_hr"] == 61
+    assert row["training_load"] == 0.4336700439453125
+    assert row["raw_json"] == YOGA_NO_DISTANCE_PAYLOAD
 
 
 def test_is_running_accepts_running_and_trail() -> None:
@@ -156,13 +171,16 @@ def test_map_hrv_none_when_no_data() -> None:
 
 
 def test_map_rhr_extracts_resting_hr() -> None:
+    """Shape real da sonda T15: valor aninhado em allMetrics.metricsMap."""
     row = map_rhr(RHR_PAYLOAD)
-    assert row == {"date": date(2024, 1, 15), "value": 55}
+    assert row == {"date": date(2026, 10, 13), "value": 42.0}
 
 
 def test_map_rhr_none_when_no_data() -> None:
+    """SYNC-19: wrapper sem a métrica -> skip do dia."""
     assert map_rhr(None) is None
     assert map_rhr(RHR_NO_DATA_PAYLOAD) is None
+    assert map_rhr({"allMetrics": {"metricsMap": {}}}) is None
 
 
 def test_map_stress_produces_daily_average() -> None:
@@ -175,13 +193,21 @@ def test_map_stress_none_when_no_data() -> None:
     assert map_stress(STRESS_NO_DATA_PAYLOAD) is None
 
 
-def test_map_battery_one_row_per_calendar_date() -> None:
-    """Design: 1 linha por calendarDate; dia sem data não vira linha."""
+def test_map_battery_one_row_per_date() -> None:
+    """Design: 1 linha por `date` com o nível mais recente do dia
+    (último par de bodyBatteryValuesArray — shape real da sonda T15)."""
     assert map_battery(BATTERY_ROWS) == [
-        {"date": date(2024, 1, 15), "value": 55},
-        {"date": date(2024, 1, 14), "value": 40},
+        {"date": date(2026, 10, 13), "value": 62},
+        {"date": date(2026, 10, 12), "value": 40},
     ]
     assert map_battery(None) == []
+
+
+def test_map_battery_skips_row_with_empty_series() -> None:
+    """T15: dia com série vazia não tem valor de bateria — não vira
+    linha (equivalente de SYNC-19 no range de battery)."""
+    rows = map_battery([{"date": "2026-10-11", "bodyBatteryValuesArray": []}])
+    assert rows == []
 
 
 def test_map_personal_records_filters_running_records() -> None:

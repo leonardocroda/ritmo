@@ -13,7 +13,7 @@ Fatos verificados da lib (garminconnect==0.3.2, pinada no pyproject):
 
 import time
 from collections.abc import Callable
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 from garminconnect import (
@@ -27,6 +27,7 @@ from app.core.config import Settings
 from app.garmin.token_utils import resolve_token_path, secure_token_dir
 
 PAGE_SIZE = 20
+BATTERY_MAX_RANGE_DAYS = 28  # T15 real: a API devolve 400 "date range is too big" acima disso
 RETRY_BACKOFF_S = (2, 4, 8)  # SYNC-07: backoff exponencial literal do spec
 
 
@@ -148,9 +149,25 @@ class GarminGateway:
         return self._call(lambda: self._garmin.get_stress_data(day.isoformat()))
 
     def get_body_battery(self, start: date, end: date) -> list[dict]:
-        return self._call(
-            lambda: self._garmin.get_body_battery(start.isoformat(), end.isoformat())
-        )
+        """Body battery da janela, fatiada em blocos de <= 28 dias.
+
+        Descoberta da primeira sync real (T15): ranges maiores tomam 400
+        ("date range is too big"). Cada bloco é 1 chamada contada com o
+        seu intervalo — a sequência permanece (SYNC-03).
+        """
+        rows: list[dict] = []
+        block_start = start
+        while block_start <= end:
+            block_end = min(block_start + timedelta(days=BATTERY_MAX_RANGE_DAYS - 1), end)
+            rows.extend(
+                self._call(
+                    lambda bs=block_start, be=block_end: self._garmin.get_body_battery(
+                        bs.isoformat(), be.isoformat()
+                    )
+                )
+            )
+            block_start = block_end + timedelta(days=1)
+        return rows
 
     def get_personal_records(self) -> dict:
         return self._call(self._garmin.get_personal_record)

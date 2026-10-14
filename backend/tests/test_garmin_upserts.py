@@ -261,12 +261,12 @@ def test_upsert_health_rows_covers_each_health_model(db):
 
     hrv = db.execute(select(Hrv).where(Hrv.date == date(2024, 1, 15))).scalar_one()
     assert hrv.value == 48
-    rhr = db.execute(select(Rhr).where(Rhr.date == date(2024, 1, 15))).scalar_one()
-    assert rhr.value == 55
+    rhr = db.execute(select(Rhr).where(Rhr.date == date(2026, 10, 13))).scalar_one()
+    assert rhr.value == 42  # 42.0 no payload real; coluna Integer
     battery_dates = (
         db.execute(select(BodyBattery.date).order_by(BodyBattery.date)).scalars().all()
     )
-    assert battery_dates == [date(2024, 1, 14), date(2024, 1, 15)]
+    assert battery_dates == [date(2026, 10, 12), date(2026, 10, 13)]
     stress = db.execute(select(Stress).where(Stress.date == date(2024, 1, 15))).scalar_one()
     assert stress.avg == 25
 

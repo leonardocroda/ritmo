@@ -246,6 +246,23 @@ def test_get_activities_single_short_page_stops(sleeps):
     assert len(fake.calls["connectapi"]) == 1
 
 
+def test_get_battery_chunks_range_over_28_days(sleeps):
+    """T15 real: a API limita o range de body battery ("date range is
+    too big") — janela de 61 dias vira 3 blocos de <= 28 dias, cada um
+    contado com o seu intervalo (sequência preservada, SYNC-03)."""
+    fake = FakeGarmin()
+    gateway = GarminGateway(fake, make_settings())
+    result = gateway.get_body_battery(date(2026, 8, 15), date(2026, 10, 14))
+    assert fake.calls["get_body_battery"] == [
+        ("2026-08-15", "2026-09-11"),
+        ("2026-09-12", "2026-10-09"),
+        ("2026-10-10", "2026-10-14"),
+    ]
+    assert gateway.calls_made == 3
+    assert sleeps == [1.0, 1.0, 1.0]
+    assert len(result) == 3  # 1 linha por bloco no stub
+
+
 def test_gateway_exposes_eight_data_methods(sleeps):
     """Design: os 8 métodos de dados, cada um exatamente 1 chamada via _call()."""
     fake = FakeGarmin()

@@ -41,7 +41,15 @@ def _hrv_payload(day: date) -> dict:
 
 
 def _rhr_payload(day: date) -> dict:
-    return dict(RHR_PAYLOAD, calendarDate=day.isoformat())
+    # Shape real (T15): a data do dia vive dentro de allMetrics.metricsMap
+    reading = dict(
+        RHR_PAYLOAD["allMetrics"]["metricsMap"]["WELLNESS_RESTING_HEART_RATE"][0],
+        calendarDate=day.isoformat(),
+    )
+    return dict(
+        RHR_PAYLOAD,
+        allMetrics={"metricsMap": {"WELLNESS_RESTING_HEART_RATE": [reading]}},
+    )
 
 
 def _stress_payload(day: date) -> dict:
@@ -143,7 +151,7 @@ class FakeGateway:
         day = start
         while day <= end:
             if day not in self.battery_no_data:
-                rows.append(dict(BATTERY_ROWS[0], calendarDate=day.isoformat()))
+                rows.append(dict(BATTERY_ROWS[0], date=day.isoformat()))
             day += timedelta(days=1)
         return rows
 

@@ -47,7 +47,9 @@ def map_activity(raw: dict) -> dict:
         "start_time": datetime.strptime(raw["startTimeLocal"], "%Y-%m-%d %H:%M:%S"),
         "activity_type": raw["activityType"]["typeKey"],
         "name": raw.get("activityName"),
-        "distance_m": raw.get("distance"),
+        # Yoga/força vêm com distance=None (T15: payload real); a coluna é
+        # NOT NULL e "0.0" é a verdade — a atividade não cobre distância.
+        "distance_m": raw.get("distance") or 0.0,
         "duration_s": raw.get("duration"),
         "avg_hr": raw.get("averageHR"),
         "max_hr": raw.get("maxHR"),
@@ -127,13 +129,22 @@ def map_hrv(raw: dict | None) -> dict | None:
 
 
 def map_rhr(raw: dict | None) -> dict | None:
-    """RHR -> `Rhr`; `None` em dia sem dado (SYNC-19)."""
-    raw = raw or {}
-    if raw.get("restingHeartRate") is None or not raw.get("calendarDate"):
+    """RHR -> `Rhr`; `None` em dia sem dado (SYNC-19).
+
+    Shape real (sonda T15): `get_rhr_day` devolve o valor aninhado em
+    `allMetrics.metricsMap.WELLNESS_RESTING_HEART_RATE` — uma lista de
+    `{value, calendarDate}`.
+    """
+    metrics = ((raw or {}).get("allMetrics") or {}).get("metricsMap") or {}
+    readings = metrics.get("WELLNESS_RESTING_HEART_RATE") or []
+    if not readings:
+        return None
+    reading = readings[0]
+    if reading.get("value") is None or not reading.get("calendarDate"):
         return None
     return {
-        "date": date.fromisoformat(raw["calendarDate"]),
-        "value": raw["restingHeartRate"],
+        "date": date.fromisoformat(reading["calendarDate"]),
+        "value": reading["value"],
     }
 
 
@@ -149,19 +160,24 @@ def map_stress(raw: dict | None) -> dict | None:
 
 
 def map_battery(rows: list | None) -> list[dict]:
-    """Body battery (1 chamada de range) -> 1 linha por `calendarDate`.
+    """Body battery (1 chamada de range) -> 1 linha por `date`.
 
-    Linhas sem `calendarDate` não têm chave de upsert e são puladas.
+    Shape real (sonda T15): a linha do dia traz `date` (não
+    `calendarDate`) e a série `bodyBatteryValuesArray` de pares
+    [timestamp, nível] — o valor mais recente do dia é o último nível
+    da série. Linhas sem `date` ou com série vazia não têm chave de
+    upsert e são puladas (SYNC-19).
     """
     mapped = []
     for row in rows or []:
-        calendar_date = row.get("calendarDate")
-        if not calendar_date:
+        day = row.get("date")
+        values = row.get("bodyBatteryValuesArray") or []
+        if not day or not values:
             continue
         mapped.append(
             {
-                "date": date.fromisoformat(calendar_date),
-                "value": row.get("bodyBatteryMostRecentValue"),
+                "date": date.fromisoformat(day),
+                "value": values[-1][1],
             }
         )
     return mapped

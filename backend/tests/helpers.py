@@ -75,6 +75,23 @@ TRAIL_ACTIVITY_PAYLOAD = {"activityType": {"typeKey": "trail_running", "typeId":
 CYCLING_ACTIVITY_PAYLOAD = {"activityType": {"typeKey": "cycling", "typeId": 2}}
 YOGA_ACTIVITY_PAYLOAD = {"activityType": {"typeKey": "yoga", "typeId": 62}}
 
+# Atividade sem distância — payload REAL capturado na primeira sync (T15):
+# o Garmin entrega distance=None para yoga/força e a coluna distance_m é
+# NOT NULL; o mapper materializa 0.0 (zero distância coberta).
+YOGA_NO_DISTANCE_PAYLOAD = {
+    "activityId": 24667764311,
+    "activityName": "Ioga",
+    "activityType": {"typeKey": "yoga", "typeId": 62},
+    "startTimeLocal": "2026-10-09 19:06:47",
+    "distance": None,
+    "duration": 2681.52,
+    "averageHR": 61,
+    "maxHR": 89,
+    "aerobicTrainingEffect": 0.0,
+    "anaerobicTrainingEffect": 0.0,
+    "activityTrainingLoad": 0.4336700439453125,
+}
+
 # Splits: shape real é dict com lista interna (lapDTOs) — a lista
 # direta é a forma alternativa normalizada pelo design
 SPLITS_LAPDTOS_PAYLOAD = {
@@ -153,16 +170,28 @@ HRV_NO_DATA_PAYLOAD = {
 }
 
 RHR_PAYLOAD = {
-    "calendarDate": "2024-01-15",
-    "restingHeartRate": 55,
-    "lastSevenDaysAvgRestingHeartRate": 57,
-    "lastNightAvgRestingHeartRate": 53,
+    # Payload REAL da sonda T15 (get_rhr_day, metricId=60): o valor vem
+    # aninhado em allMetrics.metricsMap — shape confirmado contra a API.
+    "userProfileId": 122886821,
+    "statisticsStartDate": "2026-10-13",
+    "statisticsEndDate": "2026-10-13",
+    "allMetrics": {
+        "metricsMap": {
+            "WELLNESS_RESTING_HEART_RATE": [
+                {"value": 42.0, "calendarDate": "2026-10-13"}
+            ]
+        }
+    },
+    "groupedMetrics": None,
 }
 
+# Dia sem dado: o wrapper vem sem a métrica (SYNC-19)
 RHR_NO_DATA_PAYLOAD = {
-    "calendarDate": "2024-01-15",
-    "restingHeartRate": None,
-    "lastSevenDaysAvgRestingHeartRate": None,
+    "userProfileId": 122886821,
+    "statisticsStartDate": "2026-10-13",
+    "statisticsEndDate": "2026-10-13",
+    "allMetrics": {"metricsMap": {}},
+    "groupedMetrics": None,
 }
 
 STRESS_PAYLOAD = {
@@ -182,12 +211,30 @@ STRESS_NO_DATA_PAYLOAD = {
     "stressValuesArray": [],
 }
 
-# Body battery: 1 chamada de range devolve uma lista de dias; a 3ª
-# linha não tem calendarDate (dia sem dado) e não pode virar linha
+# Body battery: payload REAL da sonda T15 (get_body_battery range) — a
+# linha do dia tem `date` (não calendarDate) e a série
+# bodyBatteryValuesArray de pares [timestamp, nível]; o valor mais
+# recente do dia é o último nível. A 3ª linha não tem `date` e a 4ª tem
+# série vazia (dia sem dado) — nenhuma pode virar linha (SYNC-19).
 BATTERY_ROWS = [
-    {"calendarDate": "2024-01-15", "charged": 55, "drained": 45, "bodyBatteryMostRecentValue": 55},
-    {"calendarDate": "2024-01-14", "charged": 100, "drained": 60, "bodyBatteryMostRecentValue": 40},
-    {"charged": 90, "drained": 10, "bodyBatteryMostRecentValue": 80},
+    {
+        "date": "2026-10-13",
+        "charged": 58,
+        "drained": 82,
+        "bodyBatteryValuesArray": [
+            [1789614000000, 32],
+            [1789632900000, 86],
+            [1789642800000, 62],
+        ],
+    },
+    {
+        "date": "2026-10-12",
+        "charged": 100,
+        "drained": 60,
+        "bodyBatteryValuesArray": [[1789527600000, 40]],
+    },
+    {"charged": 90, "drained": 10, "bodyBatteryValuesArray": [[1789441200000, 80]]},
+    {"date": "2026-10-11", "bodyBatteryValuesArray": []},
 ]
 
 # Recordes: typeId é o identificador real do Garmin; corrida = 1..7
