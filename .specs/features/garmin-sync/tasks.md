@@ -400,9 +400,9 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] Header renderiza nome do app + `SyncButton`, responsivo (desktop e mobile)
-- [ ] Montado no `frontend/src/app/layout.tsx` (server component wrapper)
-- [ ] `npm run build` e `npm run lint` passam
+- [x] Header renderiza nome do app + `SyncButton`, responsivo (desktop e mobile)
+- [x] Montado no `frontend/src/app/layout.tsx` (server component wrapper)
+- [x] `npm run build` e `npm run lint` passam
 
 **Tests**: none (frontend sem infra de testes — matriz: build + UAT)
 **Gate**: build
