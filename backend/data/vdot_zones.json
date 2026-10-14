@@ -1,0 +1,43 @@
+{
+  "vdot": 50.2,
+  "source": "10K em 41:15",
+  "test_date": "2026-10-03",
+  "distancia_metros": 10012,
+  "tempo_segundos": 2475,
+  "zones": {
+    "easy": {
+      "pace_range": "5:51/km-4:53/km",
+      "ms_min": 2.851,
+      "ms_max": 3.418,
+      "description": "Recuperação, base aeróbica, aquecimento/desaquecimento"
+    },
+    "marathon": {
+      "pace": "4:30/km",
+      "ms": 3.701,
+      "description": "Ritmo de maratona, longões"
+    },
+    "threshold": {
+      "pace_range": "4:14/km-4:27/km",
+      "ms_min": 3.749,
+      "ms_max": 3.931,
+      "description": "Limiar de lactato, tempo runs"
+    },
+    "interval": {
+      "pace_range": "3:59/km-3:49/km",
+      "ms_min": 4.183,
+      "ms_max": 4.36,
+      "description": "VO2max, esforços de 2-4 min"
+    },
+    "repetition": {
+      "pace": "3:40/km",
+      "ms": 4.536,
+      "description": "Repetições curtas, 800m-1km"
+    }
+  },
+  "equivalencias": {
+    "5K": "3:58/km",
+    "10K": "4:07/km",
+    "Meia Maratona": "4:19/km",
+    "Maratona": "4:30/km"
+  }
+}

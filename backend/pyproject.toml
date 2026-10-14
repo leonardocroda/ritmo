@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ritmo-backend"
+version = "0.1.0"
+description = "Ritmo — plataforma pessoal de corrida (sync Garmin + avaliação com IA)"
+requires-python = ">=3.12"
+dependencies = [
+    # API
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    # Banco — SQLAlchemy 2.x (requisito travado: SQLite -> Postgres = troca de connection string)
+    "sqlalchemy>=2.0.36",
+    # Config 100% por env vars (requisito travado)
+    "pydantic-settings>=2.6",
+    # Garmin Connect — MESMA versão usada pelo garmin_mcp.
+    # Lição travada: chamadas sequenciais, nunca paralelas (rate limit).
+    "garminconnect==0.3.2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0",
+    # TestClient do FastAPI depende do httpx
+    "httpx>=0.28",
+]
