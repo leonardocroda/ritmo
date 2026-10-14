@@ -204,13 +204,13 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `map_activity` cobre todos os campos de `Activity` + `raw_json` preservado
-- [ ] `is_running` aceita `running`/`trail_running` (base de SYNC-12)
-- [ ] `map_splits` normaliza dict-com-lista e lista direta; vazio/`None` → `[]` sem warning (edge do spec)
-- [ ] Mappers de saúde devolvem `None` quando não há dado (skip do dia, SYNC-19)
-- [ ] `map_battery` gera 1 linha por `calendarDate`; `map_stress` produz a média diária
-- [ ] `map_personal_records` filtra para corrida e extrai `event`/`value`/`pr_date`
-- [ ] Fixtures de payload por endpoint em `backend/tests/` (≥ 12 novos; total ≥ 36)
+- [x] `map_activity` cobre todos os campos de `Activity` + `raw_json` preservado
+- [x] `is_running` aceita `running`/`trail_running` (base de SYNC-12)
+- [x] `map_splits` normaliza dict-com-lista e lista direta; vazio/`None` → `[]` sem warning (edge do spec)
+- [x] Mappers de saúde devolvem `None` quando não há dado (skip do dia, SYNC-19)
+- [x] `map_battery` gera 1 linha por `calendarDate`; `map_stress` produz a média diária
+- [x] `map_personal_records` filtra para corrida e extrai `event`/`value`/`pr_date`
+- [x] Fixtures de payload por endpoint em `backend/tests/` (≥ 12 novos; total ≥ 36)
 
 **Tests**: unit (`backend/tests/test_garmin_mappers.py`)
 **Gate**: quick
