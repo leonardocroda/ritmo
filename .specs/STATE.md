@@ -8,7 +8,7 @@
 - **Trade-off**: Verbosidade agora (coluna `user_id` com `DEFAULT_USER_ID = 1`) em troca de escala depois.
 - **Scope**: Todo o schema (`backend/app/db/models.py`), toda query, todo job.
 - **Date**: 2026-10-14
-- **Status**: active
+- **Status**: superseded by AD-007 (cláusula de armazenamento: SQLite → Postgres; `user_id` + SQLAlchemy seguem vigentes)
 
 ### AD-002
 - **Decision**: Integração Garmin é sempre sequencial (nunca paralela), isolada em `SyncJob(user_id, janela)`, re-puxando os últimos 3 dias + atividades novas; a UI lê exclusivamente do banco próprio.
@@ -47,6 +47,14 @@
 - **Reason**: A API oficial (Garmin Health API) exige revisão e é paga; para uso pessoal e beta pequeno o risco é aceitável.
 - **Trade-off**: Teto de crescimento deliberado em troca de zero custo e zero burocracia agora.
 - **Scope**: Roadmap (Fases 2.5/3), qualquer feature que assuma dados Garmin.
+- **Date**: 2026-10-14
+- **Status**: active
+
+### AD-007
+- **Decision**: Postgres desde a v1 (substitui o "SQLite (WAL) na v1" da AD-001); o ambiente local sobe por `docker-compose.yml` (postgres + backend + frontend); SQLAlchemy e `user_id` em toda tabela seguem como na AD-001.
+- **Reason**: Decisão do usuário (14/10/2026): elimina a migração futura de banco e valida o caminho de produção desde o dia 1; compose dá ambiente reproduzível no PC.
+- **Trade-off**: Exige Docker rodando local e um pouco mais de ops (container + volume do Postgres) em troca de zero migração de banco depois.
+- **Scope**: `DATABASE_URL`/engine (`app/db/engine.py`), `docker-compose.yml`, Dockerfiles, `.env`, docs de setup, conftest de testes.
 - **Date**: 2026-10-14
 - **Status**: active
 
