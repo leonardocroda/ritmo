@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 2,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "surviving_mutant::pin spec defined error messages with their literal string not with the constant the implementation interpolates to build the message",
+      "text": "Pin spec-defined error messages with their literal string, not with the constant the implementation interpolates to build the message",
+      "signal": "surviving_mutant",
+      "scope": "backend/tests",
+      "status": "candidate",
+      "features": [
+        "postgres-infra"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "backend/tests/test_infra.py:61 (mutant M2) (backend/tests)"
+      ],
+      "created": "2026-10-14T15:15:00Z",
+      "last_seen": "2026-10-14T15:15:00Z"
+    }
+  ]
+}
