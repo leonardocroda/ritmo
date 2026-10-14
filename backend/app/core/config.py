@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     app_env: str = "dev"
     cors_origins: str = "http://localhost:3000"
 
-    # Banco
-    database_url: str = "sqlite:///./ritmo.db"
+    # Banco — Postgres desde a v1 (AD-007); driver psycopg3
+    database_url: str = "postgresql+psycopg://ritmo:ritmo@localhost:5432/ritmo"
 
     # NVIDIA NIM — avaliação de treino com IA
     nvidia_api_key: str = ""
