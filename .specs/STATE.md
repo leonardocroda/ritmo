@@ -60,11 +60,11 @@
 
 ## Handoff
 
-- **Feature**: nenhuma em andamento — Fase 0 concluída (repo, esqueletos backend/frontend, skill instalada)
-- **Phase / Task**: n/a
-- **Completed**: Fase 0 — commits `2ea5c3c`..`71fbe65` (plano, README, backend FastAPI+SQLAlchemy com 15 tabelas e testes 3/3, frontend Next.js 16+Recharts, skill tlc-spec-driven v3.3.0)
+- **Feature**: `garmin-sync` — spec completo e aprovado, aguardando Design → Tasks. Pré-requisito `postgres-infra` concluído e validado.
+- **Phase / Task**: n/a (feature não iniciada; `.specs/features/garmin-sync/spec.md` tem 27 requisitos SYNC-01..27, 5 histórias P1 + 1 P2)
+- **Completed**: `postgres-infra` — commits `2d97924`..`90d1363` + validação PASS em `83d8408` (veredito em `.specs/features/postgres-infra/validation.md`; 9/9 ACs, sensor 3/3 mortos, `validate_state.py` exit 0)
 - **In-progress**: none
-- **Next step**: "specify feature: sync do Garmin" — primeira feature da Fase 1 (botão Puxar do Garmin, sync incremental)
-- **Blockers**: none (`NVIDIA_API_KEY` só é necessária na feature de avaliação IA, não no sync)
+- **Next step**: Design → Tasks do `garmin-sync` (stack compose no ar: postgres healthy, backend :8000, frontend :3000; suite roda no Postgres `ritmo_test` via `docker compose up -d postgres`)
+- **Blockers**: none (`NVIDIA_API_KEY` só na feature de avaliação IA; garmin-sync usa tokens existentes em `~/.garminconnect`)
 - **Uncommitted files**: none
 - **Branch**: main
