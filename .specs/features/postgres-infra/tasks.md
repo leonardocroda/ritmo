@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: inline — feature média, sem `design.md` (decisões na AD-007 e no spec)
-**Status**: In Progress
+**Status**: Done
 
 ---
 
@@ -305,14 +305,16 @@ T8
 
 **Done when**:
 
-- [ ] `docker compose down -v && docker compose up -d --build`: 3 serviços saudáveis, backend após postgres healthy
-- [ ] `curl -fsS http://localhost:8000/api/health` → 200 com `"status": "ok"`; `curl -fsSI http://localhost:3000` → 200
-- [ ] `uv run pytest` → 9 tests pass contra o Postgres do compose
-- [ ] `docker compose down && docker compose up -d`: schema e usuário default persistem (volume)
-- [ ] Resultados registrados neste tasks.md (evidência do gate Build)
+- [x] `docker compose down -v && docker compose up -d --build`: 3 serviços saudáveis, backend após postgres healthy
+- [x] `curl -fsS http://localhost:8000/api/health` → 200 com `"status": "ok"`; `curl -fsSI http://localhost:3000` → 200
+- [x] `uv run pytest` → 9 tests pass contra o Postgres do compose (9.72s)
+- [x] `docker compose down && docker compose up -d`: schema e usuário default persistem (volume) — `SELECT count(*) FROM users` → 1
+- [x] Resultados registrados neste tasks.md (evidência do gate Build)
 
 **Tests**: none (tarefa de verificação — o gate Build é a verificação)
 **Gate**: build
+
+**Status**: ✅ Complete — stack do zero (down -v → up --build) saudável; curls 200; 9/9 testes; volume persiste após down/up (2026-10-14)
 
 **Commit**: `chore(infra): verify full stack end to end on postgres`
 
