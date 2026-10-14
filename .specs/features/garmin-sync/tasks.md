@@ -179,12 +179,12 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `GarminGateway.from_settings()` faz login pelo tokenstore e expõe os 8 métodos de dados do design
-- [ ] Toda chamada passa pelo `_call()`: incrementa `calls_made`, dorme `sync_call_interval_s`, retenta `GarminConnectTooManyRequestsError`/erros transitórios com backoff 2s/4s/8s até `sync_retry_max`
-- [ ] `GarminConnectAuthenticationError` → `GarminAuthExpiredError` sem retry
-- [ ] `calls_made >= sync_max_calls` → `SyncBudgetExceededError` antes da chamada
-- [ ] `get_activities` pagina por 20 via `connectapi` com contagem + sleep por página (nunca a paginação interna da lib)
-- [ ] Testes com lib stubada e `time.sleep` monkeypatchado: contagem, intervalo, backoff exato, sem-retry-em-auth, teto, 2 páginas de atividades (≥ 10 novos; total ≥ 24)
+- [x] `GarminGateway.from_settings()` faz login pelo tokenstore e expõe os 8 métodos de dados do design
+- [x] Toda chamada passa pelo `_call()`: incrementa `calls_made`, dorme `sync_call_interval_s`, retenta `GarminConnectTooManyRequestsError`/erros transitórios com backoff 2s/4s/8s até `sync_retry_max`
+- [x] `GarminConnectAuthenticationError` → `GarminAuthExpiredError` sem retry
+- [x] `calls_made >= sync_max_calls` → `SyncBudgetExceededError` antes da chamada
+- [x] `get_activities` pagina por 20 via `connectapi` com contagem + sleep por página (nunca a paginação interna da lib)
+- [x] Testes com lib stubada e `time.sleep` monkeypatchado: contagem, intervalo, backoff exato, sem-retry-em-auth, teto, 2 páginas de atividades (≥ 10 novos; total ≥ 24)
 
 **Tests**: unit (`backend/tests/test_garmin_gateway.py`)
 **Gate**: quick
