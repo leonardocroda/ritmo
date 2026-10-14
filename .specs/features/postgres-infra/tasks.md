@@ -246,13 +246,15 @@ T8
 
 **Done when**:
 
-- [ ] `npm run build` gera build standalone (`.next/standalone`)
-- [ ] `npm run lint` passa
-- [ ] `docker compose up -d --build` sobe o frontend e `curl -fsSI http://localhost:3000` retorna 200
-- [ ] Gate check passes: build (npm build + lint + compose up + curl 3000)
+- [x] `npm run build` gera build standalone (`.next/standalone` — `server.js` confirmado)
+- [x] `npm run lint` passa
+- [x] `docker compose up -d --build` sobe o frontend e `curl -fsSI http://localhost:3000` retorna 200
+- [x] Gate check passes: build (npm build + lint + compose up + curl 3000)
 
 **Tests**: none (camada Docker/compose — matriz diz none, build gate decide)
 **Gate**: build
+
+**Status**: ✅ Complete — HTTP/1.1 200 OK na :3000; 3 serviços Up (2026-10-14)
 
 **Commit**: `feat(infra): containerize frontend with standalone next build`
 

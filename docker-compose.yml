@@ -31,5 +31,14 @@ services:
       postgres:
         condition: service_healthy
 
+  frontend:
+    build: ./frontend
+    container_name: ritmo-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_started
+
 volumes:
   postgres-data:

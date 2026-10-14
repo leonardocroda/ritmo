@@ -1,0 +1,7 @@
+# Ritmo frontend — o que não entra na imagem
+node_modules
+.next
+.git
+.env*
+Dockerfile
+.dockerignore
