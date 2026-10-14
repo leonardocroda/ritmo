@@ -183,22 +183,22 @@ Edge cases como critérios indesejados (IF/THEN) ou de fronteira (WHEN):
 | -------------- | ---------- | ----- | ------ |
 | SYNC-01 | P1 Botão/job · AC1 (POST cria job, 201) | Design | In Tasks |
 | SYNC-02 | P1 Botão/job · AC2 (409 se running) | Design | Implementing |
-| SYNC-03 | P1 Botão/job · AC3 (sequencial + intervalo) | Design | In Tasks |
+| SYNC-03 | P1 Botão/job · AC3 (sequencial + intervalo) | Design | Implementing |
 | SYNC-04 | P1 Botão/job · AC4 (máquina de estados) | Design | In Tasks |
 | SYNC-05 | P1 Botão/job · AC5 (stats parciais via GET) | Design | In Tasks |
 | SYNC-06 | P1 Botão/job · AC6 (stats finais por tipo) | Design | In Tasks |
-| SYNC-07 | P1 Botão/job · AC7 (retry backoff 429) | Design | In Tasks |
+| SYNC-07 | P1 Botão/job · AC7 (retry backoff 429) | Design | Implementing |
 | SYNC-08 | P1 Botão/job · AC8 (UI: progresso/resumo) | Design | In Tasks |
-| SYNC-09 | P1 Botão/job · AC9 (guard rail SYNC_MAX_CALLS) | Design | In Tasks |
-| SYNC-10 | P1 Atividades · AC1 (janela incremental) | Design | In Tasks |
+| SYNC-09 | P1 Botão/job · AC9 (guard rail SYNC_MAX_CALLS) | Design | Implementing |
+| SYNC-10 | P1 Atividades · AC1 (janela incremental) | Design | Implementing |
 | SYNC-11 | P1 Atividades · AC2 (upsert dedup garmin_id/idx) | Design | Implementing |
 | SYNC-12 | P1 Atividades · AC3 (splits só corrida) | Design | In Tasks |
 | SYNC-13 | P1 Atividades · AC4 (last_sync_activities) | Design | Implementing |
 | SYNC-14 | P1 Atividades · AC5 (falha → job error) | Design | In Tasks |
-| SYNC-15 | P1 Backfill · AC1 (janelas 180d/60d) | Design | In Tasks |
+| SYNC-15 | P1 Backfill · AC1 (janelas 180d/60d) | Design | Implementing |
 | SYNC-16 | P1 Backfill · AC2 (recordes todo sync) | Design | Implementing |
 | SYNC-17 | P1 Backfill · AC3 (calls_made auditável) | Design | In Tasks |
-| SYNC-18 | P1 Saúde · AC1 (re-pull 3d, upsert (user,date)) | Design | In Tasks |
+| SYNC-18 | P1 Saúde · AC1 (re-pull 3d, upsert (user,date)) | Design | Implementing |
 | SYNC-19 | P1 Saúde · AC2 (dia vazio → skip) | Design | In Tasks |
 | SYNC-20 | P1 Saúde · AC3 (falha tipo → done + warnings) | Design | In Tasks |
 | SYNC-21 | P1 Saúde · AC4 (last_sync por tipo) | Design | Implementing |

@@ -133,10 +133,10 @@ T14 -> T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `sync_repull_days=3`, `sync_backfill_activities_days=180`, `sync_backfill_health_days=60`, `sync_call_interval_s=1.0`, `sync_max_calls=1500`, `sync_retry_max=3`
-- [ ] `.env.example` lista as 6 `SYNC_*` com comentários
-- [ ] Testes: defaults exatos (literais do spec, não constantes compartilhadas — L-001) + overrides por env
-- [ ] Gate: `uv run pytest` passa com ≥ 13 testes (9 baseline + ≥ 4 novos)
+- [x] `sync_repull_days=3`, `sync_backfill_activities_days=180`, `sync_backfill_health_days=60`, `sync_call_interval_s=1.0`, `sync_max_calls=1500`, `sync_retry_max=3`
+- [x] `.env.example` lista as 6 `SYNC_*` com comentários
+- [x] Testes: defaults exatos (literais do spec, não constantes compartilhadas — L-001) + overrides por env
+- [x] Gate: `uv run pytest` passa com ≥ 13 testes (9 baseline + ≥ 4 novos)
 
 **Tests**: unit (`backend/tests/test_sync_config.py`)
 **Gate**: quick
