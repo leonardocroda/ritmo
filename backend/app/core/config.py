@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     # Banco — Postgres desde a v1 (AD-007); driver psycopg3
     database_url: str = "postgresql+psycopg://ritmo:ritmo@localhost:5432/ritmo"
 
+    # Zonas VDOT — arquivo calibrado como fonte de verdade da v1 (spec
+    # workouts-list); a tabela `zones` é da feature de calibração (Fase 2)
+    vdot_zones_path: str = "data/vdot_zones.json"
+
     # NVIDIA NIM — avaliação de treino com IA
     nvidia_api_key: str = ""
     nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"

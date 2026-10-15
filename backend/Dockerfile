@@ -13,6 +13,9 @@ RUN uv sync --frozen --no-install-project --no-dev
 # Código da app (tests/.venv ficam fora via .dockerignore)
 COPY app ./app
 
+# Zonas VDOT calibradas - fonte de verdade do endpoint de detalhe
+COPY data ./data
+
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
 

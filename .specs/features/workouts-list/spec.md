@@ -220,8 +220,8 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | TRN-11 | P1: Lista | Design | Pending |
 | TRN-12 | P1: Lista | Design | Pending |
 | TRN-13 | P1: Detalhe+gráfico | Design | Pending |
-| TRN-14 | P1: Detalhe+gráfico | Design | Pending |
-| TRN-15 | P1: Detalhe+gráfico | Design | Pending |
+| TRN-14 | P1: Detalhe+gráfico | Design | Implemented |
+| TRN-15 | P1: Detalhe+gráfico | Design | Implemented |
 | TRN-16 | P1: Detalhe+gráfico | Design | Pending |
 | TRN-17 | P1: Detalhe+gráfico | Design | Pending |
 | TRN-18 | P1: Detalhe+gráfico | Design | Pending |

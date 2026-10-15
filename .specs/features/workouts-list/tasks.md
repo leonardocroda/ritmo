@@ -128,9 +128,9 @@ T12 -> T13
 - Skill: NONE
 
 **Done when**:
-- [ ] `vdot_zones_path: str = "data/vdot_zones.json"` com override por env `VDOT_ZONES_PATH`
-- [ ] `COPY data ./data` no Dockerfile (imagem contém o JSON calibrado)
-- [ ] Testes: default + override (≥ 2 novos; total ≥ 104)
+- [x] `vdot_zones_path: str = "data/vdot_zones.json"` com override por env `VDOT_ZONES_PATH`
+- [x] `COPY data ./data` no Dockerfile (imagem contém o JSON calibrado)
+- [x] Testes: default + override (≥ 2 novos; total ≥ 104)
 
 **Tests**: unit (`backend/tests/test_workouts_config.py`)
 **Gate**: quick
