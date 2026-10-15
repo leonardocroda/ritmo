@@ -339,11 +339,11 @@ T12 -> T13
 - Skill: NONE
 
 **Done when**:
-- [ ] `await params` no server page; id numérico validado (não-numérico → not found)
-- [ ] Cabeçalho: data, nome, tipo, distância, duração, pace, FC média/máx, cadência, elevação — cada métrica omitida quando `null`
-- [ ] Faixa de contexto: sono, HRV, RHR, temperatura — só o que existir; tabela de consistência com Δ pace ao lado do drift (TRN-24); oculta quando `consistency=null`
-- [ ] Sem splits → resumo + nota "sem voltas registradas", sem gráfico; 404 → "Treino não encontrado" + volta à lista; erro de API → mensagem inline
-- [ ] `npm run build` e `npm run lint` passam
+- [x] `await params` no server page; id numérico validado (não-numérico → not found)
+- [x] Cabeçalho: data, nome, tipo, distância, duração, pace, FC média/máx, cadência, elevação — cada métrica omitida quando `null`
+- [x] Faixa de contexto: sono, HRV, RHR, temperatura — só o que existir; tabela de consistência com Δ pace ao lado do drift (TRN-24); oculta quando `consistency=null`
+- [x] Sem splits → resumo + nota "sem voltas registradas", sem gráfico; 404 → "Treino não encontrado" + volta à lista; erro de API → mensagem inline
+- [x] `npm run build` e `npm run lint` passam
 
 **Tests**: none (frontend sem infra de testes — matriz: build + UAT)
 **Gate**: build
