@@ -9,7 +9,7 @@ O produto tem treinos (workouts-list) mas não responde à pergunta central do c
 ## Goals
 
 - [ ] Endpoint `GET /api/potential` montando o painel inteiro a partir do banco próprio (zero chamadas Garmin — AD-002)
-- [ ] Timeline VDOT: cada teste/prova máxima datada vira um ponto; linha no VDOT corrente (50,2) e faixa honesta até o demonstrado (5K 19:23 ≈ 53) com a lacuna narrada (§9.5, AD-004)
+- [ ] Timeline VDOT: cada teste/prova máxima datada vira um ponto; linha no VDOT corrente (50,2) e faixa honesta até o demonstrado (5K 19:23 → 51,6 pela forma fechada de Daniels) com a lacuna narrada (§9.5, AD-004)
 - [ ] Previsões vs PRs: 4 estimativas (Garmin, Riegel, equivalência VDOT, média honesta) para 5K/10K/meia/maratona + PR histórico
 - [ ] Curva PMC (CTL/ATL/TSB) da tabela `load` + ACWR do dia
 - [ ] Decaimento por distância: pace real (PR) vs ideal (equivalência VDOT corrente) — números, sem gráfico dedicado (§9.1)
@@ -50,7 +50,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | VDOT das estimativas por equivalência | Recomputado do `vdot` numérico via `equivalent_time(vdot, d)` — nunca parse das strings de pace do JSON | Strings são exibição; número é fonte. `calculate_vdot`/`equivalent_time` já existem como funções puras em `calibrate_vdot.py` | n |
 | Decaimento "ideal" | Pace da equivalência VDOT corrente (50,2) por distância | Régua única e recalculável; mostra exatamente a distância entre o executado e o que o teste atual valida | n |
 | Média honesta | Média aritmética das estimativas presentes naquela distância (das 3: Garmin, Riegel, VDOT) | Plano §4.4 "a média honesta"; sem estimativa ausente → média das restantes | n |
-| "Demonstrado" | Maior VDOT entre PRs canônicos datados + provas + teste de calibração (hoje: 5K 19:23 → ~53) | §9.5: "melhor VDOT de prova máxima"; só distâncias canônicas (ver Out of Scope) | n |
+| "Demonstrado" | Maior VDOT entre PRs canônicos datados + provas + teste de calibração (hoje: 5K 19:23 → 51,62 pela forma fechada) | §9.5: "melhor VDOT de prova máxima"; o "~53" do plano vem da tabela tabulada de Daniels — a forma fechada de `calibrate_vdot.py` é a fonte da verdade do app e é a mesma que gerou o 50,2 do teste de 10K; só distâncias canônicas (ver Out of Scope) | y |
 | Lacuna ("quanto já está liberado") | `gap_pct = vdot_corrente / vdot_demonstrado` exibido com narrativa honesta (§9.5: "o meio é o alvo honesto") | AD-004: faixa honesta, nunca número único mágico | n |
 | Dedup prova × PR na mesma data | Prova (`eventType=race`) não vira ponto quando existe PR canônico na mesma data | Sonda real: maratona de Londrina tem PR (3:52:05, distância certificada) E atividade (3:54:43, GPS continuou após a chegada) — o PR é o resultado certificado; dois pontos iguais na mesma data são ruído | n |
 | Janela da PMC | `days` default 180 (1–365; fora → 422); UI fixa em 180 | 182 dias reais de `load`; 180 cobre o histórico sem paginação | n |
@@ -253,7 +253,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 
 How we know the feature is successful:
 
-- [ ] Após sync real, `/potencial` mostra a timeline com os pontos reais (10K out/2024, 5K/meia/maratona 2026, teste out/2026), a linha em 50,2, a faixa até ~53 e a lacuna com narrativa honesta
+- [ ] Após sync real, `/potencial` mostra a timeline com os pontos reais (10K out/2024, 5K/meia/maratona 2026, teste out/2026), a linha em 50,2, a faixa até ~51,6 e a lacuna (~97%) com narrativa honesta
 - [ ] Tabela de previsões com as 4 estimativas + PR por distância; nenhuma célula inventada ("—" onde não há dado); PRs exibem data (bugfix auto-curado pelo sync)
 - [ ] Curva PMC com o histórico real (182 dias) e destaques CTL/ATL/TSB/ACWR do último dia
 - [ ] VO2max com selo "estimativa" e decaimento por distância destacando o maior gap (maratona)

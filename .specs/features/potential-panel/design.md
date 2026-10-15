@@ -191,21 +191,21 @@ Namespace de `event` distinto dos PRs (`FASTEST_*`): predição ≠ recorde — 
 {
   "vdot": {
     "current": {"vdot": 50.2, "source": "10K em 41:15", "test_date": "2026-10-03"},
-    "demonstrated": {"vdot": 53.1, "source": "FASTEST_5K", "date": "2026-04-26"},
-    "gap_pct": 94.7,
+    "demonstrated": {"vdot": 51.62, "source": "FASTEST_5K", "date": "2026-04-26"},
+    "gap_pct": 97.2,
     "timeline": [
-      {"date": "2024-10-05", "vdot": 51.6, "source": "pr", "label": "10K 40:25", "distance_m": 10000, "time_s": 2425},
-      {"date": "2026-04-26", "vdot": 53.1, "source": "pr", "label": "5K 19:23", "distance_m": 5000, "time_s": 1163.8},
-      {"date": "2026-05-03", "vdot": 50.6, "source": "pr", "label": "Meia 1:30:09", "distance_m": 21097.5, "time_s": 5409.2},
-      {"date": "2026-07-05", "vdot": 48.9, "source": "pr", "label": "Maratona 3:52:05", "distance_m": 42195, "time_s": 13925.8},
-      {"date": "2026-10-03", "vdot": 50.2, "source": "teste", "label": "10K 41:15", "distance_m": 10012, "time_s": 2475}
+      {"date": "2024-10-05", "vdot": 51.32, "source": "pr", "label": "10K 40:25", "distance_m": 10000, "time_s": 2425},
+      {"date": "2026-04-26", "vdot": 51.62, "source": "pr", "label": "5K 19:23", "distance_m": 5000, "time_s": 1163.8},
+      {"date": "2026-05-03", "vdot": 50.88, "source": "pr", "label": "Meia 1:30:09", "distance_m": 21097.5, "time_s": 5409.2},
+      {"date": "2026-07-05", "vdot": 39.48, "source": "pr", "label": "Maratona 3:52:05", "distance_m": 42195, "time_s": 13925.8},
+      {"date": "2026-10-03", "vdot": 50.18, "source": "teste", "label": "10K 41:15", "distance_m": 10012, "time_s": 2475}
     ]
   },
   "predictions": {
-    "5K":  {"garmin_s": 1165, "riegel_s": 1163.8, "vdot_s": 1190.9, "average_s": 1173.2, "pr_s": 1163.8, "pr_date": "2026-04-26"},
-    "10K": {"garmin_s": 2447, "riegel_s": 2414.6, "vdot_s": 2475.0, "average_s": 2445.5, "pr_s": 2425, "pr_date": "2024-10-05"},
-    "HALF_MARATHON": {"garmin_s": 5437, "riegel_s": 5442.0, "vdot_s": 5449.0, "average_s": 5442.7, "pr_s": 5409.2, "pr_date": "2026-05-03"},
-    "MARATHON": {"garmin_s": 11989, "riegel_s": 11170.0, "vdot_s": 11392.0, "average_s": 11517.0, "pr_s": 13925.8, "pr_date": "2026-07-05"}
+    "5K":  {"garmin_s": 1165, "riegel_s": 1163.8, "vdot_s": 1191.9, "average_s": 1173.6, "pr_s": 1163.8, "pr_date": "2026-04-26"},
+    "10K": {"garmin_s": 2447, "riegel_s": 2426.5, "vdot_s": 2471.1, "average_s": 2448.2, "pr_s": 2425, "pr_date": "2024-10-05"},
+    "HALF_MARATHON": {"garmin_s": 5437, "riegel_s": 5353.8, "vdot_s": 5472.3, "average_s": 5421.0, "pr_s": 5409.2, "pr_date": "2026-05-03"},
+    "MARATHON": {"garmin_s": 11989, "riegel_s": 11162.4, "vdot_s": 11401.4, "average_s": 11517.6, "pr_s": 13925.8, "pr_date": "2026-07-05"}
   },
   "pmc": {
     "days": 180,
@@ -214,15 +214,15 @@ Namespace de `event` distinto dos PRs (`FASTEST_*`): predição ≠ recorde — 
   },
   "vo2max": {"points": [{"date": "2026-04-22", "value": 54.0}, {"date": "2026-07-05", "value": 56.0}]},
   "decay": [
-    {"event": "5K",  "real_pace_s": 232.8, "ideal_pace_s": 238.2, "delta_pct": 2.3},
-    {"event": "10K", "real_pace_s": 242.5, "ideal_pace_s": 247.5, "delta_pct": 2.0},
-    {"event": "HALF_MARATHON", "real_pace_s": 256.4, "ideal_pace_s": 258.2, "delta_pct": 0.7},
-    {"event": "MARATHON", "real_pace_s": 330.0, "ideal_pace_s": 270.0, "delta_pct": -22.2}
+    {"event": "5K",  "real_pace_s": 232.8, "ideal_pace_s": 238.4, "delta_pct": 2.3},
+    {"event": "10K", "real_pace_s": 242.5, "ideal_pace_s": 247.1, "delta_pct": 1.9},
+    {"event": "HALF_MARATHON", "real_pace_s": 256.4, "ideal_pace_s": 259.4, "delta_pct": 1.2},
+    {"event": "MARATHON", "real_pace_s": 330.0, "ideal_pace_s": 270.2, "delta_pct": -22.1}
   ]
 }
 ```
 
-`pmc=null` sem linhas em `load`; `vo2max=null` sem `vO2MaxValue`; `decay=[]` sem PR canônico; blocos de `predictions` com `null` por estimativa ausente (a maratona conta a história: Riegel/VDOT otimistas, Garmin moderado, PR 3:52 = gap de execução — a média honesta existe para isso).
+`pmc=null` sem linhas em `load`; `vo2max=null` sem `vO2MaxValue`; `decay=[]` sem PR canônico; blocos de `predictions` com `null` por estimativa ausente. Pins derivados da forma fechada de Daniels do `calibrate_vdot.py` (a mesma que gerou o 50,2 do teste — o "~53" do plano §9.5 vem da tabela tabulada; a forma fechada é a fonte da verdade do app). A maratona conta a história: Riegel/VDOT otimistas, Garmin moderado, PR 3:52 = gap de execução (−22% no decay) — a média honesta existe para isso.
 
 ---
 
