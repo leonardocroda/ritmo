@@ -20,6 +20,7 @@ import {
   formatPace,
   formatTemp,
 } from "@/lib/format";
+import SplitsChart from "@/components/workouts/SplitsChart";
 
 type DetailState =
   | { kind: "loading" }
@@ -264,9 +265,22 @@ export default function WorkoutDetail({ id }: { id: number }) {
         </section>
       )}
 
-      {/* Voltas: sem splits → nota (sem gráfico); com splits → gráfico na T12 */}
+      {/* Voltas: sem splits → nota (sem gráfico); com splits → gráfico
+          proporcional (T12) */}
       {splits.length === 0 && (
         <p className="mt-6 text-sm text-muted">sem voltas registradas</p>
+      )}
+      {splits.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-sm font-medium text-muted">Voltas</h2>
+          <div className="mt-2 rounded-xl border border-white/10 bg-card p-3">
+            <SplitsChart
+              splits={splits}
+              zones={state.detail.zones}
+              hrColor={state.detail.hr_color}
+            />
+          </div>
+        </section>
       )}
     </main>
   );

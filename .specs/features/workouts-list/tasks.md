@@ -363,11 +363,11 @@ T12 -> T13
 - Skill: NONE
 
 **Done when**:
-- [ ] Largura da barra = fração da duração da volta na área útil (pausa de 30s ≠ tiro de 3km); altura por pace clampado a [180, 420] s/km com mínimo de 2,5px
-- [ ] Linha de FC com ponto no meio de cada barra, na cor reservada (≠ cor de interval — TRN-17, vinda do payload); relevo atrás em eixo próprio
-- [ ] Rótulos: pace por volta (oculto quando a barra é estreita demais), km acumulado no eixo X nas marcas proporcionais, legenda das zonas presentes + FC
-- [ ] Tooltip por hover/tap com pace real (não clampado), FC, elevação, duração e zona; responsivo via viewBox; legível em 390px
-- [ ] `npm run build` e `npm run lint` passam
+- [x] Largura da barra = fração da duração da volta na área útil (pausa de 30s ≠ tiro de 3km); altura por pace clampado a [180, 420] s/km com mínimo de 2,5px
+- [x] Linha de FC com ponto no meio de cada barra, na cor reservada (≠ cor de interval — TRN-17, vinda do payload); relevo atrás em eixo próprio
+- [x] Rótulos: pace por volta (oculto quando a barra é estreita demais), km acumulado no eixo X nas marcas proporcionais, legenda das zonas presentes + FC
+- [x] Tooltip por hover/tap com pace real (não clampado), FC, elevação, duração e zona; responsivo via viewBox; legível em 390px
+- [x] `npm run build` e `npm run lint` passam
 
 **Tests**: none (frontend sem infra de testes — matriz: build + UAT)
 **Gate**: build
