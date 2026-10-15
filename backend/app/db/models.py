@@ -83,6 +83,8 @@ class Split(Base):
     duration_s: Mapped[float] = mapped_column(Float)
     pace_s: Mapped[float | None] = mapped_column(Float)  # s por km (derivável, mas guardado)
     avg_hr: Mapped[int | None] = mapped_column(Integer)
+    avg_cadence: Mapped[float | None] = mapped_column(Float)
+    avg_temperature: Mapped[float | None] = mapped_column(Float)
     elevation_m: Mapped[float | None] = mapped_column(Float)
     intensity_type: Mapped[str | None] = mapped_column(String(30))
 

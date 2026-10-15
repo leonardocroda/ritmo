@@ -30,7 +30,16 @@ _ACTIVITY_FIELDS = (
     "training_load",
     "raw_json",
 )
-_SPLIT_FIELDS = ("dist_m", "duration_s", "pace_s", "avg_hr", "elevation_m", "intensity_type")
+_SPLIT_FIELDS = (
+    "dist_m",
+    "duration_s",
+    "pace_s",
+    "avg_hr",
+    "avg_cadence",
+    "avg_temperature",
+    "elevation_m",
+    "intensity_type",
+)
 
 
 def upsert_activity(db: Session, user_id: int, data: dict) -> str:

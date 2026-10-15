@@ -22,6 +22,7 @@ from helpers import (
     SPARSE_ACTIVITY_PAYLOAD,
     SPLITS_LAPDTOS_PAYLOAD,
     SPLITS_LIST_PAYLOAD,
+    SPLITS_PROBE_PAYLOAD,
     STRESS_NO_DATA_PAYLOAD,
     STRESS_PAYLOAD,
     TRAIL_ACTIVITY_PAYLOAD,
@@ -100,7 +101,11 @@ def test_is_running_rejects_other_types() -> None:
 
 
 def test_map_splits_normalizes_wrapper_and_direct_list() -> None:
-    """Design: dict com lista interna (lapDTOs) e lista direta → mesmas linhas."""
+    """Design: dict com lista interna (lapDTOs) e lista direta → mesmas linhas.
+
+    Payload sem cadência/temperatura por volta → None (T1: campos novos
+    de split, NULL quando ausentes).
+    """
     expected = [
         {
             "idx": 1,
@@ -108,6 +113,8 @@ def test_map_splits_normalizes_wrapper_and_direct_list() -> None:
             "duration_s": 360.0,
             "pace_s": 360.0,
             "avg_hr": 142,
+            "avg_cadence": None,
+            "avg_temperature": None,
             "elevation_m": 25.5,
             "intensity_type": "ACTIVE",
         },
@@ -117,12 +124,32 @@ def test_map_splits_normalizes_wrapper_and_direct_list() -> None:
             "duration_s": 350.0,
             "pace_s": 350.0,
             "avg_hr": 145,
+            "avg_cadence": None,
+            "avg_temperature": None,
             "elevation_m": 15.0,
             "intensity_type": "INTERVAL",
         },
     ]
     assert map_splits(SPLITS_LAPDTOS_PAYLOAD) == expected
     assert map_splits(SPLITS_LIST_PAYLOAD) == expected
+
+
+def test_map_splits_extracts_cadence_and_temperature() -> None:
+    """T1: lapDTO real (sonda 14/10/2026) -> averageRunCadence/averageTemperature
+    viram avg_cadence/avg_temperature; pace_s derivado da volta de 100m."""
+    rows = map_splits(SPLITS_PROBE_PAYLOAD)
+    assert rows[0]["avg_cadence"] == 155.2
+    assert rows[0]["avg_temperature"] == 22.0
+    assert rows[1]["avg_cadence"] == 156.0
+    assert rows[1]["avg_temperature"] == 22.1
+    assert rows[0]["pace_s"] == 205.0  # 20.5s por 100m
+
+
+def test_map_splits_cadence_temperature_none_when_absent() -> None:
+    """T1: lapDTO sem os campos (voltas antigas) -> avg_cadence/avg_temperature None."""
+    row = map_splits(SPLITS_LAPDTOS_PAYLOAD)[0]
+    assert row["avg_cadence"] is None
+    assert row["avg_temperature"] is None
 
 
 def test_map_splits_empty_variants_return_empty_list() -> None:

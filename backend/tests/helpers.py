@@ -122,6 +122,36 @@ SPLITS_LAPDTOS_PAYLOAD = {
 
 SPLITS_LIST_PAYLOAD = list(SPLITS_LAPDTOS_PAYLOAD["lapDTOs"])
 
+# Splits com cadência/temperatura por volta: shape REAL da sonda de
+# 14/10/2026 (garmin_id 24719288630, "Londrina - Strides") — o lapDTO
+# traz `averageRunCadence` e `averageTemperature`; o nome da listagem
+# (averageRunningCadenceInStepsPerMinute) NÃO existe por volta.
+SPLITS_PROBE_PAYLOAD = {
+    "activityId": 24719288630,
+    "lapDTOs": [
+        {
+            "lapIndex": 1,
+            "distance": 100.0,
+            "duration": 20.5,
+            "averageHR": 123,
+            "averageRunCadence": 155.2,
+            "averageTemperature": 22.0,
+            "elevationGain": 0.0,
+            "intensityType": "ACTIVE",
+        },
+        {
+            "lapIndex": 2,
+            "distance": 100.0,
+            "duration": 21.0,
+            "averageHR": 131,
+            "averageRunCadence": 156.0,
+            "averageTemperature": 22.1,
+            "elevationGain": 0.0,
+            "intensityType": "ACTIVE",
+        },
+    ],
+}
+
 # 1705276800000 ms = 2024-01-15 00:00:00 UTC (GMT, como entregue)
 SLEEP_PAYLOAD = {
     "dailySleepDTO": {

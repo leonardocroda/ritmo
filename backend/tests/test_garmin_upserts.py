@@ -49,6 +49,7 @@ from helpers import (
     RHR_PAYLOAD,
     SLEEP_PAYLOAD,
     SPLITS_LAPDTOS_PAYLOAD,
+    SPLITS_PROBE_PAYLOAD,
     STRESS_PAYLOAD,
 )
 
@@ -210,6 +211,66 @@ def test_upsert_splits_updates_existing_values(db):
     assert first.duration_s == 400.0
     assert first.pace_s == 400.0
     assert _count(db, Split) == 2
+
+
+def test_upsert_splits_stores_cadence_and_temperature(db):
+    """T1/TRN-29/30: lapDTO com averageRunCadence/averageTemperature ->
+    colunas avg_cadence/avg_temperature gravadas no Postgres."""
+    upsert_activity(db, 1, map_activity(GARMIN_ACTIVITY_PAYLOAD))
+    db.commit()
+    activity_id = _activity_db_id(db, "12345678901")
+
+    rows = map_splits(SPLITS_PROBE_PAYLOAD)
+    assert upsert_splits(db, activity_id, rows) == 2
+    db.commit()
+
+    first = db.execute(
+        select(Split).where(Split.activity_id == activity_id, Split.idx == 1)
+    ).scalar_one()
+    assert first.avg_cadence == 155.2
+    assert first.avg_temperature == 22.0
+    second = db.execute(
+        select(Split).where(Split.activity_id == activity_id, Split.idx == 2)
+    ).scalar_one()
+    assert second.avg_cadence == 156.0
+    assert second.avg_temperature == 22.1
+
+
+def test_upsert_splits_null_when_cadence_temperature_absent(db):
+    """T1/TRN-29/30: payload sem os campos -> NULL (nenhum número inventado)."""
+    upsert_activity(db, 1, map_activity(GARMIN_ACTIVITY_PAYLOAD))
+    db.commit()
+    activity_id = _activity_db_id(db, "12345678901")
+
+    assert upsert_splits(db, activity_id, map_splits(SPLITS_LAPDTOS_PAYLOAD)) == 2
+    db.commit()
+
+    first = db.execute(
+        select(Split).where(Split.activity_id == activity_id, Split.idx == 1)
+    ).scalar_one()
+    assert first.avg_cadence is None
+    assert first.avg_temperature is None
+
+
+def test_upsert_splits_cadence_idempotent_2x(db):
+    """T1/TRN-31: re-upsert com os campos novos mantém contagens estáveis
+    e preserva os valores (idempotência herdada de (activity_id, idx))."""
+    upsert_activity(db, 1, map_activity(GARMIN_ACTIVITY_PAYLOAD))
+    db.commit()
+    activity_id = _activity_db_id(db, "12345678901")
+
+    rows = map_splits(SPLITS_PROBE_PAYLOAD)
+    assert upsert_splits(db, activity_id, rows) == 2
+    db.commit()
+    assert upsert_splits(db, activity_id, rows) == 2
+    db.commit()
+
+    assert _count(db, Split) == 2
+    first = db.execute(
+        select(Split).where(Split.activity_id == activity_id, Split.idx == 1)
+    ).scalar_one()
+    assert first.avg_cadence == 155.2
+    assert first.avg_temperature == 22.0
 
 
 def test_upsert_health_rows_sleep_by_user_date(db):

@@ -87,6 +87,12 @@ def map_splits(raw: dict | list | None) -> list[dict]:
                 "duration_s": duration,
                 "pace_s": duration * 1000 / distance if distance and duration else None,
                 "avg_hr": lap.get("averageHR"),
+                # Nomes aterrissados por sonda real (14/10/2026, garmin_id
+                # 24719288630): averageRunCadence e averageTemperature existem
+                # no lapDTO; o nome da listagem
+                # (averageRunningCadenceInStepsPerMinute) NÃO existe por volta.
+                "avg_cadence": lap.get("averageRunCadence"),
+                "avg_temperature": lap.get("averageTemperature"),
                 "elevation_m": lap.get("elevationGain"),
                 "intensity_type": lap.get("intensityType"),
             }
