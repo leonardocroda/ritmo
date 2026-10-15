@@ -316,10 +316,10 @@ T12 -> T13
 - Skill: NONE
 
 **Done when**:
-- [ ] Itens = Link para `/treinos/{id}` com data, nome, tipo inferido (rótulo PT-BR), distância, pace (ou duração no modo `all`), FC, badge "Avaliado" quando `evaluated`
-- [ ] Filtro corridas/todas reseta paginação; "Carregar mais" anexa a próxima página sem duplicatas
-- [ ] Banco vazio → estado vazio apontando o botão "Puxar do Garmin"; falha de API → mensagem inline sem quebrar a nav
-- [ ] `npm run build` e `npm run lint` passam
+- [x] Itens = Link para `/treinos/{id}` com data, nome, tipo inferido (rótulo PT-BR), distância, pace (ou duração no modo `all`), FC, badge "Avaliado" quando `evaluated`
+- [x] Filtro corridas/todas reseta paginação; "Carregar mais" anexa a próxima página sem duplicatas
+- [x] Banco vazio → estado vazio apontando o botão "Puxar do Garmin"; falha de API → mensagem inline sem quebrar a nav
+- [x] `npm run build` e `npm run lint` passam
 
 **Tests**: none (frontend sem infra de testes — matriz: build + UAT)
 **Gate**: build
