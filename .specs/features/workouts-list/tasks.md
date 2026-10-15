@@ -174,11 +174,11 @@ T12 -> T13
 - Skill: NONE
 
 **Done when**:
-- [ ] `split_halves` divide por distância acumulada (≥50% fecha a 1ª metade; volta que atravessa fica na 1ª)
-- [ ] `consistency_metrics` devolve Δ pace (s/km + %), Δ FC (bpm), decoupling (%) e Δ cadência (spm) — cálculo conferido contra valores manuais em fixtures
-- [ ] Gate: `distance_m < 8000` ou `< 4` voltas → `None`; cadência só quando ≥2 voltas com cadência por metade
-- [ ] Determinismo: mesma entrada → mesmos valores (teste repete e compara)
-- [ ] Testes (≥ 8 novos; total ≥ 120)
+- [x] `split_halves` divide por distância acumulada (≥50% fecha a 1ª metade; volta que atravessa fica na 1ª)
+- [x] `consistency_metrics` devolve Δ pace (s/km + %), Δ FC (bpm), decoupling (%) e Δ cadência (spm) — cálculo conferido contra valores manuais em fixtures
+- [x] Gate: `distance_m < 8000` ou `< 4` voltas → `None`; cadência só quando ≥2 voltas com cadência por metade
+- [x] Determinismo: mesma entrada → mesmos valores (teste repete e compara)
+- [x] Testes (≥ 8 novos; total ≥ 120)
 
 **Tests**: unit (`backend/tests/test_activity_metrics.py`)
 **Gate**: quick
