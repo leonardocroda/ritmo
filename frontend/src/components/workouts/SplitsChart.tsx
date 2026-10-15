@@ -18,7 +18,9 @@ import { formatDuration, formatPace } from "@/lib/format";
 
 const W = 390;
 const H = 268;
-const MARGIN = { top: 14, right: 10, bottom: 26, left: 10 };
+// Margens comportam os eixos rotulados (UAT 15/10/2026): ritmo à esquerda,
+// FC à direita — bater o olho e ler o gráfico sem consulta mental.
+const MARGIN = { top: 14, right: 30, bottom: 26, left: 34 };
 const PLOT_W = W - MARGIN.left - MARGIN.right; // 370
 const PLOT_H = H - MARGIN.top - MARGIN.bottom; // 228
 const PLOT_BOTTOM = MARGIN.top + PLOT_H;
@@ -89,6 +91,13 @@ function kmAnchor(x: number): "start" | "middle" | "end" {
   if (x > W - MARGIN.right - 14) return "end";
   if (x < MARGIN.left + 14) return "start";
   return "middle";
+}
+
+/** Distância da volta no tooltip (UAT 15/10/2026): "800 m" / "1,0 km". */
+function formatLapDistance(distM: number | null): string {
+  if (distM === null) return "—";
+  if (distM >= 995) return `${(distM / 1000).toFixed(1).replace(".", ",")} km`;
+  return `${Math.round(distM)} m`;
 }
 
 export default function SplitsChart({ splits, zones, hrColor }: Props) {
@@ -192,6 +201,24 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
 
   const active = activeIdx !== null ? bars[activeIdx] : null;
 
+  // Eixo Y esquerdo: pace com ticks a cada 60s (3:00–7:00), mesma escala
+  // das barras — clamp included (7:00 fica no chão). Gridlines sutis.
+  const paceTicks = [180, 240, 300, 360, 420];
+  const paceTickY = (paceS: number) =>
+    MARGIN.top + ((paceS - PACE_MIN_S) / (PACE_MAX_S - PACE_MIN_S)) * PLOT_H;
+
+  // Eixo Y direito: FC com ticks min/meio/máx da escala da linha (valores
+  // reais presentes nos dados); degenerado (FC única) mostra só um tick.
+  const hrMid = Math.round((hrMin + hrMax) / 2);
+  const hrTicks =
+    hrMin === hrMax
+      ? [{ hr: hrMin, y: hrY(hrMin) }]
+      : [
+          { hr: hrMax, y: hrY(hrMax) },
+          { hr: hrMid, y: hrY(hrMid) },
+          { hr: hrMin, y: hrY(hrMin) },
+        ];
+
   return (
     <div>
       <svg
@@ -200,6 +227,45 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
         role="img"
         aria-label="Gráfico de splits: pace por volta colorido por zona VDOT, com FC e relevo"
       >
+        {/* Eixos rotulados (UAT): gridlines de pace atrás dos dados,
+            ritmo à esquerda, FC à direita */}
+        {paceTicks.map((paceS) => (
+          <line
+            key={`grid-${paceS}`}
+            x1={MARGIN.left}
+            x2={W - MARGIN.right}
+            y1={paceTickY(paceS)}
+            y2={paceTickY(paceS)}
+            stroke={AXIS_COLOR}
+            strokeOpacity={0.35}
+          />
+        ))}
+        {paceTicks.map((paceS) => (
+          <text
+            key={`ptick-${paceS}`}
+            x={MARGIN.left - 4}
+            y={paceTickY(paceS) + 3}
+            textAnchor="end"
+            fontSize={8}
+            fill={MUTED_COLOR}
+          >
+            {formatPace(paceS)}
+          </text>
+        ))}
+        {hrBars.length > 0 &&
+          hrTicks.map((tick) => (
+            <text
+              key={`htick-${tick.hr}`}
+              x={W - MARGIN.right + 4}
+              y={tick.y + 3}
+              textAnchor="start"
+              fontSize={8}
+              fill={hrColor}
+            >
+              {`${tick.hr}`}
+            </text>
+          ))}
+
         {/* Relevo atrás (eixo próprio) */}
         {elevMax > 0 &&
           bars.map((bar) => {
@@ -298,14 +364,14 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
         ))}
 
         {/* Tooltip por hover/tap — pace REAL (não clampado), FC, elevação,
-            duração e zona */}
+            duração, distância da volta e zona */}
         {active !== null && (
           <g>
             <rect
               x={Math.min(Math.max(active.midX + 8, 4), W - 116)}
               y={MARGIN.top + 2}
               width={112}
-              height={78}
+              height={89}
               rx={6}
               fill="#18181b"
               fillOpacity={0.95}
@@ -321,6 +387,7 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
             </text>
             {[
               `pace: ${active.split.pace_s !== null ? `${formatPace(active.split.pace_s)}/km` : "—"}`,
+              `volta: ${formatLapDistance(active.split.dist_m)}`,
               `FC: ${active.split.avg_hr !== null ? `${active.split.avg_hr} bpm` : "—"}`,
               `elev: ${active.split.elevation_m !== null ? `${active.split.elevation_m.toFixed(1).replace(".", ",")} m` : "—"}`,
               `duração: ${active.split.duration_s !== null ? formatDuration(active.split.duration_s) : "—"}`,

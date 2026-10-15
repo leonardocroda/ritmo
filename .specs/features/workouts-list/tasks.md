@@ -87,6 +87,7 @@ T7 -> T13
 T10 -> T13
 T11 -> T13
 T12 -> T13
+T12 -> T14
 ```
 
 ---
@@ -388,15 +389,38 @@ T12 -> T13
 
 **Done when**:
 - [x] `GET /api/activities` e `/api/activities/{id}` respondem com dados reais; tipo inferido bate com a expectativa em 3 treinos conhecidos (fácil, strides, longão)
-- [ ] Gráfico renderiza com voltas de 100m (strides) e auto-lap 1km — larguras proporcionais visíveis; FC e relevo alinhados *(payload e rotas verificados; conferência visual pendente do usuário)*
+- [x] Gráfico renderiza com voltas de 100m (strides) e auto-lap 1km — larguras proporcionais visíveis; FC e relevo alinhados *(confirmado pelo usuário na UAT; ajustes de leitura viraram T14)*
 - [x] Consistência de um longão ≥8km confere com cálculo manual; treino <8km sem tabela
 - [x] Nenhuma chamada ao Garmin nos logs durante o uso dos painéis
 - [x] Suite completa passa (≥ 146 testes); README ganha seção "Painel Treinos"
-- [ ] UAT manual navegando em 390px (celular/DevTools) *(pendente conferência visual do usuário)*
+- [x] UAT manual navegando em 390px (celular/DevTools) *(realizada pelo usuário — feedback: eixos rotulados + distância da volta no tooltip → T14)*
 
 **Tests**: none (UAT real com evidência; o Verificador independente roda depois por contrato da skill)
 **Gate**: build
 **Commit**: `docs(activities): document workouts panel validation`
+
+---
+
+### T14: Ajustes de UAT no gráfico (eixos rotulados + distância da volta)
+
+**What**: Rotular os eixos Y do gráfico (ritmo à esquerda, FC à direita) e mostrar a distância da volta isolada no tooltip, além do km acumulado.
+**Where**: `frontend/src/components/workouts/SplitsChart.tsx` (modify)
+**Depends on**: T12
+**Reuses**: Escala de pace das barras (`paceTickY`), `hrY`/`hrMin`/`hrMax` da linha de FC, `formatPace`
+**Requirement**: TRN-16 (legibilidade do gráfico central — feedback da UAT de 15/10/2026)
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Eixo Y esquerdo com ticks de pace a cada 60s (3:00–7:00) na mesma escala das barras + gridlines sutis
+- [ ] Eixo Y direito com ticks de FC (mín/meio/máx) na cor da linha; caso degenerado (FC única) mostra só um tick
+- [ ] Tooltip mostra `volta: 800 m` / `1,0 km` além de `Volta N · km acumulado`
+- [ ] `npm run build` e `npm run lint` passam
+
+**Tests**: none (frontend sem infra de testes — matriz: build + UAT)
+**Gate**: build
+**Commit**: `feat(ui): label chart axes and show lap distance in tooltip`
 
 ---
 
@@ -449,6 +473,7 @@ Fases em sequência estrita; dentro da fase, tasks na ordem definida acima. Resu
 | T11 | T10 | Fase 4: `T10 -> T11` | ✅ Match |
 | T12 | T11 | Fase 4: `T11 -> T12` | ✅ Match |
 | T13 | T6, T7, T10, T11, T12 | Fase 5: 5 setas entrando em `T13` | ✅ Match |
+| T14 | T12 | Fase 5: `T12 -> T14` | ✅ Match |
 
 > Dependências apontam sempre para trás (T6/T7 dependem da Fase 1–2; T8–T13 da Fase 3–4) — nenhum forward-phase dependency.
 
