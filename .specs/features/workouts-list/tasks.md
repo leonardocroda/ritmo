@@ -293,10 +293,10 @@ T12 -> T13
 - Skill: NONE
 
 **Done when**:
-- [ ] Docs do Next 16 relidos antes de codar (`frontend/node_modules/next/dist/docs/` — aviso do `frontend/AGENTS.md`)
-- [ ] Nav com os 4 painéis visível em qualquer página, ativo marcado (`pathname` === href ou `startsWith(href+"/")`), legível em 390px (linha rolável)
-- [ ] Placeholders com nome do painel + "em construção"; `/` redireciona para `/treinos`
-- [ ] `npm run build` e `npm run lint` passam
+- [x] Docs do Next 16 relidos antes de codar (`frontend/node_modules/next/dist/docs/` — aviso do `frontend/AGENTS.md`)
+- [x] Nav com os 4 painéis visível em qualquer página, ativo marcado (`pathname` === href ou `startsWith(href+"/")`), legível em 390px (linha rolável)
+- [x] Placeholders com nome do painel + "em construção"; `/` redireciona para `/treinos`
+- [x] `npm run build` e `npm run lint` passam
 
 **Tests**: none (frontend sem infra de testes — matriz: build + UAT)
 **Gate**: build

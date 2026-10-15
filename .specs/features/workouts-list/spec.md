@@ -207,9 +207,9 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| TRN-01 | P1: Navegação | Design | Pending |
-| TRN-02 | P1: Navegação | Design | Pending |
-| TRN-03 | P1: Navegação | Design | Pending |
+| TRN-01 | P1: Navegação | Design | Implemented |
+| TRN-02 | P1: Navegação | Design | Implemented |
+| TRN-03 | P1: Navegação | Design | Implemented |
 | TRN-04 | P1: Lista | Design | Implemented |
 | TRN-05 | P1: Lista | Design | Implemented |
 | TRN-06 | P1: Lista | Design | Implemented |

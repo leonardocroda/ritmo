@@ -1,16 +1,19 @@
-// Header global — nome do app + botão "Puxar do Garmin" visível de
-// qualquer painel, desktop e mobile (decisão do spec do garmin-sync).
-// Server component: só o SyncButton é client (boundary mínimo).
+// Header global — nome do app + nav dos 4 painéis + botão "Puxar do
+// Garmin" visível de qualquer painel, desktop e mobile (nav do spec
+// workouts-list: TRN-01). Server component: só Nav/SyncButton são client.
+// A nav vira linha rolável em 390px (overflow dentro do próprio Nav).
 
+import Nav from "@/components/Nav";
 import SyncButton from "@/components/SyncButton";
 
 export default function Header() {
   return (
     <header className="border-b border-white/10">
       <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <span className="text-lg font-semibold tracking-tight">
+        <span className="shrink-0 text-lg font-semibold tracking-tight">
           Ritmo<span className="text-accent">.</span>
         </span>
+        <Nav />
         <SyncButton />
       </div>
     </header>
