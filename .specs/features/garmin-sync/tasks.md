@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/garmin-sync/design.md`
-**Status**: In Progress (Lote 1 de 3 — T1–T5)
+**Status**: Done (T1–T15 commitadas; Verifier PASS 14/14 mutantes mortos; `validation.md`)
 
 ---
 

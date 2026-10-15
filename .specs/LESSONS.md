@@ -20,6 +20,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: backend/tests/test_infra.py:61 (mutant M2) (backend/tests)
 - last seen: 2026-10-14T15:15:00Z
 
+### L-002 - Success Criteria com numeros de orcamento (chamadas, tempo, contagens) devem ser tetos mensuraveis sem '~' - estimativas aproximadas nao sao falsificaveis e forcam julgamento interpretativo na validacao
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: garmin-sync
+- evidence: .specs/features/garmin-sync/spec.md:223 (specs)
+- last seen: 2026-10-15T00:38:48Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

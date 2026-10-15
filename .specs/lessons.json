@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 2,
+  "next_id": 3,
   "lessons": [
     {
       "id": "L-001",
@@ -22,6 +22,24 @@
       ],
       "created": "2026-10-14T15:15:00Z",
       "last_seen": "2026-10-14T15:15:00Z"
+    },
+    {
+      "id": "L-002",
+      "key": "spec_precision_gap::success criteria com numeros de orcamento chamadas tempo contagens devem ser tetos mensuraveis sem estimativas aproximadas nao sao falsificaveis e forcam julgamento interpretativo na validacao",
+      "text": "Success Criteria com numeros de orcamento (chamadas, tempo, contagens) devem ser tetos mensuraveis sem '~' - estimativas aproximadas nao sao falsificaveis e forcam julgamento interpretativo na validacao",
+      "signal": "spec_precision_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "garmin-sync"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        ".specs/features/garmin-sync/spec.md:223 (specs)"
+      ],
+      "created": "2026-10-15T00:38:48Z",
+      "last_seen": "2026-10-15T00:38:48Z"
     }
   ]
 }

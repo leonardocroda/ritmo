@@ -60,11 +60,11 @@
 
 ## Handoff
 
-- **Feature**: `garmin-sync` — design aprovado + tasks aprovadas (15 tasks, 6 fases); Execute em andamento via 3 lotes sequenciais de sub-agentes
-- **Phase / Task**: Execute · Lotes 1–2 concluídos (T1–T10; Lote 2: `d8f6a57`..`ea69d3a`, 90 testes reconciliados); Lote 3 de 3 (T11–T15: frontend, CLI login, primeira sync real) em dispatch
-- **Completed**: spec → design → tasks (`793361b`); Lote 1 (`61729ce`..`31ffa21`, 45 testes); Lote 2 (`d8f6a57`..`ea69d3a`, 90 testes)
-- **In-progress**: Lote 3 (T11–T15) no worker; depois Verifier automático + `validate_state.py`
-- **Next step**: resumo do Lote 3 → reconciliação → Verifier (author ≠ verifier, sensor de mutação, `validation.md`) → lições. Lembretes: imagens do compose (backend/frontend) são pré-Lote-1 e precisam `--build` na T15; gaps de payload do Lote 1 são validados na T15 contra `raw_json`
-- **Blockers**: none (`NVIDIA_API_KEY` é da feature de avaliação IA; garmin-sync usa tokens de `~/.garminconnect`, montados no compose pela T3)
-- **Uncommitted files**: none
+- **Feature**: `garmin-sync` — **concluída e validada** (PASS do Verifier em `.specs/features/garmin-sync/validation.md`; 27/27 ACs com evidência `file:line`, 14/14 mutantes mortos, `validate_state.py` exit 0)
+- **Phase / Task**: n/a — T1–T15 todas commitadas (`61729ce`..`1f1dba2` + correções `cd9473e`); traceability 27/27 Verified
+- **Completed**: spec → design → tasks → execute (3 lotes de sub-agents) → verificação independente; suite final **97 testes** no Postgres do compose; primeira sync real validada (backfill 408 calls/605s → incremental 23 calls/~33s, zero duplicatas em 3 syncs, SYNC-25 end-to-end)
+- **In-progress**: none
+- **Next step**: próxima feature da Fase 1 (lista de treinos + gráfico de splits é a próxima do plano §Fase 1). Pendências menores registradas: gap de precisão do spec ("steady-state ≤ ~20 chamadas" vs 23 medidos — trocar por teto mensurável na próxima revisão do spec, lição L-002 candidate); UI sem asserção automatizada (considerar Playwright quando os painéis entrarem)
+- **Blockers**: none
+- **Uncommitted files**: none (após o commit de fechamento)
 - **Branch**: main
