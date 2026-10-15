@@ -60,11 +60,11 @@
 
 ## Handoff
 
-- **Feature**: `garmin-sync` — **concluída e validada** (PASS do Verifier em `.specs/features/garmin-sync/validation.md`; 27/27 ACs com evidência `file:line`, 14/14 mutantes mortos, `validate_state.py` exit 0)
-- **Phase / Task**: n/a — T1–T15 todas commitadas (`61729ce`..`1f1dba2` + correções `cd9473e`); traceability 27/27 Verified
-- **Completed**: spec → design → tasks → execute (3 lotes de sub-agents) → verificação independente; suite final **97 testes** no Postgres do compose; primeira sync real validada (backfill 408 calls/605s → incremental 23 calls/~33s, zero duplicatas em 3 syncs, SYNC-25 end-to-end)
+- **Feature**: `workouts-list` — **concluída e validada** (PASS do Verifier em `.specs/features/workouts-list/validation.md`; 32/32 ACs com evidência `file:line`, 5/5 mutantes mortos, `validate_state.py` exit 0)
+- **Phase / Task**: n/a — T1–T14 todas commitadas (`5584d44`..`a803911` + UAT `04dd0ba`); traceability 32/32 Verified
+- **Completed**: spec → design → tasks → execute (2 lotes de sub-agents + T13/T14 inline após erro de infra) → verificação independente; suite final **170 testes** no Postgres do compose; painel Treinos validado com dados reais (tipos inferidos conferidos em strides/limiar/longão; consistência do longão conferida contra cálculo manual; zero chamadas Garmin nos painéis)
 - **In-progress**: none
-- **Next step**: próxima feature da Fase 1 (lista de treinos + gráfico de splits é a próxima do plano §Fase 1). Pendências menores registradas: gap de precisão do spec ("steady-state ≤ ~20 chamadas" vs 23 medidos — trocar por teto mensurável na próxima revisão do spec, lição L-002 candidate); UI sem asserção automatizada (considerar Playwright quando os painéis entrarem)
+- **Next step**: próxima feature da Fase 1 — **Painel Potencial** (timeline VDOT, previsões vs PRs, curva PMC — os dados de carga já são calculados pelo sync) ou Painel Saúde; pendências menores: estrutura de strides verbosa no detalhe ("8×Corrida" agregado seria melhor — melhoria futura), acesso LAN/celular exige `NEXT_PUBLIC_API_URL`+CORS com IP do host (infra, não feature)
 - **Blockers**: none
 - **Uncommitted files**: none (após o commit de fechamento)
 - **Branch**: main

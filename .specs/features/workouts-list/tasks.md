@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/workouts-list/design.md`
-**Status**: In Progress (Lote 1: T1–T7 em execução)
+**Status**: Done (T1–T14 commitadas; Verifier PASS 5/5 mutantes mortos; `validation.md`)
 
 ---
 
@@ -413,10 +413,10 @@ T12 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] Eixo Y esquerdo com ticks de pace a cada 60s (3:00–7:00) na mesma escala das barras + gridlines sutis
-- [ ] Eixo Y direito com ticks de FC (mín/meio/máx) na cor da linha; caso degenerado (FC única) mostra só um tick
-- [ ] Tooltip mostra `volta: 800 m` / `1,0 km` além de `Volta N · km acumulado`
-- [ ] `npm run build` e `npm run lint` passam
+- [x] Eixo Y esquerdo com ticks de pace a cada 60s (3:00–7:00) na mesma escala das barras + gridlines sutis
+- [x] Eixo Y direito com ticks de FC (mín/meio/máx) na cor da linha; caso degenerado (FC única) mostra só um tick
+- [x] Tooltip mostra `volta: 800 m` / `1,0 km` além de `Volta N · km acumulado`
+- [x] `npm run build` e `npm run lint` passam
 
 **Tests**: none (frontend sem infra de testes — matriz: build + UAT)
 **Gate**: build
