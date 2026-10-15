@@ -223,7 +223,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | TRN-14 | P1: Detalhe+gráfico | Design | Implemented |
 | TRN-15 | P1: Detalhe+gráfico | Design | Implemented |
 | TRN-16 | P1: Detalhe+gráfico | Design | Pending |
-| TRN-17 | P1: Detalhe+gráfico | Design | Pending |
+| TRN-17 | P1: Detalhe+gráfico | Design | Implemented |
 | TRN-18 | P1: Detalhe+gráfico | Design | Pending |
 | TRN-19 | P1: Detalhe+gráfico | Design | Pending |
 | TRN-20 | P1: Detalhe+gráfico | Design | Pending |

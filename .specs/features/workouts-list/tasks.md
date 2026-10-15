@@ -150,11 +150,11 @@ T12 -> T13
 - Skill: NONE
 
 **Done when**:
-- [ ] `load_zone_config(path)` parseia o JSON; arquivo ausente/inválido → `ZoneConfigError`
-- [ ] `classify(speed_ms)` aplica os 4 cut points de midpoint; abaixo do primeiro → easy, acima do último → repetition; pace inválido → `None`
-- [ ] Cortes exatos com VDOT 50.2 fixados em testes (4:41 / 4:29 / 4:07 / 3:45 por km — literais do spec, L-001)
-- [ ] `meta()` devolve as 5 zonas com chave, rótulo, faixa e cor; cor de `interval` ≠ cor reservada à linha de FC
-- [ ] Testes (≥ 8 novos; total ≥ 112)
+- [x] `load_zone_config(path)` parseia o JSON; arquivo ausente/inválido → `ZoneConfigError`
+- [x] `classify(speed_ms)` aplica os 4 cut points de midpoint; abaixo do primeiro → easy, acima do último → repetition; pace inválido → `None`
+- [x] Cortes exatos com VDOT 50.2 fixados em testes (4:41 / 4:29 / 4:07 / 3:45 por km — literais do spec, L-001)
+- [x] `meta()` devolve as 5 zonas com chave, rótulo, faixa e cor; cor de `interval` ≠ cor reservada à linha de FC
+- [x] Testes (≥ 8 novos; total ≥ 112)
 
 **Tests**: unit (`backend/tests/test_vdot_zones.py`)
 **Gate**: quick
