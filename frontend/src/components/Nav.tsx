@@ -13,6 +13,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 const PANELS = [
   { href: "/hoje", label: "Hoje" },
@@ -30,6 +31,14 @@ function activePanel(pathname: string): string | null {
 }
 
 function NavLinks({ activeHref }: { activeHref: string | null }) {
+  // Em 390px a linha é rolável: o painel ativo nasce fora da janela —
+  // rolamos o link ativo para dentro da vista (UAT do painel Treinos).
+  const activeRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [activeHref]);
+
   return (
     <ul className="flex items-center gap-1">
       {PANELS.map((panel) => {
@@ -37,6 +46,7 @@ function NavLinks({ activeHref }: { activeHref: string | null }) {
         return (
           <li key={panel.href}>
             <Link
+              ref={active ? activeRef : undefined}
               href={panel.href}
               aria-current={active ? "page" : undefined}
               className={
