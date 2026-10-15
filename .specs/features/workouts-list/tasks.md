@@ -245,12 +245,12 @@ T12 -> T13
 - Skill: NONE
 
 **Done when**:
-- [ ] 404 para id inexistente; 500 "zonas VDOT não configuradas" quando o arquivo falha
-- [ ] Cada volta com pace válido em exatamente 1 zona; pace inválido → `zone=null`; `km_label` acumulado
-- [ ] `zones` com as 5 metas (chave/rótulo/faixa/cor); `consistency` com gate do T4 (`null` quando <8000m ou <4 voltas)
-- [ ] Contexto: sono/HRV/RHR da data local de início (cada um `null` quando ausente); `temperature_c` média ponderada por duração quando ≥1 volta tem temperatura
-- [ ] `structure` derivada quando há intensity_type; nenhuma chamada ao gateway Garmin
-- [ ] TestClient + banco real: corrida fácil, corrida com strides (voltas curtas), sem splits, não-corrida, 404, zonas ausentes (≥ 10 novos; total ≥ 146)
+- [x] 404 para id inexistente; 500 "zonas VDOT não configuradas" quando o arquivo falha
+- [x] Cada volta com pace válido em exatamente 1 zona; pace inválido → `zone=null`; `km_label` acumulado
+- [x] `zones` com as 5 metas (chave/rótulo/faixa/cor); `consistency` com gate do T4 (`null` quando <8000m ou <4 voltas)
+- [x] Contexto: sono/HRV/RHR da data local de início (cada um `null` quando ausente); `temperature_c` média ponderada por duração quando ≥1 volta tem temperatura
+- [x] `structure` derivada quando há intensity_type; nenhuma chamada ao gateway Garmin
+- [x] TestClient + banco real: corrida fácil, corrida com strides (voltas curtas), sem splits, não-corrida, 404, zonas ausentes (≥ 10 novos; total ≥ 146)
 
 **Tests**: integration (`backend/tests/test_activities_api.py`)
 **Gate**: full

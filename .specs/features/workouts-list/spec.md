@@ -219,22 +219,22 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | TRN-10 | P1: Lista | Design | Pending |
 | TRN-11 | P1: Lista | Design | Pending |
 | TRN-12 | P1: Lista | Design | Pending |
-| TRN-13 | P1: Detalhe+gráfico | Design | Pending |
+| TRN-13 | P1: Detalhe+gráfico | Design | Implemented |
 | TRN-14 | P1: Detalhe+gráfico | Design | Implemented |
 | TRN-15 | P1: Detalhe+gráfico | Design | Implemented |
 | TRN-16 | P1: Detalhe+gráfico | Design | Pending |
 | TRN-17 | P1: Detalhe+gráfico | Design | Implemented |
 | TRN-18 | P1: Detalhe+gráfico | Design | Pending |
-| TRN-19 | P1: Detalhe+gráfico | Design | Pending |
+| TRN-19 | P1: Detalhe+gráfico | Design | Implemented |
 | TRN-20 | P1: Detalhe+gráfico | Design | Pending |
 | TRN-21 | P1: Consistência | Design | Implemented |
 | TRN-22 | P1: Consistência | Design | Implemented |
 | TRN-23 | P1: Consistência | Design | Implemented |
 | TRN-24 | P1: Consistência | Design | Pending |
 | TRN-25 | P1: Consistência | Design | Pending |
-| TRN-26 | P1: Contexto | Design | Pending |
-| TRN-27 | P1: Contexto | Design | Pending |
-| TRN-28 | P1: Contexto | Design | Pending |
+| TRN-26 | P1: Contexto | Design | Implemented |
+| TRN-27 | P1: Contexto | Design | Implemented |
+| TRN-28 | P1: Contexto | Design | Implemented |
 | TRN-29 | P1: Cadência/tempo no sync | Design | Implemented |
 | TRN-30 | P1: Cadência/tempo no sync | Design | Implemented |
 | TRN-31 | P1: Cadência/tempo no sync | Design | Implemented |

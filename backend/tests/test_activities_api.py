@@ -6,16 +6,19 @@ afirmados são literais derivados das fixtures com aritmética exata
 (lições L-001/L-002).
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
+from app.activities import router as activities_router
 from app.activities import service
 from app.db.engine import SessionLocal
-from app.db.models import Activity, Split
+from app.db.models import Activity, Hrv, Rhr, Sleep, Split
 from app.main import app
+from app.vdot.zones import ZoneConfigError
 
 # Paces de fixture (s/km) escolhidos para cair em zonas conhecidas:
 # 300 -> easy (cut easy/marathon = 4:41), 220 -> repetition (cut = 3:45)
@@ -51,7 +54,9 @@ def _seed_activity(db, *, garmin_id: str, start: datetime, activity_type: str = 
 
 
 def _seed_split(db, activity_id: int, idx: int, *, dist_m: float, duration_s: float,
-                avg_hr: int | None = None, intensity_type: str | None = "ACTIVE") -> None:
+                avg_hr: int | None = None, intensity_type: str | None = "ACTIVE",
+                avg_cadence: float | None = None, avg_temperature: float | None = None,
+                elevation_m: float | None = None) -> None:
     db.add(
         Split(
             activity_id=activity_id,
@@ -60,6 +65,9 @@ def _seed_split(db, activity_id: int, idx: int, *, dist_m: float, duration_s: fl
             duration_s=duration_s,
             pace_s=duration_s * 1000 / dist_m if dist_m and duration_s else None,
             avg_hr=avg_hr,
+            avg_cadence=avg_cadence,
+            avg_temperature=avg_temperature,
+            elevation_m=elevation_m,
             intensity_type=intensity_type,
         )
     )
@@ -86,6 +94,22 @@ def _seed_strides_run(db, *, garmin_id: str, start: datetime) -> Activity:
     _seed_split(db, activity.id, 1, dist_m=500.0, duration_s=110.0, avg_hr=160)
     _seed_split(db, activity.id, 2, dist_m=500.0, duration_s=165.0, avg_hr=130)
     _seed_split(db, activity.id, 3, dist_m=500.0, duration_s=110.0, avg_hr=165)
+    return activity
+
+
+def _seed_long_run_with_laps(db, *, garmin_id: str, start: datetime) -> Activity:
+    """Longão 8×1000m com FC e cadência: 1ª metade 5:00/km FC 140 cad 172,
+    2ª metade 4:50/km FC 145 cad 170 (valores conferidos à mão no T4)."""
+    activity = _seed_activity(
+        db, garmin_id=garmin_id, start=start, name="Long Run",
+        distance_m=8000.0, duration_s=2360.0, avg_hr=142,
+    )
+    for idx in range(1, 5):
+        _seed_split(db, activity.id, idx, dist_m=1000.0, duration_s=300.0,
+                    avg_hr=140, avg_cadence=172.0)
+    for idx in range(5, 9):
+        _seed_split(db, activity.id, idx, dist_m=1000.0, duration_s=290.0,
+                    avg_hr=145, avg_cadence=170.0)
     return activity
 
 
@@ -231,3 +255,259 @@ def test_activities_domain_never_imports_garmin_gateway() -> None:
         source = module.read_text(encoding="utf-8")
         assert "from app.garmin" not in source, module.name
         assert "import app.garmin" not in source, module.name
+
+
+# ---------------------------------------------------------------
+# T7 — GET /api/activities/{id}
+# ---------------------------------------------------------------
+
+
+def _get_detail(client, activity_id: int) -> dict:
+    response = client.get(f"/api/activities/{activity_id}")
+    assert response.status_code == 200
+    return response.json()
+
+
+def test_detail_404_unknown_id(client) -> None:
+    """TRN-13: id inexistente -> 404."""
+    response = client.get("/api/activities/9999")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "atividade não encontrada"
+
+
+def test_detail_missing_zones_file_responds_500(client, monkeypatch) -> None:
+    """Edge do spec: vdot_zones.json ausente/inválido -> 500 com a mensagem exata."""
+    def raise_missing(path):
+        raise ZoneConfigError(f"não foi possível carregar {path}")
+
+    monkeypatch.setattr(activities_router, "load_zone_config", raise_missing)
+    response = client.get("/api/activities/1")
+    assert response.status_code == 500
+    assert response.json()["detail"] == "zonas VDOT não configuradas"
+
+
+def test_detail_easy_run_full_payload(client) -> None:
+    """TRN-19/21/22: longão fácil com consistência completa, zonas e splits.
+
+    8×1000m: 5:00/km FC 140 cad 172 -> 4:50/km FC 145 cad 170 (valores do
+    T4 conferidos à mão). decoupling = (145/290)/(140/300) - 1 = +7,1%.
+    """
+    with SessionLocal() as db:
+        activity = _seed_long_run_with_laps(db, garmin_id="700", start=datetime(2026, 10, 13, 7, 0))
+        db.commit()
+        activity_id = activity.id
+
+    detail = _get_detail(client, activity_id)
+
+    activity_payload = detail["activity"]
+    assert activity_payload["id"] == activity_id
+    assert activity_payload["name"] == "Long Run"
+    assert activity_payload["inferred_type"] == "facil"
+    assert activity_payload["pace_s"] == 295.0  # 2360×1000/8000
+    assert activity_payload["avg_hr"] == 142
+    assert activity_payload["evaluated"] is False
+    assert activity_payload["structure"] == "Corrida"  # todas as voltas ACTIVE
+
+    consistency = detail["consistency"]
+    assert consistency == {
+        "first_half_pace_s": 300.0,
+        "second_half_pace_s": 290.0,
+        "balance_delta_s": -10.0,
+        "balance_delta_pct": -3.3,
+        "first_half_hr": 140.0,
+        "second_half_hr": 145.0,
+        "hr_drift_bpm": 5.0,
+        "decoupling_pct": 7.1,
+        "cadence_fade_spm": -2.0,
+    }
+
+    assert len(detail["zones"]) == 5
+    assert detail["zones"][0] == {
+        "key": "easy", "label": "Easy", "pace_range": "5:51–4:53/km", "color": "#22c55e",
+    }
+
+    # TRN-17 no payload: cor da linha de FC distinta da cor de interval
+    interval_color = next(z["color"] for z in detail["zones"] if z["key"] == "interval")
+    assert detail["hr_color"] == "#f8fafc"
+    assert detail["hr_color"] != interval_color
+
+    assert len(detail["splits"]) == 8
+    first_split = detail["splits"][0]
+    assert first_split == {
+        "idx": 1,
+        "dist_m": 1000.0,
+        "duration_s": 300.0,
+        "pace_s": 300.0,
+        "avg_hr": 140,
+        "avg_cadence": 172.0,
+        "avg_temperature": None,
+        "elevation_m": None,
+        "intensity_type": "ACTIVE",
+        "zone": "easy",
+        "km_label": "1,0",
+    }
+    assert detail["splits"][4]["zone"] == "easy"  # pace 290 ainda é easy (cut 4:41)
+    assert detail["splits"][7]["km_label"] == "8,0"
+
+    # Contexto sem dados na data: cada campo null; temperatura omitida
+    assert detail["context"]["sleep"] is None
+    assert detail["context"]["hrv"] is None
+    assert detail["context"]["rhr"] is None
+    assert "temperature_c" not in detail["context"]
+
+
+def test_detail_strides_short_laps_zones_and_km_labels(client) -> None:
+    """TRN-19: voltas curtas (strides da sonda) classificadas em repetition com
+    recuperação easy; km acumulado com 1 decimal; consistência null (<8000m)."""
+    with SessionLocal() as db:
+        activity = _seed_activity(
+            db, garmin_id="701", start=datetime(2026, 10, 14, 7, 15),
+            name="Londrina - Strides", distance_m=3600.0, duration_s=1330.0,
+        )
+        _seed_split(db, activity.id, 1, dist_m=2000.0, duration_s=600.0,
+                    intensity_type="WARMUP")
+        _seed_split(db, activity.id, 2, dist_m=100.0, duration_s=22.0,
+                    intensity_type="ACTIVE")
+        _seed_split(db, activity.id, 3, dist_m=200.0, duration_s=66.0,
+                    intensity_type="REST")
+        _seed_split(db, activity.id, 4, dist_m=100.0, duration_s=22.0,
+                    intensity_type="ACTIVE")
+        _seed_split(db, activity.id, 5, dist_m=200.0, duration_s=66.0,
+                    intensity_type="REST")
+        _seed_split(db, activity.id, 6, dist_m=1000.0, duration_s=300.0,
+                    intensity_type="COOLDOWN")
+        db.commit()
+        activity_id = activity.id
+
+    detail = _get_detail(client, activity_id)
+
+    assert detail["activity"]["inferred_type"] == "intervalado"
+    assert detail["activity"]["structure"] == (
+        "Aquecimento 2,0km + Corrida 0,1km + Descanso 0,2km + Corrida 0,1km "
+        "+ Descanso 0,2km + Desaquecimento 1,0km"
+    )
+
+    zones = [(split["idx"], split["zone"], split["km_label"]) for split in detail["splits"]]
+    assert zones == [
+        (1, "easy", "2,0"),
+        (2, "repetition", "2,1"),  # 100m a 220 s/km (3:40) -> repetition
+        (3, "easy", "2,3"),
+        (4, "repetition", "2,4"),
+        (5, "easy", "2,6"),
+        (6, "easy", "3,6"),
+    ]
+    assert detail["consistency"] is None  # 3600m < 8000m (gate do T4)
+
+
+def test_detail_zone_null_when_pace_invalid(client) -> None:
+    """Edge do spec: volta com distance=0 -> pace null e zone null; km_label acumula."""
+    with SessionLocal() as db:
+        activity = _seed_easy_run(db, garmin_id="702", start=datetime(2026, 10, 13, 7, 0), laps=4)
+        _seed_split(db, activity.id, 5, dist_m=0.0, duration_s=30.0, intensity_type="REST")
+        db.commit()
+        activity_id = activity.id
+
+    detail = _get_detail(client, activity_id)
+    rest = detail["splits"][4]
+    assert rest["dist_m"] == 0.0
+    assert rest["pace_s"] is None
+    assert rest["zone"] is None
+    assert rest["km_label"] == "4,0"  # volta sem distância não avança o acumulado
+    assert detail["splits"][3]["km_label"] == "4,0"
+
+
+def test_detail_activity_without_splits(client) -> None:
+    """Edge do spec (esteira): resumo sem splits, sem consistência, sem estrutura."""
+    with SessionLocal() as db:
+        activity = _seed_activity(
+            db, garmin_id="703", start=datetime(2026, 10, 13, 6, 30),
+            name="Treadmill Run", distance_m=8000.0, duration_s=3000.0,
+        )
+        db.commit()
+        activity_id = activity.id
+
+    detail = _get_detail(client, activity_id)
+    assert detail["splits"] == []
+    assert detail["consistency"] is None
+    assert detail["activity"]["structure"] is None
+    assert detail["activity"]["inferred_type"] == "facil"
+    assert detail["activity"]["pace_s"] == 375.0  # 3000×1000/8000
+
+
+def test_detail_non_running_activity(client) -> None:
+    """Edge do spec (modo all): não-corrida -> resumo, sem tipo, sem consistência."""
+    with SessionLocal() as db:
+        _seed_activity(
+            db, garmin_id="704", start=datetime(2026, 10, 9, 19, 6),
+            activity_type="yoga", name="Ioga", distance_m=0.0, duration_s=2681.52,
+            avg_hr=61,
+        )
+        db.commit()
+
+    response = client.get("/api/activities/1")
+    assert response.status_code == 200
+    detail = response.json()
+    assert detail["activity"]["inferred_type"] is None
+    assert detail["activity"]["pace_s"] is None  # distance_m 0 -> null (spec)
+    assert detail["activity"]["avg_hr"] == 61
+    assert detail["splits"] == []
+    assert detail["consistency"] is None
+
+
+def test_detail_consistency_null_with_8000m_but_3_laps(client) -> None:
+    """Gate do T4: >=8000m mas <4 voltas -> consistency=null."""
+    with SessionLocal() as db:
+        activity = _seed_activity(
+            db, garmin_id="705", start=datetime(2026, 10, 13, 7, 0),
+            distance_m=9000.0, duration_s=2700.0,
+        )
+        for idx in range(1, 4):
+            _seed_split(db, activity.id, idx, dist_m=3000.0, duration_s=900.0)
+        db.commit()
+        activity_id = activity.id
+
+    detail = _get_detail(client, activity_id)
+    assert detail["consistency"] is None
+
+
+def test_detail_context_from_local_start_date(client) -> None:
+    """TRN-26/27: sono/HRV/RHR da data local de início; temperatura média
+    ponderada pela duração das voltas com temperatura ((22×300+24×300)/600 = 23,0)."""
+    with SessionLocal() as db:
+        activity = _seed_long_run_with_laps(db, garmin_id="706", start=datetime(2026, 10, 14, 7, 0))
+        db.add(Sleep(date=date(2026, 10, 14), duration_s=28800.0, score=85))
+        db.add(Hrv(date=date(2026, 10, 14), value=48.0, status="BALANCED"))
+        db.add(Rhr(date=date(2026, 10, 14), value=42))
+        db.commit()
+        splits = (
+            db.execute(
+                select(Split).where(
+                    Split.activity_id == activity.id, Split.idx.in_((1, 2))
+                )
+            )
+            .scalars()
+            .all()
+        )
+        splits[0].avg_temperature = 22.0
+        splits[1].avg_temperature = 24.0
+        db.commit()
+        activity_id = activity.id
+
+    detail = _get_detail(client, activity_id)
+    assert detail["context"]["sleep"] == {"duration_s": 28800.0, "score": 85}
+    assert detail["context"]["hrv"] == {"value": 48.0, "status": "BALANCED"}
+    assert detail["context"]["rhr"] == {"value": 42}
+    assert detail["context"]["temperature_c"] == 23.0
+    assert detail["consistency"] is not None
+
+
+def test_detail_context_null_when_no_health_data_for_date(client) -> None:
+    """TRN-26: dia sem sono/HRV/RHR -> cada campo null (UI esconde); sem
+    temperatura nas voltas -> campo omitido (spec)."""
+    with SessionLocal() as db:
+        activity = _seed_easy_run(db, garmin_id="707", start=datetime(2026, 10, 13, 7, 0))
+        db.commit()
+        activity_id = activity.id
+
+    detail = _get_detail(client, activity_id)
+    assert detail["context"] == {"sleep": None, "hrv": None, "rhr": None}
