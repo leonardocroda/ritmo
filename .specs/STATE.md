@@ -58,6 +58,14 @@
 - **Date**: 2026-10-14
 - **Status**: active
 
+### AD-008
+- **Decision**: Recharts é o renderer padrão dos gráficos de série temporal dos painéis (Potencial, Saúde, Hoje); SVG próprio fica reservado para geometrias especiais que a lib não modela (ex.: barras de splits com largura proporcional à duração da volta).
+- **Reason**: Série temporal é o caso padrão da lib (menos código, eixos/tooltip/responsividade grátis); o gráfico de splits do workouts-list provou que o custo do SVG próprio só se paga quando a geometria exige. Decisão registrada no design do potential-panel (15/10/2026).
+- **Trade-off**: Dependência de API da lib (mitigado: Recharts 3.10 já declarado; verificar tipos instalados na implementação) em troca de consistência visual entre painéis.
+- **Scope**: `frontend/src/components/` — qualquer gráfico novo de linha/área/barra de série temporal.
+- **Date**: 2026-10-15
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: `workouts-list` — **concluída e validada** (PASS do Verifier em `.specs/features/workouts-list/validation.md`; 32/32 ACs com evidência `file:line`, 5/5 mutantes mortos, `validate_state.py` exit 0)
