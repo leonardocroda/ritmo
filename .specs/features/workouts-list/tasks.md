@@ -198,10 +198,10 @@ T12 -> T13
 - Skill: NONE
 
 **Done when**:
-- [ ] Prioridade: prova (eventType race) > intervalado (≥2 grupos interval/repetition com recuperação entre eles) > limiar (bloco ≥3 voltas threshold somando ≥2000m) > tempo (bloco ≥3 marathon somando ≥2000m) > progressivo (2ª metade ≤92% do pace da 1ª) > longao (≥16000m) > facil
-- [ ] Voltas sem pace/zona não contam para blocos; grupos consideram recovery por zona OU intensityType REST/RECOVERY/WALK
-- [ ] `derive_structure` soma passos consecutivos por intensity_type ("Aquecimento 2,0km + Corrida 7,1km…")
-- [ ] Um teste por regra + um de prioridade + edges (strides reais da sonda como fixture) (≥ 8 novos; total ≥ 128)
+- [x] Prioridade: prova (eventType race) > intervalado (≥2 grupos interval/repetition com recuperação entre eles) > limiar (bloco ≥3 voltas threshold somando ≥2000m) > tempo (bloco ≥3 marathon somando ≥2000m) > progressivo (2ª metade ≤92% do pace da 1ª) > longao (≥16000m) > facil
+- [x] Voltas sem pace/zona não contam para blocos; grupos consideram recovery por zona OU intensityType REST/RECOVERY/WALK
+- [x] `derive_structure` soma passos consecutivos por intensity_type ("Aquecimento 2,0km + Corrida 7,1km…")
+- [x] Um teste por regra + um de prioridade + edges (strides reais da sonda como fixture) (≥ 8 novos; total ≥ 128)
 
 **Tests**: unit (`backend/tests/test_activity_infer.py`)
 **Gate**: quick
