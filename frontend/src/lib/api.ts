@@ -1,6 +1,7 @@
-// Cliente tipado da API de sync — espelha o contrato do backend
-// (`JobOut`/`stats_json` do design do garmin-sync). A UI lê progresso
-// exclusivamente daqui (polling de 2s), nunca do Garmin (AD-002).
+// Cliente tipado da API — espelha os contratos do backend (designs do
+// garmin-sync e workouts-list). A UI lê exclusivamente daqui, nunca do
+// Garmin (AD-002): o sync polleia `JobOut` e os painéis leem o domínio
+// de leitura `activities`.
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -41,7 +42,7 @@ export type JobCreated = { id: number; status: JobStatus };
 /** Resposta do `GET /api/sync/jobs/latest` — job null quando nunca houve sync. */
 export type LatestJob = { job: JobOut | null };
 
-async function parseError(res: Response): Promise<Error> {
+async function parseError(res: Response): Promise<ApiError> {
   let detail = `Erro HTTP ${res.status}`;
   try {
     const body: unknown = await res.json();
@@ -54,7 +55,17 @@ async function parseError(res: Response): Promise<Error> {
   } catch {
     // resposta sem corpo JSON — o status já é a mensagem
   }
-  return new Error(detail);
+  return new ApiError(res.status, detail);
+}
+
+/** Erro de API com o status HTTP — a UI distingue 404 (inexistente) de falha geral. */
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
 }
 
 /** Cria um job de sync (SYNC-01). 409 = já existe job ativo (SYNC-02). */
@@ -71,4 +82,148 @@ export async function getLatestJob(): Promise<LatestJob> {
   });
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as LatestJob;
+}
+
+// ---- Painel Treinos: contratos do design workouts-list ----
+
+/** Tipos inferidos em ASCII na API; acento fica na camada de exibição (design). */
+export type InferredType =
+  | "prova"
+  | "intervalado"
+  | "limiar"
+  | "tempo"
+  | "progressivo"
+  | "longao"
+  | "facil";
+
+/** Filtro da lista: corridas (default) ou todas as atividades. */
+export type ActivityTypeFilter = "running" | "all";
+
+/** Espelho do `ActivityListItem` (backend/app/activities/router.py). */
+export type ActivityListItem = {
+  id: number;
+  start_time: string;
+  activity_type: string;
+  name: string | null;
+  distance_m: number;
+  duration_s: number;
+  pace_s: number | null;
+  avg_hr: number | null;
+  inferred_type: InferredType | null;
+  evaluated: boolean;
+};
+
+/** Espelho do `ActivityListOut` — {items, total, limit, offset} (spec). */
+export type ActivityListOut = {
+  items: ActivityListItem[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+/** Espelho do `ActivityOut` do detalhe. */
+export type ActivityOut = {
+  id: number;
+  start_time: string;
+  name: string | null;
+  distance_m: number;
+  duration_s: number;
+  pace_s: number | null;
+  avg_hr: number | null;
+  max_hr: number | null;
+  avg_cadence: number | null;
+  elevation_gain_m: number | null;
+  aerobic_te: number | null;
+  anaerobic_te: number | null;
+  training_load: number | null;
+  evaluated: boolean;
+  inferred_type: InferredType | null;
+  structure: string | null;
+};
+
+/** Espelho do `SplitOut` — volta já classificada por zona no backend. */
+export type SplitOut = {
+  idx: number;
+  dist_m: number | null;
+  duration_s: number | null;
+  pace_s: number | null;
+  avg_hr: number | null;
+  avg_cadence: number | null;
+  avg_temperature: number | null;
+  elevation_m: number | null;
+  intensity_type: string | null;
+  zone: string | null;
+  km_label: string;
+};
+
+export type ZoneKey =
+  | "easy"
+  | "marathon"
+  | "threshold"
+  | "interval"
+  | "repetition";
+
+/** Espelho do `ZoneMetaOut` — cor definida no backend (fonte única). */
+export type ZoneMeta = {
+  key: ZoneKey;
+  label: string;
+  pace_range: string;
+  color: string;
+};
+
+/** Bloco consistency (TRN-21..25). `null` no backend quando <8km ou <4 voltas;
+ * `cadence_fade_spm` só existe com cadência suficiente (nenhum número inventado). */
+export type Consistency = {
+  first_half_pace_s: number | null;
+  second_half_pace_s: number | null;
+  balance_delta_s: number | null;
+  balance_delta_pct: number | null;
+  first_half_hr: number | null;
+  second_half_hr: number | null;
+  hr_drift_bpm: number | null;
+  decoupling_pct: number | null;
+  cadence_fade_spm?: number;
+};
+
+/** Faixa de contexto — cada campo null quando ausente; a UI exibe só o que existir. */
+export type ContextOut = {
+  sleep: { duration_s: number; score: number | null } | null;
+  hrv: { value: number; status: string | null } | null;
+  rhr: { value: number } | null;
+  temperature_c?: number;
+};
+
+/** Espelho do `ActivityDetailOut` do detalhe (TRN-13/19/26/27). */
+export type ActivityDetailOut = {
+  activity: ActivityOut;
+  splits: SplitOut[];
+  zones: ZoneMeta[];
+  hr_color: string;
+  consistency: Consistency | null;
+  context: ContextOut;
+};
+
+/** Lista paginada de atividades (TRN-04/05/06). 422 para limit/offset inválidos. */
+export async function getActivities(
+  options: { activityType?: ActivityTypeFilter; limit?: number; offset?: number } = {},
+): Promise<ActivityListOut> {
+  const params = new URLSearchParams();
+  if (options.activityType) params.set("activity_type", options.activityType);
+  if (options.limit !== undefined) params.set("limit", String(options.limit));
+  if (options.offset !== undefined) params.set("offset", String(options.offset));
+  const query = params.toString();
+  const res = await fetch(`${API_BASE}/api/activities${query ? `?${query}` : ""}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as ActivityListOut;
+}
+
+/** Detalhe do treino (TRN-13). 404 = id inexistente (ApiError.status). */
+export async function getActivityDetail(id: number): Promise<ActivityDetailOut> {
+  const res = await fetch(`${API_BASE}/api/activities/${id}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as ActivityDetailOut;
 }

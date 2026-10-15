@@ -270,10 +270,10 @@ T12 -> T13
 - Skill: NONE
 
 **Done when**:
-- [ ] Tipos espelham os contratos do design (`ActivityListOut`, `ActivityDetailOut` — zonas, consistência, contexto)
-- [ ] `getActivities({activityType, limit, offset})` e `getActivityDetail(id)` com tratamento de erro do padrão existente
-- [ ] Formatadores: pace `M:SS`, duração `H:MM:SS`/`M:SS`, km com vírgula, cadência, °C
-- [ ] `npm run build` e `npm run lint` passam
+- [x] Tipos espelham os contratos do design (`ActivityListOut`, `ActivityDetailOut` — zonas, consistência, contexto)
+- [x] `getActivities({activityType, limit, offset})` e `getActivityDetail(id)` com tratamento de erro do padrão existente
+- [x] Formatadores: pace `M:SS`, duração `H:MM:SS`/`M:SS`, km com vírgula, cadência, °C
+- [x] `npm run build` e `npm run lint` passam
 
 **Tests**: none (frontend sem infra de testes — matriz: build + UAT)
 **Gate**: build
