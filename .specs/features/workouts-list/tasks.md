@@ -221,11 +221,11 @@ T12 -> T13
 - Skill: NONE
 
 **Done when**:
-- [ ] Default = corridas (`running`/`trail_running`), `start_time DESC` com desempate `id DESC`; `activity_type=all` inclui as demais
-- [ ] `limit` (default 30, máx 100) + `offset`; fora de [1,100] ou offset<0 → 422 antes da query; resposta `{items, total, limit, offset}`
-- [ ] `pace_s` derivado (`duration_s×1000/distance_m` quando >0, senão `null`); não-corrida com `inferred_type=null`
-- [ ] Voltas da página em 1 query `IN` (sem N+1); nenhuma importação do gateway Garmin neste domínio
-- [ ] TestClient + banco real: happy, filtro, paginação além do fim (`items=[]`), 422, vazio (≥ 8 novos; total ≥ 136)
+- [x] Default = corridas (`running`/`trail_running`), `start_time DESC` com desempate `id DESC`; `activity_type=all` inclui as demais
+- [x] `limit` (default 30, máx 100) + `offset`; fora de [1,100] ou offset<0 → 422 antes da query; resposta `{items, total, limit, offset}`
+- [x] `pace_s` derivado (`duration_s×1000/distance_m` quando >0, senão `null`); não-corrida com `inferred_type=null`
+- [x] Voltas da página em 1 query `IN` (sem N+1); nenhuma importação do gateway Garmin neste domínio
+- [x] TestClient + banco real: happy, filtro, paginação além do fim (`items=[]`), 422, vazio (≥ 8 novos; total ≥ 136)
 
 **Tests**: integration (`backend/tests/test_activities_api.py`)
 **Gate**: full

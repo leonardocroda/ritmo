@@ -210,12 +210,12 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | TRN-01 | P1: Navegação | Design | Pending |
 | TRN-02 | P1: Navegação | Design | Pending |
 | TRN-03 | P1: Navegação | Design | Pending |
-| TRN-04 | P1: Lista | Design | Pending |
-| TRN-05 | P1: Lista | Design | Pending |
-| TRN-06 | P1: Lista | Design | Pending |
+| TRN-04 | P1: Lista | Design | Implemented |
+| TRN-05 | P1: Lista | Design | Implemented |
+| TRN-06 | P1: Lista | Design | Implemented |
 | TRN-07 | P1: Lista | Design | Implemented |
 | TRN-08 | P1: Lista | Design | Pending |
-| TRN-09 | P1: Lista | Design | Pending |
+| TRN-09 | P1: Lista | Design | Implemented |
 | TRN-10 | P1: Lista | Design | Pending |
 | TRN-11 | P1: Lista | Design | Pending |
 | TRN-12 | P1: Lista | Design | Pending |
