@@ -387,12 +387,12 @@ T12 -> T13
 - Skill: NONE
 
 **Done when**:
-- [ ] `GET /api/activities` e `/api/activities/{id}` respondem com dados reais; tipo inferido bate com a expectativa em 3 treinos conhecidos (fácil, strides, longão)
-- [ ] Gráfico renderiza com voltas de 100m (strides) e auto-lap 1km — larguras proporcionais visíveis; FC e relevo alinhados
-- [ ] Consistência de um longão ≥8km confere com cálculo manual; treino <8km sem tabela
-- [ ] Nenhuma chamada ao Garmin nos logs durante o uso dos painéis
-- [ ] Suite completa passa (≥ 146 testes); README ganha seção "Painel Treinos"
-- [ ] UAT manual navegando em 390px (celular/DevTools)
+- [x] `GET /api/activities` e `/api/activities/{id}` respondem com dados reais; tipo inferido bate com a expectativa em 3 treinos conhecidos (fácil, strides, longão)
+- [ ] Gráfico renderiza com voltas de 100m (strides) e auto-lap 1km — larguras proporcionais visíveis; FC e relevo alinhados *(payload e rotas verificados; conferência visual pendente do usuário)*
+- [x] Consistência de um longão ≥8km confere com cálculo manual; treino <8km sem tabela
+- [x] Nenhuma chamada ao Garmin nos logs durante o uso dos painéis
+- [x] Suite completa passa (≥ 146 testes); README ganha seção "Painel Treinos"
+- [ ] UAT manual navegando em 390px (celular/DevTools) *(pendente conferência visual do usuário)*
 
 **Tests**: none (UAT real com evidência; o Verificador independente roda depois por contrato da skill)
 **Gate**: build

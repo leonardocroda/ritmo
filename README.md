@@ -5,7 +5,7 @@ Plataforma pessoal de corrida: sync do Garmin, painéis que importam
 
 > Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
 >
-> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1 (sync Garmin) em andamento.
+> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · próximos: Potencial, Saúde, Avaliar com IA, Hoje.
 
 ## Estrutura
 
@@ -129,6 +129,38 @@ da rede (ex.: celular), aponte para o IP do host:
 ```bash
 NEXT_PUBLIC_API_URL=http://192.168.0.10:8000 docker compose up -d --build frontend
 ```
+
+## Painel Treinos
+
+A lista de corridas em `/treinos` (navegação no header: **Hoje · Treinos ·
+Potencial · Saúde** — os outros painéis entram nas próximas features da
+Fase 1). Tudo lido do banco próprio: **nenhuma chamada à API do Garmin**
+ao navegar (AD-002).
+
+- **Lista**: corridas ordenadas da mais recente, com tipo inferido
+  determinístico (prova → intervalado → limiar → tempo → progressivo →
+  longão ≥16km → fácil, calculado sobre splits + zonas VDOT), distância,
+  pace, FC e badge "Avaliado" quando houver avaliação. Paginação de 30
+  com "Carregar mais" e filtro "todas as atividades" (yoga/força sem pace).
+- **Detalhe**: gráfico de splits com **largura da barra proporcional à
+  duração da volta** (pausa de 30s ≠ tiro de 3km), cor por **zona VDOT
+  pessoal** (verde=easy, azul=marathon, laranja=threshold, vermelho=
+  interval, roxo=repetition; cortes no meio dos gaps do
+  `backend/data/vdot_zones.json`), linha de FC e relevo. Tooltip com os
+  valores reais; pace clampado a 3:00–7:00/km só no desenho.
+- **Métricas de consistência** (corridas ≥8km com ≥4 voltas): equilíbrio
+  1ª vs 2ª metade (por distância acumulada), drift cardíaco (exibido ao
+  lado do Δ pace — AD-005: drift só se interpreta a ritmo constante),
+  decoupling FC/pace e fade de cadência. Funções puras, determinísticas.
+- **Faixa de contexto**: sono, HRV, RHR do dia do treino + temperatura
+  média das voltas — **só o que existir** (treinos antigos, sincronizados
+  antes das colunas de cadência/temperatura, mostram menos até o re-pull).
+
+Validação real (15/10/2026): tipos inferidos conferidos em treinos
+conhecidos (strides → intervalado, 8x800m → intervalado, 2x3km limiar →
+limiar, 16km → longão); consistência do longão conferida contra cálculo
+manual (Δ pace −4,65s/km · drift +9,98 bpm · decoupling +7,9%); suite com
+170 testes no Postgres do compose.
 
 ## Workflow de desenvolvimento — spec-driven
 
