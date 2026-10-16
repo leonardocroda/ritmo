@@ -21,7 +21,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.db.engine import SessionLocal, init_db
-from app.db.models import Activity, Hrv, Rhr, Sleep, Stress
+from app.db.models import Activity, Hrv, Rhr, Sleep, Stress, User
 from app.health import router as health_router
 from app.health import service
 from app.main import app
@@ -300,6 +300,78 @@ def test_dose_response_crosses_hrv_of_same_date_only(db) -> None:
         "adequate": {"nights": 0, "avg_hrv": None, "avg_score": None},
         "neutral_nights": 0,
     }
+
+
+def test_other_users_rows_never_leak_into_panel(db, fixed_today) -> None:
+    """Fix 1 do Verifier (sensor M3) + convenção AD-001: linhas de outro
+    usuário nunca vazam para nenhum bloco — o usuário 1 tem as 3 noites
+    canônicas (e nenhum RHR/estresse/atividade), o outro usuário tem uma
+    noite de 4h com HRV, RHR/estresse alheios e 3 forças + yoga. Sem o
+    filtro `user_id`, TODOS os blocos mudariam."""
+    # id explícito: o init_db insere o usuário 1 com id explícito, o que
+    # não avança a sequência do Postgres (insert sem id colidiria com o
+    # pkey 1 — pendência da Fase 2.5 anotada no context.md). O flush
+    # ordena o insert: sem relationship() entre os mappers, o flush não
+    # garante users antes das FKs (user 1 não sofre — já vem commitado
+    # do init_db; o 2 nasce nesta sessão).
+    other = User(id=2, display_name="Convidado")
+    db.add(other)
+    db.flush()
+    stranger_day = date(2026, 10, 12)
+
+    for day, duration_s, score, hrv, bed, wake in NIGHTS:
+        _seed_sleep(db, day, duration_s, score=score, bed=bed, wake=wake)
+        _seed_hrv(db, day, hrv)
+    # Dados alheios que mudariam cada bloco se vazaSEM: sono de 4h
+    # (cairia no bucket short com HRV 40), RHR 99, estresse 90 e
+    # forças que virariam streak (2 na semana completa 05-11/10 + 1 na
+    # corrente) + yoga na janela.
+    db.add(Sleep(user_id=other.id, date=stranger_day, duration_s=14400,
+                 score=30, rem_pct=5.0, deep_pct=10.0, light_pct=85.0,
+                 awakenings=9))
+    db.add(Hrv(user_id=other.id, date=stranger_day, value=40.0, status="LOW"))
+    db.add(Rhr(user_id=other.id, date=stranger_day, value=99))
+    db.add(Stress(user_id=other.id, date=stranger_day, avg=90))
+    for garmin_id, day in (("o-s1", date(2026, 10, 6)), ("o-s2", date(2026, 10, 8)),
+                           ("o-s3", date(2026, 10, 15)), ("o-y1", date(2026, 10, 15))):
+        db.add(Activity(user_id=other.id, garmin_id=garmin_id,
+                        start_time=datetime(day.year, day.month, day.day, 7, 0),
+                        activity_type="strength_training" if garmin_id.startswith("o-s")
+                        else "yoga",
+                        name="Alheio", distance_m=0.0, duration_s=3600.0))
+    db.commit()
+
+    payload = service.get_health(db, 60, SAO_PAULO)
+
+    # Sono: só as 3 noites do usuário 1; a noite alheia de 4h não entra
+    # nos pontos, no below_floor (2 noites, não 3) nem no dose (a noite
+    # alheia faria short = 2 noites, avg_hrv 54,0, avg_score 45,0).
+    assert [p["date"] for p in payload["sleep"]["points"]] == [
+        date(2026, 10, 13), date(2026, 10, 14), date(2026, 10, 15),
+    ]
+    assert payload["sleep"]["below_floor"] == {"nights": 2, "pct": 66.7}
+    assert payload["dose_response"] == {
+        "short": {"nights": 1, "avg_hrv": 68.0, "avg_score": 60.0},
+        "adequate": {"nights": 1, "avg_hrv": 82.0, "avg_score": 80.0},
+        "neutral_nights": 1,
+    }
+    # HRV alheia ausente; current continua a última noite do usuário 1
+    assert [p["date"] for p in payload["hrv"]["points"]] == [
+        date(2026, 10, 13), date(2026, 10, 14), date(2026, 10, 15),
+    ]
+    assert payload["hrv"]["current"] == {
+        "date": date(2026, 10, 15), "value": 75.0, "status": "BALANCED",
+    }
+    # Usuário 1 não tem RHR/estresse: bloco null — a linha alheia
+    # (RHR 99 / estresse 90) tornaria os blocos não-null.
+    assert payload["rhr"] is None
+    assert payload["stress"] is None
+    # Atividades alheias não viram streak/yoga do usuário 1
+    assert payload["lifestyle"]["strength"] == {
+        "streak_weeks": 0, "weeks_hit": 0, "weeks_total": 9,
+        "current_week_sessions": 0,
+    }
+    assert payload["lifestyle"]["yoga"] == {"sessions": 0, "per_week_avg": 0.0}
 
 
 def test_lifestyle_streak_exceeds_window(db, fixed_today) -> None:

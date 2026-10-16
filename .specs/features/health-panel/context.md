@@ -64,3 +64,4 @@ Painel `/saude` (§4.5 + composição v1 de §9.1): responde "meu corpo está ab
 - **Sync de passos (NEAT)** — feature própria futura: +1 chamada de sync, tabela `steps(dia, total)`, mapper, backfill; consumida pelo checklist do Saúde e pelo card de readiness do Hoje. **Dado importantíssimo para avaliar a saúde geral** (decisão do usuário 16/10/2026 de não incluí-lo na v1 por custo de infra, não por irrelevância).
 - Body Battery no Saúde (reavaliar após o painel Hoje existir).
 - Correlações avançadas sono × HRV do dia seguinte × FC do treino (§9.1 — Fase 2).
+- **Sequência `users_pkey` desincronizada**: `init_db` insere o usuário default com `id=1` explícito e não avança a sequência — o primeiro `User` sem id explícito colide (UniqueViolation, visto na fix do Verifier 16/10/2026). Inofensivo na v1 (usuário único); ao chegar a criação real de usuários (Fase 2.5), o init precisa semear sem id explícito ou dar `setval` na sequência.
