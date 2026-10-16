@@ -311,9 +311,9 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] Tipos espelham o payload do T9 (blocos nullable onde o backend manda null)
-- [ ] `getPotential` com `days` opcional e tratamento de erro via `parseError`
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Tipos espelham o payload do T9 (blocos nullable onde o backend manda null)
+- [x] `getPotential` com `days` opcional e tratamento de erro via `parseError`
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none (cobertura frontend = build gate + UAT da Phase 5, matriz)
 **Gate**: build (frontend)

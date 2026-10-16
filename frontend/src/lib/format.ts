@@ -29,6 +29,11 @@ export function formatKm(meters: number): string {
   return `${(meters / 1000).toFixed(1).replace(".", ",")} km`;
 }
 
+/** VDOT com 1 casa e vírgula PT-BR: 50.2 -> "50,2". */
+export function formatVdot(vdot: number): string {
+  return vdot.toFixed(1).replace(".", ",");
+}
+
 /** Cadência em passos por minuto: 155.2 -> "155 spm". */
 export function formatCadence(spm: number): string {
   return `${Math.round(spm)} spm`;

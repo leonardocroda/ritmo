@@ -227,3 +227,80 @@ export async function getActivityDetail(id: number): Promise<ActivityDetailOut> 
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as ActivityDetailOut;
 }
+
+// ---- Painel Potencial: contratos do design potential-panel ----
+
+/** Distâncias canônicas (ASCII na API; acento na exibição — design). */
+export type CanonicalEvent = "5K" | "10K" | "HALF_MARATHON" | "MARATHON";
+
+/** Ponto da timeline VDOT — PR, prova ou teste de calibração (POT-08). */
+export type TimelinePoint = {
+  date: string;
+  vdot: number;
+  source: string;
+  label: string;
+  distance_m: number;
+  time_s: number;
+};
+
+/** Bloco vdot — corrente (arquivo), demonstrado (maior ponto) e faixa honesta. */
+export type VdotBlock = {
+  current: { vdot: number; source: string; test_date: string };
+  demonstrated: { vdot: number; source: string; date: string } | null;
+  gap_pct: number | null;
+  timeline: TimelinePoint[];
+};
+
+/** Linha de previsão por distância — null = estimativa ausente ("—"). */
+export type PredictionRow = {
+  garmin_s: number | null;
+  riegel_s: number | null;
+  vdot_s: number | null;
+  average_s: number | null;
+  pr_s: number | null;
+  pr_date: string | null;
+};
+
+/** Ponto da PMC — null espelha a linha do banco (janela 28d incompleta). */
+export type PmcPoint = {
+  date: string;
+  ctl: number | null;
+  atl: number | null;
+  tsb: number | null;
+  acwr: number | null;
+};
+
+export type PmcBlock = {
+  days: number;
+  points: PmcPoint[];
+  current: PmcPoint;
+};
+
+export type Vo2maxBlock = {
+  points: { date: string; value: number }[];
+};
+
+export type DecayRow = {
+  event: CanonicalEvent;
+  real_pace_s: number;
+  ideal_pace_s: number;
+  delta_pct: number;
+};
+
+/** Espelho do `PotentialOut` (backend/app/potential/router.py). */
+export type PotentialOut = {
+  vdot: VdotBlock;
+  predictions: Record<CanonicalEvent, PredictionRow>;
+  pmc: PmcBlock | null;
+  vo2max: Vo2maxBlock | null;
+  decay: DecayRow[];
+};
+
+/** Painel Potencial inteiro em 1 payload (POT-11). A UI fixa 180 dias (spec). */
+export async function getPotential(days = 180): Promise<PotentialOut> {
+  const res = await fetch(`${API_BASE}/api/potential?days=${days}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as PotentialOut;
+}
