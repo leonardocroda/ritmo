@@ -288,10 +288,10 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] `GET /api/potential` responde 200 com payload completo (seeds); `days=0`/`366` → 422; `days=365` → 200
-- [ ] `vdot_zones.json` ausente (monkeypatch do path) → 500 "zonas VDOT não configuradas"
-- [ ] `pmc=null` e `vo2max=null` atravessam o HTTP como JSON null (bancos vazios)
-- [ ] Testes: ≥ 6 novos (TestClient) (total ≥ 220)
+- [x] `GET /api/potential` responde 200 com payload completo (seeds); `days=0`/`366` → 422; `days=365` → 200
+- [x] `vdot_zones.json` ausente (monkeypatch do path) → 500 "zonas VDOT não configuradas"
+- [x] `pmc=null` e `vo2max=null` atravessam o HTTP como JSON null (bancos vazios)
+- [x] Testes: ≥ 6 novos (TestClient) (total ≥ 220)
 
 **Tests**: integration (`backend/tests/test_potential_api.py`)
 **Gate**: full

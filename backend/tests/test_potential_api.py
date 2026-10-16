@@ -17,6 +17,7 @@ from fastapi.testclient import TestClient
 from app.db.engine import SessionLocal, init_db
 from app.db.models import Activity, DailyLoad, PersonalRecord, RacePrediction
 from app.main import app
+from app.potential import router as potential_router
 from app.potential import service
 from app.vdot.calibration import Calibration
 from app.vdot.zones import ZoneConfigError
@@ -293,3 +294,116 @@ def test_potential_domain_never_imports_garmin_gateway() -> None:
         source = module.read_text(encoding="utf-8")
         assert "from app.garmin" not in source, module.name
         assert "import app.garmin" not in source, module.name
+
+
+# ---------------------------------------------------------------
+# T9 — GET /api/potential (TestClient + superfície HTTP)
+# ---------------------------------------------------------------
+
+
+def _seed_full_panel(db) -> None:
+    """Painel completo: PRs reais + predições da sonda + PMC + vo2max."""
+    _seed_prs(db)
+    _seed_garmin_predictions(db)
+    _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
+    _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
+    _seed_activity(
+        db, garmin_id="30", start=datetime(2026, 4, 22, 7, 0, 0),
+        raw_json={"vO2MaxValue": 54.0},
+    )
+
+
+def test_api_happy_path_200_full_payload(client) -> None:
+    """POT-11/16: 200 com o payload completo em JSON — datas ISO, default
+    days=180 no bloco pmc e os pins do design atravessando o HTTP."""
+    with SessionLocal() as db:
+        _seed_full_panel(db)
+        db.commit()
+
+    response = client.get("/api/potential")
+    assert response.status_code == 200
+    body = response.json()
+
+    assert body["vdot"]["current"] == {
+        "vdot": 50.2, "source": "10K em 41:15", "test_date": "2026-10-03",
+    }
+    assert body["vdot"]["demonstrated"] == {
+        "vdot": pytest.approx(51.6193, abs=1e-3),
+        "source": "FASTEST_5K",
+        "date": "2026-04-26",
+    }
+    assert body["vdot"]["gap_pct"] == 97.3
+    assert [(p["date"], p["source"]) for p in body["vdot"]["timeline"]] == [
+        ("2024-10-05", "pr"),
+        ("2026-04-26", "pr"),
+        ("2026-05-03", "pr"),
+        ("2026-07-05", "pr"),
+        ("2026-10-03", "teste"),
+    ]
+    assert body["vdot"]["timeline"][0]["label"] == "10K 40:25"
+
+    assert body["predictions"]["5K"] == {
+        "garmin_s": 1165.0, "riegel_s": 1163.8, "vdot_s": 1191.9,
+        "average_s": 1173.6, "pr_s": 1163.8, "pr_date": "2026-04-26",
+    }
+    assert list(body["predictions"].keys()) == ["5K", "10K", "HALF_MARATHON", "MARATHON"]
+
+    assert body["pmc"]["days"] == 180  # default do endpoint
+    assert [p["date"] for p in body["pmc"]["points"]] == ["2026-10-14", "2026-10-15"]
+    assert body["pmc"]["current"] == {
+        "date": "2026-10-15", "ctl": 22.0, "atl": 28.0, "tsb": -6.0, "acwr": 1.42,
+    }
+
+    assert body["vo2max"] == {"points": [{"date": "2026-04-22", "value": 54.0}]}
+    by_event = {row["event"]: row for row in body["decay"]}
+    assert by_event["MARATHON"]["delta_pct"] == -22.1
+
+
+def test_api_days_out_of_range_responds_422(client) -> None:
+    """POT-16: days fora de [1, 365] -> 422 antes de qualquer query."""
+    for params in ({"days": 0}, {"days": 366}, {"days": -1}):
+        response = client.get("/api/potential", params=params)
+        assert response.status_code == 422, params
+
+
+def test_api_days_boundaries_respond_200(client) -> None:
+    """POT-16: os extremos do intervalo são válidos (1 e 365 -> 200)."""
+    with SessionLocal() as db:
+        _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
+        db.commit()
+
+    for params in ({"days": 1}, {"days": 365}):
+        response = client.get("/api/potential", params=params)
+        assert response.status_code == 200, params
+        assert response.json()["pmc"]["days"] == params["days"]
+        assert len(response.json()["pmc"]["points"]) == 1
+
+
+def test_api_missing_zones_file_responds_500(client, monkeypatch) -> None:
+    """POT-16: vdot_zones.json ausente/inválido -> 500 com a mensagem exata
+    (a mesma do workouts-list — sem VDOT corrente não há painel)."""
+    def raise_missing(path):
+        raise ZoneConfigError(f"não foi possível carregar {path}")
+
+    monkeypatch.setattr(potential_router, "load_calibration", raise_missing)
+    response = client.get("/api/potential")
+    assert response.status_code == 500
+    assert response.json()["detail"] == "zonas VDOT não configuradas"
+
+
+def test_api_pmc_null_traverses_http_as_json_null(client) -> None:
+    """POT-12 via HTTP (done-when T9): banco sem load -> pmc=null no JSON,
+    com o resto do painel intacto (estado vazio, não erro)."""
+    response = client.get("/api/potential")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["pmc"] is None
+    assert body["vdot"]["timeline"][0]["source"] == "teste"
+
+
+def test_api_vo2max_null_traverses_http_as_json_null(client) -> None:
+    """POT-13 via HTTP (done-when T9): nenhuma corrida com vO2MaxValue ->
+    vo2max=null no JSON (a UI omite o bloco inteiro)."""
+    response = client.get("/api/potential")
+    assert response.status_code == 200
+    assert response.json()["vo2max"] is None
