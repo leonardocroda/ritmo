@@ -163,10 +163,10 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] Payload monta os 6 blocos conforme design §Contrato (pontos de sono com deep_pct/light_pct/awakenings/bed_local/wake_local)
-- [ ] Séries vazias → bloco `null`; `dose_response`/`lifestyle` sempre presentes com zeros honestos
-- [ ] `bed_time`/`wake_time` GMT naive → local via `ZoneInfo` injetada; NULL fica fora da regularity
-- [ ] Nenhuma importação do gateway Garmin no domínio (AD-002)
+- [x] Payload monta os 6 blocos conforme design §Contrato (pontos de sono com deep_pct/light_pct/awakenings/bed_local/wake_local)
+- [x] Séries vazias → bloco `null`; `dose_response`/`lifestyle` sempre presentes com zeros honestos
+- [x] `bed_time`/`wake_time` GMT naive → local via `ZoneInfo` injetada; NULL fica fora da regularity
+- [x] Nenhuma importação do gateway Garmin no domínio (AD-002)
 
 **Tests**: integration
 **Gate**: quick
