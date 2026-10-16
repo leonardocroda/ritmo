@@ -16,6 +16,7 @@ from helpers import (
     HRV_PAYLOAD,
     PERSONAL_RECORDS_PAYLOAD,
     PERSONAL_RECORDS_WRAPPER,
+    RACE_PREDICTIONS_PAYLOAD,
     RHR_NO_DATA_PAYLOAD,
     RHR_PAYLOAD,
     SLEEP_PAYLOAD,
@@ -35,6 +36,7 @@ from app.garmin.mappers import (
     map_battery,
     map_hrv,
     map_personal_records,
+    map_race_predictions,
     map_rhr,
     map_sleep,
     map_splits,
@@ -288,6 +290,38 @@ def test_map_personal_records_pr_date_null_without_timestamps() -> None:
     payload = [{"typeId": 4, "value": 2425.0}]
     rows = map_personal_records(payload)
     assert rows[0]["pr_date"] is None
+
+
+def test_map_race_predictions_maps_all_four_events() -> None:
+    """POT-02 (done-when T4): payload real da sonda (15/10/2026) -> 4 eventos
+    com time_s e date do calendarDate; raw_json preservado."""
+    rows = map_race_predictions(RACE_PREDICTIONS_PAYLOAD)
+    assert [r["event"] for r in rows] == ["5K", "10K", "HALF_MARATHON", "MARATHON"]
+    assert [r["time_s"] for r in rows] == [1165.0, 2447.0, 5437.0, 11989.0]
+    assert all(r["date"] == date(2026, 10, 15) for r in rows)
+    assert all(r["raw_json"] == RACE_PREDICTIONS_PAYLOAD for r in rows)
+
+
+def test_map_race_predictions_skips_absent_and_invalid_events() -> None:
+    """POT-02: evento ausente (time10K) e inválido (string) ficam de fora —
+    só o que existe vira linha (nenhum número inventado)."""
+    payload = {"calendarDate": "2026-10-15", "time5K": 1165, "timeHalfMarathon": "5437"}
+    rows = map_race_predictions(payload)
+    assert [r["event"] for r in rows] == ["5K"]
+    assert rows[0]["time_s"] == 1165.0
+
+
+def test_map_race_predictions_date_falls_back_to_today() -> None:
+    """Design: sem calendarDate -> hoje (snapshot acaba de ser puxado)."""
+    rows = map_race_predictions({"time5K": 1165})
+    assert rows[0]["date"] == date.today()
+
+
+def test_map_race_predictions_empty_shapes_return_empty_list() -> None:
+    """Sem payload -> [] (o passo de sync segue sem linhas)."""
+    assert map_race_predictions(None) == []
+    assert map_race_predictions({}) == []
+    assert map_race_predictions({"calendarDate": "2026-10-15"}) == []
 
 
 def test_map_personal_records_empty_shapes() -> None:

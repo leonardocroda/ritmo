@@ -17,6 +17,7 @@ from app.db.models import (
     BodyBattery,
     Hrv,
     PersonalRecord,
+    RacePrediction,
     Rhr,
     Sleep,
     Split,
@@ -28,6 +29,7 @@ from app.garmin.mappers import (
     map_battery,
     map_hrv,
     map_personal_records,
+    map_race_predictions,
     map_rhr,
     map_sleep,
     map_splits,
@@ -38,6 +40,7 @@ from app.garmin.upserts import (
     set_sync_state,
     upsert_activity,
     upsert_health_rows,
+    upsert_race_predictions,
     upsert_records,
     upsert_splits,
 )
@@ -46,6 +49,7 @@ from helpers import (
     GARMIN_ACTIVITY_PAYLOAD,
     HRV_PAYLOAD,
     PERSONAL_RECORDS_PAYLOAD,
+    RACE_PREDICTIONS_PAYLOAD,
     RHR_PAYLOAD,
     SLEEP_PAYLOAD,
     SPLITS_LAPDTOS_PAYLOAD,
@@ -385,6 +389,66 @@ def test_upsert_records_self_heals_pr_date_of_existing_row(db):
     ).scalar_one()
     assert healed.id == stored.id
     assert healed.pr_date == date(2026, 4, 26)
+
+
+def test_upsert_race_predictions_by_user_event_idempotent_2x(db):
+    """POT-02 (done-when T4): payload real da sonda -> 4 linhas; 2× upsert
+    mantém as contagens estáveis e os campos gravados."""
+    rows = map_race_predictions(RACE_PREDICTIONS_PAYLOAD)
+    assert upsert_race_predictions(db, 1, rows) == 4
+    db.commit()
+    assert upsert_race_predictions(db, 1, map_race_predictions(RACE_PREDICTIONS_PAYLOAD)) == 4
+    db.commit()
+
+    assert _count(db, RacePrediction) == 4
+    marathon = db.execute(
+        select(RacePrediction).where(RacePrediction.event == "MARATHON")
+    ).scalar_one()
+    assert marathon.user_id == 1
+    assert marathon.time_s == 11989.0
+    assert marathon.date == date(2026, 10, 15)
+    assert marathon.raw_json == RACE_PREDICTIONS_PAYLOAD
+
+
+def test_upsert_race_predictions_updates_existing_rows(db):
+    """POT-02: snapshot novo com tempos/date diferentes -> atualiza in place."""
+    upsert_race_predictions(db, 1, map_race_predictions(RACE_PREDICTIONS_PAYLOAD))
+    db.commit()
+
+    updated_payload = dict(RACE_PREDICTIONS_PAYLOAD, calendarDate="2026-10-16", time5K=1160)
+    assert upsert_race_predictions(db, 1, map_race_predictions(updated_payload)) == 4
+    db.commit()
+
+    assert _count(db, RacePrediction) == 4
+    five_k = db.execute(select(RacePrediction).where(RacePrediction.event == "5K")).scalar_one()
+    assert five_k.time_s == 1160.0
+    assert five_k.date == date(2026, 10, 16)
+    assert five_k.raw_json == updated_payload
+
+
+def test_upsert_race_predictions_absent_event_leaves_row_untouched(db):
+    """POT-02 (Independent Test): evento ausente no payload -> linha existente
+    intocada (sem delete — mesma semântica do upsert_records)."""
+    upsert_race_predictions(db, 1, map_race_predictions(RACE_PREDICTIONS_PAYLOAD))
+    db.commit()
+    marathon_before = db.execute(
+        select(RacePrediction).where(RacePrediction.event == "MARATHON")
+    ).scalar_one()
+
+    partial = {k: v for k, v in RACE_PREDICTIONS_PAYLOAD.items() if k != "timeMarathon"}
+    partial["time5K"] = 1170
+    assert upsert_race_predictions(db, 1, map_race_predictions(partial)) == 3
+    db.commit()
+
+    assert _count(db, RacePrediction) == 4  # a linha da maratona permanece
+    marathon_after = db.execute(
+        select(RacePrediction).where(RacePrediction.event == "MARATHON")
+    ).scalar_one()
+    assert marathon_after.id == marathon_before.id
+    assert marathon_after.time_s == marathon_before.time_s == 11989.0
+    assert marathon_after.raw_json == RACE_PREDICTIONS_PAYLOAD
+    five_k = db.execute(select(RacePrediction).where(RacePrediction.event == "5K")).scalar_one()
+    assert five_k.time_s == 1170.0  # os demais atualizaram
 
 
 def test_set_and_get_sync_state_by_data_type(db):

@@ -286,6 +286,24 @@ class PersonalRecord(Base):
     raw_json: Mapped[dict | None] = mapped_column(JSON)  # sempre preservado (spec)
 
 
+class RacePrediction(Base):
+    """Snapshot latest da predição de prova do Garmin — upsert por (user_id, event).
+
+    Namespace de `event` distinto dos `FASTEST_*` dos PRs (design):
+    predição ≠ recorde — nunca cruzar as chaves.
+    """
+
+    __tablename__ = "race_predictions"
+    __table_args__ = (UniqueConstraint("user_id", "event", name="uq_racepred_user_event"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), default=DEFAULT_USER_ID, index=True)
+    event: Mapped[str] = mapped_column(String(30))  # 5K | 10K | HALF_MARATHON | MARATHON
+    time_s: Mapped[float | None] = mapped_column(Float)
+    date: Mapped[date] = mapped_column(Date, index=True)  # calendarDate do snapshot
+    raw_json: Mapped[dict | None] = mapped_column(JSON)  # sempre preservado (spec)
+
+
 class SyncState(Base):
     """last_sync por tipo de dado — memória do incremental."""
 

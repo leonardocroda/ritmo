@@ -28,6 +28,15 @@ RUNNING_PR_EVENTS = {
     7: "LONGEST_RUN",
 }
 
+# Predições de prova: chave do payload -> evento canônico (sonda de
+# 15/10/2026 — payload plano do `get_race_predictions` snapshot latest).
+RACE_PREDICTION_EVENTS = {
+    "time5K": "5K",
+    "time10K": "10K",
+    "timeHalfMarathon": "HALF_MARATHON",
+    "timeMarathon": "MARATHON",
+}
+
 
 def _gmt_ms_to_naive_datetime(ms: int | None) -> datetime | None:
     """Época GMT (ms) -> wall clock UTC naive (sem conversão de fuso)."""
@@ -219,4 +228,23 @@ def map_personal_records(raw: list | dict | None) -> list[dict]:
                 "raw_json": record,
             }
         )
+    return rows
+
+
+def map_race_predictions(raw: dict | None) -> list[dict]:
+    """Predições de prova -> `RacePrediction` — snapshot latest (POT-02).
+
+    Só evento com tempo numérico vira linha (ausente/inválido fica de
+    fora — nenhum número inventado); `date` vem do `calendarDate`
+    (fallback: hoje); `raw_json` preserva o payload inteiro (spec).
+    """
+    raw = raw or {}
+    calendar_date = raw.get("calendarDate")
+    day = date.fromisoformat(calendar_date) if calendar_date else date.today()
+    rows = []
+    for key, event in RACE_PREDICTION_EVENTS.items():
+        time_s = raw.get(key)
+        if isinstance(time_s, bool) or not isinstance(time_s, (int, float)):
+            continue  # evento ausente ou inválido: fica de fora
+        rows.append({"event": event, "time_s": float(time_s), "date": day, "raw_json": raw})
     return rows

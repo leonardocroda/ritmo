@@ -173,9 +173,9 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] Mapper com o payload da sonda (15/10) → 4 eventos com `time_s` e `date`; evento ausente/inválido fica de fora; `raw_json` preservado
-- [ ] Upsert 2× idempotente por `(user_id, event)`; evento ausente no payload → linha existente intocada (sem delete)
-- [ ] Testes: ≥ 6 novos (mapper + upsert no Postgres) (total ≥ 189)
+- [x] Mapper com o payload da sonda (15/10) → 4 eventos com `time_s` e `date`; evento ausente/inválido fica de fora; `raw_json` preservado
+- [x] Upsert 2× idempotente por `(user_id, event)`; evento ausente no payload → linha existente intocada (sem delete)
+- [x] Testes: ≥ 6 novos (mapper + upsert no Postgres) (total ≥ 189)
 
 **Tests**: unit + integration (`test_garmin_mappers.py`, `test_garmin_upserts.py`)
 **Gate**: full

@@ -296,3 +296,17 @@ PERSONAL_RECORDS_PAYLOAD = [
 ]
 
 PERSONAL_RECORDS_WRAPPER = {"personalRecords": [PERSONAL_RECORDS_PAYLOAD[0]]}
+
+# Predições de prova: payload REAL da sonda de 15/10/2026
+# (get_race_predictions() sem args = snapshot latest, lib 0.3.2):
+# payload plano, tempos em segundos e o calendarDate do snapshot.
+RACE_PREDICTIONS_PAYLOAD = {
+    "userId": 122886821,
+    "fromCalendarDate": None,
+    "toCalendarDate": None,
+    "calendarDate": "2026-10-15",
+    "time5K": 1165,
+    "time10K": 2447,
+    "timeHalfMarathon": 5437,
+    "timeMarathon": 11989,
+}

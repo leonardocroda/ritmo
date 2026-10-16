@@ -216,7 +216,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
 | POT-01 | P1: Sync predições | Design | Pending |
-| POT-02 | P1: Sync predições | Design | Pending |
+| POT-02 | P1: Sync predições | Design | Implemented |
 | POT-03 | P1: Sync predições | Design | Pending |
 | POT-04 | P1: Sync predições | Design | Pending |
 | POT-05 | P1: Data dos PRs | Design | Implemented |

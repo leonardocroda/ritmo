@@ -12,7 +12,7 @@ from datetime import date
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.db.models import Activity, PersonalRecord, Split, SyncState
+from app.db.models import Activity, PersonalRecord, RacePrediction, Split, SyncState
 
 _ACTIVITY_FIELDS = (
     "start_time",
@@ -106,6 +106,26 @@ def upsert_records(db: Session, user_id: int, rows: list[dict]) -> int:
         ).scalar_one_or_none()
         if existing is None:
             db.add(PersonalRecord(user_id=user_id, **row))
+        else:
+            for field, value in row.items():
+                setattr(existing, field, value)
+    return len(rows)
+
+
+def upsert_race_predictions(db: Session, user_id: int, rows: list[dict]) -> int:
+    """Upsert por (user_id, event) — POT-02: snapshot latest, sem delete.
+
+    Evento ausente no payload -> linha existente intocada (mesma
+    semântica do `upsert_records`). Retorna o número de predições gravadas.
+    """
+    for row in rows:
+        existing = db.execute(
+            select(RacePrediction).where(
+                RacePrediction.user_id == user_id, RacePrediction.event == row["event"]
+            )
+        ).scalar_one_or_none()
+        if existing is None:
+            db.add(RacePrediction(user_id=user_id, **row))
         else:
             for field, value in row.items():
                 setattr(existing, field, value)
