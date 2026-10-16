@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/health-panel/design.md`
-**Status**: Draft
+**Status**: Done (T1–T16 commitadas `3db133d`..`14af2c5` + Fix 1 `c3df7e5`; Verifier PASS na iteração 2 — 30/30 ACs, 3/3 mutantes mortos, 262 testes; UAT real aprovado pelo usuário; `validation.md`)
 
 ---
 

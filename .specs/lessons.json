@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 5,
+  "next_id": 6,
   "lessons": [
     {
       "id": "L-001",
@@ -76,6 +76,24 @@
       ],
       "created": "2026-10-16T10:07:27Z",
       "last_seen": "2026-10-16T10:07:27Z"
+    },
+    {
+      "id": "L-005",
+      "key": "surviving_mutant::toda query de leitura filtrada por user id precisa de um teste que semeie uma linha de outro usuario e afirme que ela nao vaza no payload",
+      "text": "Toda query de leitura filtrada por user_id precisa de um teste que semeie uma linha de outro usuario e afirme que ela nao vaza no payload",
+      "signal": "surviving_mutant",
+      "scope": "backend/service-layer",
+      "status": "candidate",
+      "features": [
+        "health-panel"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "mutant M3: backend/app/health/service.py:56 (backend/service-layer)"
+      ],
+      "created": "2026-10-16T20:21:01Z",
+      "last_seen": "2026-10-16T20:21:01Z"
     }
   ]
 }

@@ -68,11 +68,11 @@
 
 ## Handoff
 
-- **Feature**: `potential-panel` — **concluída e validada** (PASS do Verifier em `.specs/features/potential-panel/validation.md`; 29/29 ACs com evidência `file:line`, 4/4 mutantes mortos, `validate_state.py` exit 0)
-- **Phase / Task**: n/a — T1–T16 todas commitadas (`21ff067`..`f930868` + UAT/finalização); traceability 29/29 Verified
-- **Completed**: spec → design → tasks (16 tarefas) → execute em 2 lotes (sub-agents glm-5.3-flash; 2 primeiras tentativas abortadas por loop degenerado do glm-5.3 default) + T16 inline; suite **228 testes** no Postgres do compose; UAT real aprovado pelo usuário (sync com `predictions: 4`, `pr_date` auto-curado, pins conferidos: demonstrado 51,62, lacuna 97,3%, decay maratona −22,1%); Gap #1 do Verifier reconciliado na spec (edge case alinhado ao AC POT-07 — doc-only)
+- **Feature**: `health-panel` — **concluída e validada** (PASS do Verifier na iteração 2 de 3, `.specs/features/health-panel/validation.md`; 30/30 ACs com evidência `file:line`, 3/3 mutantes mortos — M3 morto pela Fix 1, `validate_state.py` exit 0)
+- **Phase / Task**: n/a — T1–T16 todas commitadas (`3db133d`..`14af2c5`) + Fix 1 do Verifier (`c3df7e5`, teste de isolamento multiusuário); traceability 30/30 Verified
+- **Completed**: spec → design → tasks (16 tarefas, 5 fases) → execute em 3 lotes (sub-agents glm-5.3-flash; Lote 3 T14/T15 pelo worker e T16 completada inline após HTTP 429 derrubar o worker no meio da task — gates rodados e commit feitos pelo orquestrador) + Fix 1 inline; suite **262 testes** no Postgres do compose (228 → 262, +34); UAT real aprovado pelo usuário (16/10/2026, celular 390px: ~83% noites <7h, fases ~100%, dose 69,5 vs 81,0, sexta 5,74h, deitar 22:42 local)
 - **In-progress**: none
-- **Next step**: próxima feature da Fase 1 — **Painel Saúde** (§4.5) ou **Avaliar com IA** (§4.6); pendências menores registradas: alvo da próxima prova entra com o painel Hoje (CRUD `races`), média ponderada dos PRs é v2 (Out of Scope da spec), teste direto do edge "calibração na mesma data de PR" (validation.md), lições L-003/L-004 como candidates
+- **Next step**: última dupla da Fase 1 — **Avaliar com IA** (§4.6, motor híbrido Python+LLM) ou **Painel Hoje** (§4.2, readiness + countdown + CRUD `races`); pendências menores registradas: sync de passos/NEAT como feature própria (dado importantíssimo para saúde geral — context.md Deferred Ideas), sequência `users_pkey` desincronizada no `init_db` (Fase 2.5, test_health_api.py + context.md), lição L-005 (candidate: isolamento multiusuário indetectável por suite sem segundo usuário semeado — confirmará se reincidir em outra feature)
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main

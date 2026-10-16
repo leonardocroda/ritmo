@@ -38,6 +38,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: AC POT-08 (label do ponto teste) / design payload ilustrativo (spec)
 - last seen: 2026-10-16T10:07:27Z
 
+### L-005 - Toda query de leitura filtrada por user_id precisa de um teste que semeie uma linha de outro usuario e afirme que ela nao vaza no payload
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `backend/service-layer` · harmful: 0
+- features: health-panel
+- evidence: mutant M3: backend/app/health/service.py:56 (backend/service-layer)
+- last seen: 2026-10-16T20:21:01Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
