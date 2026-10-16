@@ -261,21 +261,6 @@ export type PredictionRow = {
   pr_date: string | null;
 };
 
-/** Ponto da PMC — null espelha a linha do banco (janela 28d incompleta). */
-export type PmcPoint = {
-  date: string;
-  ctl: number | null;
-  atl: number | null;
-  tsb: number | null;
-  acwr: number | null;
-};
-
-export type PmcBlock = {
-  days: number;
-  points: PmcPoint[];
-  current: PmcPoint;
-};
-
 export type Vo2maxBlock = {
   points: { date: string; value: number }[];
 };
@@ -305,7 +290,7 @@ export async function getPotential(days = 180): Promise<PotentialOut> {
   return (await res.json()) as PotentialOut;
 }
 
-// ---- Painel Saúde: contratos do design health-panel ----
+// ---- Painel Saúde: contratos do design health-panel + panel-clarity ----
 
 /** Ponto de sono — horários já locais no backend ("HH:MM"), a UI nunca
  * converte fuso (design §Contrato). */
@@ -355,6 +340,23 @@ export type RhrBlock = { points: RhrPoint[]; baseline: number };
 export type StressPoint = { date: string; avg: number };
 export type StressBlock = { points: StressPoint[]; avg_window: number };
 
+/** Ponto da PMC — null espelha a linha do banco (janela 28d incompleta). */
+export type PmcPoint = {
+  date: string;
+  ctl: number | null;
+  atl: number | null;
+  tsb: number | null;
+  acwr: number | null;
+};
+
+/** Bloco Carga de treino (CLR-01): janela `days` única da Saúde; sem
+ * linhas em `load` -> null (CLR-02 — estado vazio, não erro). */
+export type PmcBlock = {
+  days: number;
+  points: PmcPoint[];
+  current: PmcPoint;
+};
+
 /** Bucket do dose-resposta — média null = bucket vazio ("—" na UI). */
 export type DoseBucket = {
   nights: number;
@@ -386,6 +388,7 @@ export type HealthSummaryOut = {
   hrv: HrvBlock | null;
   rhr: RhrBlock | null;
   stress: StressBlock | null;
+  pmc: PmcBlock | null;
   dose_response: DoseResponse;
   lifestyle: Lifestyle;
 };

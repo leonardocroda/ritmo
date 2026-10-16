@@ -160,8 +160,8 @@ T11 → T12
 
 **Done when**:
 
-- [ ] `HealthSummaryOut.pmc: PmcBlock | null` espelhando o backend; tipos movidos com comentário atualizado (sem duplicação de tipos)
-- [ ] `npm run build` + `npm run lint` verdes; `getPotential` inalterado
+- [x] `HealthSummaryOut.pmc: PmcBlock | null` espelhando o backend; tipos movidos com comentário atualizado (sem duplicação de tipos)
+- [x] `npm run build` + `npm run lint` verdes; `getPotential` inalterado
 
 **Tests**: none
 **Gate**: build
