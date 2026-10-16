@@ -377,9 +377,9 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] TSB/CTL/ATL renderizados com o histórico real (182 dias) em janela de 180
-- [ ] Cards do último dia com ACWR "—" quando NULL (janela 28d incompleta)
-- [ ] Responsivo 390px; `npm run build` + `npm run lint` verdes
+- [x] TSB/CTL/ATL renderizados com o histórico real (182 dias) em janela de 180
+- [x] Cards do último dia com ACWR "—" quando NULL (janela 28d incompleta)
+- [x] Responsivo 390px; `npm run build` + `npm run lint` verdes
 
 **Tests**: none (build gate + UAT)
 **Gate**: build (frontend)
