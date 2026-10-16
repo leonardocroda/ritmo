@@ -590,3 +590,46 @@ def test_api_invalid_app_timezone_falls_back_with_warning(client, monkeypatch, c
     assert point["bed_local"] == "22:16"
     assert point["wake_local"] == "05:02"
     assert "Mars/Phobos" in caplog.text
+
+
+# ---------------------------------------------------------------
+# T2 (panel-clarity) — pmc no GET /api/health/summary (HTTP)
+# ---------------------------------------------------------------
+
+
+def test_api_pmc_traverses_http_between_stress_and_dose(client) -> None:
+    """Done-when T2 (CLR-01): `pmc` no payload JSON com dias/valores
+    pinados, entre `stress` e `dose_response` — ordem das chaves pinada."""
+    with SessionLocal() as db:
+        _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
+        _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
+        db.commit()
+
+    response = client.get("/api/health/summary", params={"days": 60})
+    assert response.status_code == 200
+    body = response.json()
+
+    assert list(body.keys()) == [
+        "sleep", "hrv", "rhr", "stress", "pmc", "dose_response", "lifestyle",
+    ]
+    assert body["pmc"] == {
+        "days": 60,
+        "points": [
+            {"date": "2026-10-14", "ctl": 21.0, "atl": 27.0, "tsb": -6.0, "acwr": 1.40},
+            {"date": "2026-10-15", "ctl": 22.0, "atl": 28.0, "tsb": -6.0, "acwr": 1.42},
+        ],
+        "current": {
+            "date": "2026-10-15", "ctl": 22.0, "atl": 28.0, "tsb": -6.0, "acwr": 1.42,
+        },
+    }
+
+
+def test_api_pmc_null_traverses_http_without_load(client) -> None:
+    """Done-when T2 (CLR-02): banco sem `load` -> "pmc": null no JSON —
+    estado vazio, não erro; o resto do payload intacto (HLT-03 segue
+    verde: days fora de [7, 365] continua 422 antes da query)."""
+    response = client.get("/api/health/summary")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["pmc"] is None
+    assert body["dose_response"]["neutral_nights"] == 0

@@ -133,10 +133,10 @@ T11 → T12
 
 **Done when**:
 
-- [ ] `GET /api/health/summary?days=60` responde com `pmc` no payload, entre `stress` e `dose_response` (ordem das chaves pinada no teste)
-- [ ] Sem linhas em `load` → `"pmc": null` via HTTP (estado vazio, não erro)
-- [ ] `days` fora de [7, 365] continua 422 (HLT-03 verde — nenhuma regressão)
-- [ ] TestClient: payload com `pmc` pinado (dias/values) + `pmc=null`; suite verde, contagem sobe
+- [x] `GET /api/health/summary?days=60` responde com `pmc` no payload, entre `stress` e `dose_response` (ordem das chaves pinada no teste)
+- [x] Sem linhas em `load` → `"pmc": null` via HTTP (estado vazio, não erro)
+- [x] `days` fora de [7, 365] continua 422 (HLT-03 verde — nenhuma regressão)
+- [x] TestClient: payload com `pmc` pinado (dias/values) + `pmc=null`; suite verde, contagem sobe
 
 **Tests**: integration
 **Gate**: quick

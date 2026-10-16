@@ -96,6 +96,26 @@ class StressBlock(BaseModel):
     avg_window: float
 
 
+class PmcPoint(BaseModel):
+    """Ponto da curva PMC (CLR-01): valores exatamente como a linha de
+    `load` — null atravessa o contrato (acwr = janela 28d incompleta)."""
+
+    date: date
+    ctl: float | None
+    atl: float | None
+    tsb: float | None
+    acwr: float | None
+
+
+class PmcBlock(BaseModel):
+    """Bloco Carga de treino (CLR-01/02): janela `days` da Saúde; sem
+    linhas em `load` -> null (estado vazio, não erro)."""
+
+    days: int
+    points: list[PmcPoint]
+    current: PmcPoint
+
+
 class DoseBucket(BaseModel):
     nights: int
     avg_hrv: float | None
@@ -130,6 +150,7 @@ class HealthSummaryOut(BaseModel):
     hrv: HrvBlock | None
     rhr: RhrBlock | None
     stress: StressBlock | None
+    pmc: PmcBlock | None
     dose_response: DoseResponse
     lifestyle: Lifestyle
 
