@@ -106,9 +106,9 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] `daniels.py` com as 6 funções puras; `calibrate_vdot.py` importa delas e o CLI segue gerando zonas idênticas (teste: `gerar_zonas(50.2)` produz o mesmo JSON calibrado)
-- [ ] Pins literais contra cálculo manual: `calculate_vdot(5000, 1163.83) ≈ 51.62`; `equivalent_time(50.2, 42.195) ≈ 11401` s (4:30,2/km — bate com o pace de maratona do `vdot_zones.json`); inversibilidade `speed_for_vo2(vo2_cost(v)) ≈ v`
-- [ ] Testes: ≥ 5 novos em `test_vdot_daniels.py` (total ≥ 175)
+- [x] `daniels.py` com as 6 funções puras; `calibrate_vdot.py` importa delas e o CLI segue gerando zonas idênticas (teste: `gerar_zonas(50.2)` produz o mesmo JSON calibrado)
+- [x] Pins literais contra cálculo manual: `calculate_vdot(5000, 1163.83) ≈ 51.62`; `equivalent_time(50.2, 42.195) ≈ 11401` s (4:30,2/km — bate com o pace de maratona do `vdot_zones.json`); inversibilidade `speed_for_vo2(vo2_cost(v)) ≈ v`
+- [x] Testes: ≥ 5 novos em `test_vdot_daniels.py` (total ≥ 175)
 
 **Tests**: unit (`backend/tests/test_vdot_daniels.py`)
 **Gate**: quick
