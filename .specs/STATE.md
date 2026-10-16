@@ -66,6 +66,14 @@
 - **Date**: 2026-10-15
 - **Status**: active
 
+### AD-009
+- **Decision**: Padrão de clareza dos painéis: toda seção de painel tem cabeçalho forte (índice quando a ordem forma um passo a passo, título, subtítulo explicativo sempre visível cobrindo "o que é / por que importa", selo de fonte/método quando aplica) e o payload de cada endpoint espelha exatamente o que o painel correspondente renderiza — bloco muda de endpoint junto com a tela.
+- **Reason**: Painéis empilhavam gráficos sem fronteira nem explicação (confusão VDOT×VO2max×Riegel; PMC no painel errado); contexto sempre visível (nada atrás de clique/tooltip — mobile-first 390px) e payload 1:1 com a tela evitam acoplamento entre painéis (o 500 de calibração do potencial não pode derrubar a saúde).
+- **Trade-off**: Espaço de tela e copy constante em troca de zero interação para entender; endpoints menos "reusáveis" (o Hoje consumirá o bloco pmc da health summary em vez de um endpoint próprio de load).
+- **Scope**: Todos os painéis (`frontend/src/components/`, páginas `/potencial` `/saude` e futuras), domínios de leitura do backend (`health/`, `potential/`); decidido no design do panel-clarity (16/10/2026).
+- **Date**: 2026-10-16
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: `health-panel` — **concluída e validada** (PASS do Verifier na iteração 2 de 3, `.specs/features/health-panel/validation.md`; 30/30 ACs com evidência `file:line`, 3/3 mutantes mortos — M3 morto pela Fix 1, `validate_state.py` exit 0)
