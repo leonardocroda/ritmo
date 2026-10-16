@@ -231,7 +231,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | POT-14 | P1: Endpoint /api/potential | Design | Implemented |
 | POT-15 | P1: Endpoint /api/potential | Design | Implemented |
 | POT-16 | P1: Endpoint /api/potential | Design | Implemented |
-| POT-17 | P1: Timeline VDOT | Design | Pending |
+| POT-17 | P1: Timeline VDOT | Design | Implemented |
 | POT-18 | P1: Timeline VDOT | Design | Pending |
 | POT-19 | P1: Timeline VDOT | Design | Pending |
 | POT-20 | P1: Timeline VDOT | Design | Pending |

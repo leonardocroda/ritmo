@@ -333,9 +333,9 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] Pontos, linha do corrente e faixa renderizam com o payload real (dados do usuário)
-- [ ] Responsivo em 390px sem scroll horizontal; cores legíveis no tema escuro
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Pontos, linha do corrente e faixa renderizam com o payload real (dados do usuário)
+- [x] Responsivo em 390px sem scroll horizontal; cores legíveis no tema escuro
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none (build gate + UAT)
 **Gate**: build (frontend)
