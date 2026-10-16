@@ -221,15 +221,15 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | POT-04 | P1: Sync predições | Design | Implemented |
 | POT-05 | P1: Data dos PRs | Design | Implemented |
 | POT-06 | P1: Data dos PRs | Design | Implemented |
-| POT-07 | P1: Endpoint /api/potential | Design | Pending |
-| POT-08 | P1: Endpoint /api/potential | Design | Pending |
-| POT-09 | P1: Endpoint /api/potential | Design | Pending |
-| POT-10 | P1: Endpoint /api/potential | Design | Pending |
-| POT-11 | P1: Endpoint /api/potential | Design | Pending |
-| POT-12 | P1: Endpoint /api/potential | Design | Pending |
-| POT-13 | P1: Endpoint /api/potential | Design | Pending |
-| POT-14 | P1: Endpoint /api/potential | Design | Pending |
-| POT-15 | P1: Endpoint /api/potential | Design | Pending |
+| POT-07 | P1: Endpoint /api/potential | Design | Implemented |
+| POT-08 | P1: Endpoint /api/potential | Design | Implemented |
+| POT-09 | P1: Endpoint /api/potential | Design | Implemented |
+| POT-10 | P1: Endpoint /api/potential | Design | Implemented |
+| POT-11 | P1: Endpoint /api/potential | Design | Implemented |
+| POT-12 | P1: Endpoint /api/potential | Design | Implemented |
+| POT-13 | P1: Endpoint /api/potential | Design | Implemented |
+| POT-14 | P1: Endpoint /api/potential | Design | Implemented |
+| POT-15 | P1: Endpoint /api/potential | Design | Implemented |
 | POT-16 | P1: Endpoint /api/potential | Design | Pending |
 | POT-17 | P1: Timeline VDOT | Design | Pending |
 | POT-18 | P1: Timeline VDOT | Design | Pending |

@@ -265,10 +265,10 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] Payload com os 5 blocos montados a partir de seeds no Postgres (chamada direta ao service); PMC com `days` respeitado e `current` do último dia
-- [ ] Sem `load` → `pmc=None`; sem `vO2MaxValue` → `vo2max=None`; sem PRs canônicos → `decay=[]` e timeline só com o teste de calibração
-- [ ] Nenhuma importação do gateway Garmin (POT-15 — verificação por inspeção + teste de ausência de import)
-- [ ] Testes: ≥ 6 novos em `test_potential_api.py` (chamadas diretas ao service) (total ≥ 214)
+- [x] Payload com os 5 blocos montados a partir de seeds no Postgres (chamada direta ao service); PMC com `days` respeitado e `current` do último dia
+- [x] Sem `load` → `pmc=None`; sem `vO2MaxValue` → `vo2max=None`; sem PRs canônicos → `decay=[]` e timeline só com o teste de calibração
+- [x] Nenhuma importação do gateway Garmin (POT-15 — verificação por inspeção + teste de ausência de import)
+- [x] Testes: ≥ 6 novos em `test_potential_api.py` (chamadas diretas ao service) (total ≥ 214)
 
 **Tests**: integration (`backend/tests/test_potential_api.py`)
 **Gate**: full
