@@ -197,8 +197,8 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | HLT-10 | P1: Endpoint /api/health/summary | Tasks | Verified |
 | HLT-11 | P1: Endpoint /api/health/summary | Tasks | Verified |
 | HLT-12 | P1: Endpoint /api/health/summary | Tasks | Verified |
-| HLT-13 | P1: UI Sono | - | Pending |
-| HLT-14 | P1: UI Sono | - | Pending |
+| HLT-13 | P1: UI Sono | Tasks | Verified |
+| HLT-14 | P1: UI Sono | Tasks | Verified |
 | HLT-15 | P1: UI Sono | - | Pending |
 | HLT-16 | P1: UI Sono | - | Pending |
 | HLT-17 | P1: UI HRV + RHR | - | Pending |

@@ -269,10 +269,10 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] Barras de duração (h) + linha de referência do `floor_s` visível
-- [ ] Resumo `{below_floor.pct}% das noites abaixo do piso` acima do gráfico
-- [ ] Tooltip: score + REM% da noite
-- [ ] Eixos/tooltip no padrão visual do PmcChart (cores/labels)
+- [x] Barras de duração (h) + linha de referência do `floor_s` visível
+- [x] Resumo `{below_floor.pct}% das noites abaixo do piso` acima do gráfico
+- [x] Tooltip: score + REM% da noite
+- [x] Eixos/tooltip no padrão visual do PmcChart (cores/labels)
 
 **Tests**: none
 **Gate**: build
