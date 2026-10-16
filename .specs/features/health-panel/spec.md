@@ -207,8 +207,8 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | HLT-20 | P1: UI Dose-resposta | Tasks | Verified |
 | HLT-21 | P1: UI Dose-resposta | Tasks | Verified |
 | HLT-22 | P1: UI Dose-resposta | Tasks | Verified |
-| HLT-23 | P1: UI Equilíbrio de vida | - | Pending |
-| HLT-24 | P1: UI Equilíbrio de vida | - | Pending |
+| HLT-23 | P1: UI Equilíbrio de vida | Tasks | Verified |
+| HLT-24 | P1: UI Equilíbrio de vida | Tasks | Verified |
 | HLT-25 | P1: UI Equilíbrio de vida | Tasks | Verified |
 | HLT-26 | P1: UI Equilíbrio de vida | Tasks | Verified |
 | HLT-27 | P2: Estados e responsividade | - | Pending |

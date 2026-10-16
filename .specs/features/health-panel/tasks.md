@@ -477,9 +477,9 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] Card força: streak atual, "x/y semanas na janela", sessões da semana corrente separadas
-- [ ] Card yoga: sessões na janela + média por semana (1 casa, vírgula)
-- [ ] Sem inventar número: zeros e ausências exibidos como estão (streak 0 é recado, não erro)
+- [x] Card força: streak atual, "x/y semanas na janela", sessões da semana corrente separadas
+- [x] Card yoga: sessões na janela + média por semana (1 casa, vírgula)
+- [x] Sem inventar número: zeros e ausências exibidos como estão (streak 0 é recado, não erro)
 
 **Tests**: none
 **Gate**: build
