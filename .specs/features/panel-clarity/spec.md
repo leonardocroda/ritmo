@@ -172,15 +172,15 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | CLR-05 | P1: Contrato PMC | Design | Implementing |
 | CLR-06 | P1: Contrato PMC | Design | Implementing |
 | CLR-07 | P1: Seção Carga de treino | Design | Implementing |
-| CLR-08 | P1: Seção Carga de treino | Design | Pending |
-| CLR-09 | P1: Seção Carga de treino | Design | Pending |
-| CLR-10 | P1: Seção Carga de treino | Design | Pending |
-| CLR-11 | P1: Seção Carga de treino | Design | Pending |
+| CLR-08 | P1: Seção Carga de treino | Design | Implementing |
+| CLR-09 | P1: Seção Carga de treino | Design | Implementing |
+| CLR-10 | P1: Seção Carga de treino | Design | Implementing |
+| CLR-11 | P1: Seção Carga de treino | Design | Implementing |
 | CLR-12 | P1: Cabeçalhos Saúde | Design | Implementing |
 | CLR-13 | P1: Cabeçalhos Saúde | Design | Implementing |
 | CLR-14 | P1: Cabeçalhos Saúde | Design | Implementing |
-| CLR-15 | P1: Cabeçalhos Saúde | Design | Pending |
-| CLR-16 | P1: Cabeçalhos Saúde | Design | Pending |
+| CLR-15 | P1: Cabeçalhos Saúde | Design | Implementing |
+| CLR-16 | P1: Cabeçalhos Saúde | Design | Implementing |
 | CLR-17 | P1: Potencial narrativo | Design | Pending |
 | CLR-18 | P1: Potencial narrativo | Design | Pending |
 | CLR-19 | P1: Potencial narrativo | Design | Pending |
@@ -190,7 +190,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | CLR-23 | P1: Potencial narrativo | Design | Pending |
 | CLR-24 | P1: Potencial narrativo | Design | Pending |
 | CLR-25 | P1: Potencial narrativo | Design | Pending |
-| CLR-26 | P2: Linha-guia | Design | Pending |
+| CLR-26 | P2: Linha-guia | Design | Implementing |
 | CLR-27 | P2: Linha-guia | Design | Pending |
 
 **Coverage:** 27 total, 27 mapped to stories, 0 unmapped ✅

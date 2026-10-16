@@ -237,11 +237,11 @@ T11 → T12
 
 **Done when**:
 
-- [ ] Seções 1–5 na ordem decidida com índice, título, subtítulo (pergunta + explicação) sempre visíveis — copy PT-BR, réguas da copy vêm do payload (`floor_s`/`rem_band`), nenhum número pessoal
-- [ ] Carga de treino na posição 2: `pmc != null` → `PmcChart` (subtítulo explica CTL/ATL/TSB e por que importa); `pmc === null` → estado vazio orientando sync (CLR-09); ACWR null → "—" preservado (CLR-10)
-- [ ] Empty geral: `sleep && hrv && rhr && stress && pmc` todos null (CLR-11); com só `load` no banco → seção Carga renderiza com dados
-- [ ] Erro de API → mensagem inline (CLR-16); `Section` local antigo removido; espaçamento entre seções > interno (CLR-14)
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Seções 1–5 na ordem decidida com índice, título, subtítulo (pergunta + explicação) sempre visíveis — copy PT-BR, réguas da copy vêm do payload (`floor_s`/`rem_band`), nenhum número pessoal
+- [x] Carga de treino na posição 2: `pmc != null` → `PmcChart` (subtítulo explica CTL/ATL/TSB e por que importa); `pmc === null` → estado vazio orientando sync (CLR-09); ACWR null → "—" preservado (CLR-10)
+- [x] Empty geral: `sleep && hrv && rhr && stress && pmc` todos null (CLR-11); com só `load` no banco → seção Carga renderiza com dados
+- [x] Erro de API → mensagem inline (CLR-16); `Section` local antigo removido; espaçamento entre seções > interno (CLR-14)
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none
 **Gate**: build
