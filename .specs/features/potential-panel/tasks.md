@@ -355,9 +355,9 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] Previsões: 4 linhas × 4 estimativas + PR; célula NULL → "—"; média honesta recalculada só com as presentes (nota visível)
-- [ ] Decay: Δ% com sinal; maior gap destacado visualmente; distâncias sem PR ausentes
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Previsões: 4 linhas × 4 estimativas + PR; célula NULL → "—"; média honesta recalculada só com as presentes (nota visível)
+- [x] Decay: Δ% com sinal; maior gap destacado visualmente; distâncias sem PR ausentes
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none (build gate + UAT)
 **Gate**: build (frontend)

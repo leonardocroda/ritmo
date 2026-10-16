@@ -235,15 +235,15 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | POT-18 | P1: Timeline VDOT | Design | Pending |
 | POT-19 | P1: Timeline VDOT | Design | Pending |
 | POT-20 | P1: Timeline VDOT | Design | Pending |
-| POT-21 | P1: Previsões vs PRs | Design | Pending |
-| POT-22 | P1: Previsões vs PRs | Design | Pending |
+| POT-21 | P1: Previsões vs PRs | Design | Implemented |
+| POT-22 | P1: Previsões vs PRs | Design | Implemented |
 | POT-23 | P1: Curva PMC | Design | Pending |
 | POT-24 | P1: Curva PMC | Design | Pending |
 | POT-25 | P1: Curva PMC | Design | Pending |
 | POT-26 | P2: VO2max | Design | Pending |
 | POT-27 | P2: VO2max | Design | Pending |
-| POT-28 | P2: Decaimento | Design | Pending |
-| POT-29 | P2: Decaimento | Design | Pending |
+| POT-28 | P2: Decaimento | Design | Implemented |
+| POT-29 | P2: Decaimento | Design | Implemented |
 
 **Coverage:** 29 total, 29 mapped to stories, 0 unmapped ✅
 
