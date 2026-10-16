@@ -265,8 +265,8 @@ T11 → T12
 
 **Done when**:
 
-- [ ] 4 métodos identificáveis com fonte, sem interação, além do nome da coluna; PT-BR; nenhum número inventado
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] 4 métodos identificáveis com fonte, sem interação, além do nome da coluna; PT-BR; nenhum número inventado
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none
 **Gate**: build

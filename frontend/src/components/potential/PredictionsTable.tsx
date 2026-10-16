@@ -1,7 +1,8 @@
 // Tabela de previsões vs PRs (POT-21/22) — o coração anti-"precision
 // theater" do painel (AD-004): as 4 estimativas lado a lado, "—" onde
 // não há dado (nenhum número inventado) e a média honesta calculada só
-// com as presentes (nota visível).
+// com as presentes. Legenda por método sempre visível sob a tabela
+// (CLR-19): cada coluna com a própria fonte, sem interação.
 
 import type { CanonicalEvent, PredictionRow } from "@/lib/api";
 import { formatDuration } from "@/lib/format";
@@ -93,10 +94,24 @@ export default function PredictionsTable({
           </tbody>
         </table>
       </div>
-      <p className="mt-2 text-xs text-muted">
-        A média honesta calcula só as estimativas presentes na distância —
-        nenhuma célula é inventada.
-      </p>
+      <ul className="mt-2 space-y-1 text-xs text-muted">
+        <li>
+          <span className="font-medium">Garmin</span> — preditor do Garmin
+          Connect, sincronizado no sync.
+        </li>
+        <li>
+          <span className="font-medium">Riegel</span> — extrapolação T2 = T1 ×
+          (D2/D1)^1,06 ancorada no PR de 5K.
+        </li>
+        <li>
+          <span className="font-medium">VDOT</span> — equivalência de Daniels
+          do teste corrente.
+        </li>
+        <li>
+          <span className="font-medium">Média honesta</span> — média só das
+          estimativas presentes na distância, nenhuma célula inventada.
+        </li>
+      </ul>
     </div>
   );
 }

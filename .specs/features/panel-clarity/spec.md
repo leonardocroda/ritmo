@@ -183,7 +183,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | CLR-16 | P1: Cabeçalhos Saúde | Design | Implementing |
 | CLR-17 | P1: Potencial narrativo | Design | Pending |
 | CLR-18 | P1: Potencial narrativo | Design | Pending |
-| CLR-19 | P1: Potencial narrativo | Design | Pending |
+| CLR-19 | P1: Potencial narrativo | Design | Implementing |
 | CLR-20 | P1: Potencial narrativo | Design | Pending |
 | CLR-21 | P1: Potencial narrativo | Design | Pending |
 | CLR-22 | P1: Potencial narrativo | Design | Pending |
