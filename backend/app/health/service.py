@@ -1,7 +1,7 @@
 """Service do painel Saúde — leitura pura do banco (AD-002).
 
-Nenhuma importação do gateway Garmin: as 5 fontes (sleep, hrv, rhr,
-stress, activities) já estão no banco próprio, populadas pelo sync —
+Nenhuma importação do gateway Garmin: as 6 fontes (sleep, hrv, rhr,
+stress, load, activities) já estão no banco próprio, populadas pelo sync —
 o painel inteiro é montável offline (Success Criteria do spec). O
 cruzamento sono↔HRV é por `date` (mesma noite — premissa do spec) e a
 conversão de fuso dos horários de deitar/acordar acontece aqui, com a
@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from app.db.models import (
     DEFAULT_USER_ID,
     Activity,
+    DailyLoad,
     Hrv,
     Rhr,
     Sleep,
@@ -145,6 +146,30 @@ def _stress_block(rows: list[Stress]) -> dict | None:
     }
 
 
+def _pmc_block(rows: list[DailyLoad], days: int) -> dict | None:
+    """Bloco PMC (CLR-01/02): `rows` já é a janela ASC do `_series`
+    (mesma DESC+limit+reverse da PMC original); valores exatamente como
+    as linhas de `load` — zero recálculo (CLR-06). Sem linhas -> None
+    (estado vazio, não erro)."""
+    if not rows:
+        return None
+
+    def entry(row: DailyLoad) -> dict:
+        return {
+            "date": row.date,
+            "ctl": row.ctl,
+            "atl": row.atl,
+            "tsb": row.tsb,
+            "acwr": row.acwr,
+        }
+
+    return {
+        "days": days,
+        "points": [entry(row) for row in rows],
+        "current": entry(rows[-1]),
+    }
+
+
 def _lifestyle_block(activities: list[Activity], today: date, window_start: date) -> dict:
     """Checklist de vida (AC 10): força via semanas ISO (a streak olha o
     histórico todo — pode exceder a janela) e yoga por presença na
@@ -167,7 +192,7 @@ def _lifestyle_block(activities: list[Activity], today: date, window_start: date
 
 
 def get_health(db: Session, days: int, tz: ZoneInfo) -> dict:
-    """Payload completo do painel — os 6 blocos do design §Contrato.
+    """Payload completo do painel — os 7 blocos do design §Contrato.
 
     `days` já validado (7–365) pelo router; a matemática vive em
     calc.py (pura, AD-003) — aqui é leitura e montagem. Séries vazias
@@ -177,6 +202,7 @@ def get_health(db: Session, days: int, tz: ZoneInfo) -> dict:
     hrv_rows = _series(db, Hrv, days)
     rhr_rows = _series(db, Rhr, days)
     stress_rows = _series(db, Stress, days)
+    load_rows = _series(db, DailyLoad, days)
     activities = (
         db.execute(select(Activity).where(Activity.user_id == DEFAULT_USER_ID))
         .scalars()
@@ -194,6 +220,7 @@ def get_health(db: Session, days: int, tz: ZoneInfo) -> dict:
         "hrv": _hrv_block(hrv_rows),
         "rhr": _rhr_block(rhr_rows),
         "stress": _stress_block(stress_rows),
+        "pmc": _pmc_block(load_rows, days),
         "dose_response": dose_response(nights),
         "lifestyle": _lifestyle_block(activities, today, window_start),
     }

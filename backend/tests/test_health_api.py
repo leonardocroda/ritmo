@@ -21,7 +21,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.db.engine import SessionLocal, init_db
-from app.db.models import Activity, Hrv, Rhr, Sleep, Stress, User
+from app.db.models import Activity, DailyLoad, Hrv, Rhr, Sleep, Stress, User
 from app.health import router as health_router
 from app.health import service
 from app.main import app
@@ -83,6 +83,11 @@ def _seed_rhr(db, day, value):
 
 def _seed_stress(db, day, avg):
     db.add(Stress(date=day, avg=avg))
+
+
+def _seed_load(db, day, ctl, atl, tsb, acwr=None):
+    """Linha de `load` (PMC do sync) — acwr null = janela 28d incompleta."""
+    db.add(DailyLoad(date=day, ctl=ctl, atl=atl, tsb=tsb, acwr=acwr))
 
 
 def _seed_activity(db, garmin_id, start, activity_type, name="Treino"):
@@ -391,6 +396,65 @@ def test_lifestyle_streak_exceeds_window(db, fixed_today) -> None:
     lifestyle = service.get_health(db, 19, SAO_PAULO)["lifestyle"]
     assert lifestyle["strength"] == {"streak_weeks": 5, "weeks_hit": 2,
                                      "weeks_total": 3, "current_week_sessions": 0}
+
+
+# ---------------------------------------------------------------
+# T1 (panel-clarity) — bloco pmc no service (seeds de `load`)
+# ---------------------------------------------------------------
+
+
+def test_pmc_window_asc_and_current_from_load(db) -> None:
+    """Done-when T1 (CLR-01/06): janela pedida devolve as últimas `days`
+    linhas de `load` em ASC com os valores exatamente como as linhas —
+    nenhum recálculo; `current` = última linha; acwr null atravessa."""
+    _seed_load(db, date(2026, 10, 13), 20.0, 25.0, -5.0)  # janela 28d incompleta
+    _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
+    _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
+    db.commit()
+
+    pmc = service.get_health(db, 2, SAO_PAULO)["pmc"]
+    assert pmc["days"] == 2
+    assert pmc["points"] == [
+        {"date": date(2026, 10, 14), "ctl": 21.0, "atl": 27.0, "tsb": -6.0, "acwr": 1.40},
+        {"date": date(2026, 10, 15), "ctl": 22.0, "atl": 28.0, "tsb": -6.0, "acwr": 1.42},
+    ]
+    assert pmc["current"] == {
+        "date": date(2026, 10, 15), "ctl": 22.0, "atl": 28.0, "tsb": -6.0, "acwr": 1.42,
+    }
+
+
+def test_pmc_window_larger_than_history_returns_what_exists(db) -> None:
+    """Edge do spec (CLR-02): janela maior que o histórico devolve as
+    linhas disponíveis — `days` é a pedida, os pontos são os que existem."""
+    _seed_load(db, date(2026, 10, 13), 20.0, 25.0, -5.0, 1.31)
+    _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
+    _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
+    db.commit()
+
+    pmc = service.get_health(db, 365, SAO_PAULO)["pmc"]
+    assert pmc["days"] == 365
+    assert [p["date"] for p in pmc["points"]] == [
+        date(2026, 10, 13), date(2026, 10, 14), date(2026, 10, 15),
+    ]
+
+
+def test_pmc_null_without_load_rows(db) -> None:
+    """CLR-02: sem linhas em `load` -> pmc null (estado vazio, não erro —
+    mesma semântica de POT-12)."""
+    assert service.get_health(db, 60, SAO_PAULO)["pmc"] is None
+
+
+def test_pmc_sits_between_stress_and_dose_response(db) -> None:
+    """Done-when T1 (CLR-01): `pmc` monta entre `stress` e
+    `dose_response` — ordem das chaves do payload pinada (o espelho do
+    router e do cliente seguem a mesma posição)."""
+    _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
+    db.commit()
+
+    payload = service.get_health(db, 60, SAO_PAULO)
+    assert list(payload.keys()) == [
+        "sleep", "hrv", "rhr", "stress", "pmc", "dose_response", "lifestyle",
+    ]
 
 
 def test_health_domain_never_imports_garmin_gateway() -> None:
