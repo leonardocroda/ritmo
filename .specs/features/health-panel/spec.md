@@ -204,9 +204,9 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | HLT-17 | P1: UI HRV + RHR | Tasks | Verified |
 | HLT-18 | P1: UI HRV + RHR | Tasks | Verified |
 | HLT-19 | P1: UI HRV + RHR | - | Pending |
-| HLT-20 | P1: UI Dose-resposta | - | Pending |
-| HLT-21 | P1: UI Dose-resposta | - | Pending |
-| HLT-22 | P1: UI Dose-resposta | - | Pending |
+| HLT-20 | P1: UI Dose-resposta | Tasks | Verified |
+| HLT-21 | P1: UI Dose-resposta | Tasks | Verified |
+| HLT-22 | P1: UI Dose-resposta | Tasks | Verified |
 | HLT-23 | P1: UI Equilíbrio de vida | - | Pending |
 | HLT-24 | P1: UI Equilíbrio de vida | - | Pending |
 | HLT-25 | P1: UI Equilíbrio de vida | Tasks | Verified |

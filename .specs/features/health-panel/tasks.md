@@ -451,9 +451,9 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] Cards "Noites <6h" e "Noites ≥6h45" com `{nights, avg_hrv, avg_score}` cada
-- [ ] Nota "N noites fora da comparação (6h–6h45)" com `neutral_nights`
-- [ ] Média null → "—" (bucket vazio)
+- [x] Cards "Noites <6h" e "Noites ≥6h45" com `{nights, avg_hrv, avg_score}` cada
+- [x] Nota "N noites fora da comparação (6h–6h45)" com `neutral_nights`
+- [x] Média null → "—" (bucket vazio)
 
 **Tests**: none
 **Gate**: build
