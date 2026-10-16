@@ -104,7 +104,7 @@ class GarminGateway:
             return result
         raise last_exc  # retries esgotados — o tipo será tratado como falho
 
-    # -- 8 métodos de dados do design -------------------------------------
+    # -- 9 métodos de dados do design -------------------------------------
 
     def get_activities(self, start: date, end: date) -> list[dict]:
         """Atividades por data com paginação PRÓPRIA (20/pág via connectapi).
@@ -171,3 +171,7 @@ class GarminGateway:
 
     def get_personal_records(self) -> dict:
         return self._call(self._garmin.get_personal_record)
+
+    def get_race_predictions(self) -> dict:
+        """Preditor de prova (snapshot latest) — 1 chamada (POT-01)."""
+        return self._call(self._garmin.get_race_predictions)

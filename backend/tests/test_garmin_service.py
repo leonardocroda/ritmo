@@ -21,6 +21,7 @@ from app.db.models import (
     DEFAULT_USER_ID,
     Hrv,
     PersonalRecord,
+    RacePrediction,
     Rhr,
     Sleep,
     Split,
@@ -68,6 +69,7 @@ def _table_counts(db) -> dict[str, int]:
         "stress": Stress,
         "body_battery": BodyBattery,
         "personal_records": PersonalRecord,
+        "race_predictions": RacePrediction,
         "load": DailyLoad,
         "sync_state": SyncState,
     }
@@ -116,7 +118,8 @@ def test_run_sync_happy_path_done_with_full_stats(db, monkeypatch):
     assert stats["battery_days"] == 61
     assert stats["stress_days"] == 61
     assert stats["records"] == 2
-    assert stats["calls_made"] == 258  # 1 atividades + 11 splits + 4x61 saúde + battery + recordes
+    assert stats["predictions"] == 4
+    assert stats["calls_made"] == 259  # 1 atividades + 11 splits + 4x61 saúde + battery + recordes + 1 predições
     assert stats["duration_s"] >= 0
     assert stats["warnings"] == []
     assert stats["reauth_needed"] is False
@@ -137,6 +140,7 @@ def test_run_sync_happy_path_done_with_full_stats(db, monkeypatch):
             "stress": 61,
             "body_battery": 61,
             "personal_records": 2,
+            "race_predictions": 4,
             "load": 12,  # 2026-10-03 (mais antiga) .. 10-14 (SYNC-23)
             "sync_state": 6,
         }
@@ -211,8 +215,8 @@ def test_second_sync_calls_made_much_smaller(db, monkeypatch):
     second_job = _create_job()
     run_sync(second_job.id)
 
-    assert _load_job(first_job.id).stats_json["calls_made"] == 258
-    assert _load_job(second_job.id).stats_json["calls_made"] == 22
+    assert _load_job(first_job.id).stats_json["calls_made"] == 259
+    assert _load_job(second_job.id).stats_json["calls_made"] == 23
 
 
 def test_state_machine_pending_running_done_with_partial_stats(db, monkeypatch):
@@ -351,6 +355,112 @@ def test_records_failure_warns_and_done(db, monkeypatch):
         assert _count(s, PersonalRecord) == 0
         assert _count(s, Activity) == 12
         assert _count(s, Sleep) == 61
+
+
+def test_predictions_synced_after_records_exactly_one_call(db, monkeypatch):
+    """POT-01/02 (done-when T5): passo de predições após records com
+    exatamente 1 chamada; 4 eventos upsertados no banco."""
+    monkeypatch.setattr(service, "GarminGateway", FakeGateway)
+    job = _create_job()
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "done"
+    stats = finished.stats_json
+    assert stats["predictions"] == 4
+    fake = FakeGateway.last
+    assert fake.calls["race_predictions"] == [()]  # exatamente 1 chamada do orçamento
+    with SessionLocal() as s:
+        events = s.execute(select(RacePrediction.event)).scalars().all()
+        assert len(events) == 4
+        assert set(events) == {"5K", "10K", "HALF_MARATHON", "MARATHON"}
+
+
+def test_predictions_step_consumes_one_extra_budget_call(db, monkeypatch):
+    """POT-01: +1 chamada no orçamento total do sync (backfill 258 -> 259)."""
+    monkeypatch.setattr(service, "GarminGateway", FakeGateway)
+    job = _create_job()
+    run_sync(job.id)
+    assert _load_job(job.id).stats_json["calls_made"] == 259
+
+
+def test_predictions_failure_warns_and_sync_continues(db, monkeypatch):
+    """POT-03: falha no passo -> warning {tipo: "predictions"}, job done,
+    predictions 0; os passos seguintes (pmc) rodam."""
+
+    class FailingPredictions(FakeGateway):
+        def get_race_predictions(self):
+            self._record("race_predictions")
+            raise RuntimeError("predições fora do ar")
+
+    monkeypatch.setattr(service, "GarminGateway", FailingPredictions)
+    job = _create_job()
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "done"
+    assert finished.error is None
+    stats = finished.stats_json
+    assert stats["warnings"] == [{"tipo": "predictions", "erro": "predições fora do ar"}]
+    assert stats["predictions"] == 0
+    assert stats["records"] == 2  # o passo anterior concluiu
+    assert stats["step"] == "pmc"  # o passo seguinte rodou
+    with SessionLocal() as s:
+        assert _count(s, RacePrediction) == 0
+        assert _count(s, DailyLoad) == 12  # pmc rodou mesmo com o warning
+
+
+def test_sync_step_order_records_then_predictions_then_pmc(db, monkeypatch):
+    """POT-01 (done-when T5): ordem rígida records → predictions → pmc,
+    observada pelo step gravado no banco na hora de cada chamada do gateway
+    e pelo step final do job concluído."""
+    observed_steps = []
+
+    class OrderGateway(FakeGateway):
+        def _running_step(self) -> str:
+            with SessionLocal() as s:
+                running = s.execute(
+                    select(SyncJob).where(SyncJob.status == "running")
+                ).scalar_one()
+                return running.stats_json["step"]
+
+        def get_personal_records(self):
+            self._record("personal_records")
+            observed_steps.append(self._running_step())
+            return super().get_personal_records()
+
+        def get_race_predictions(self):
+            self._record("race_predictions")
+            observed_steps.append(self._running_step())
+            return super().get_race_predictions()
+
+    monkeypatch.setattr(service, "GarminGateway", OrderGateway)
+    job = _create_job()
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "done"
+    assert observed_steps == ["records", "predictions"]
+    stats = finished.stats_json
+    assert stats["step"] == "pmc"  # pmc foi o último passo
+    assert stats["records"] == 2
+    assert stats["predictions"] == 4
+
+
+def test_predictions_resync_updates_without_duplicates(db, monkeypatch):
+    """Independent Test do spec (POT-02): 2× sync -> mesmas 4 linhas,
+    sem duplicar; contador do segundo sync também em 4."""
+    monkeypatch.setattr(service, "GarminGateway", FakeGateway)
+
+    first_job = _create_job()
+    run_sync(first_job.id)
+    second_job = _create_job()
+    run_sync(second_job.id)
+
+    with SessionLocal() as s:
+        assert _count(s, RacePrediction) == 4
+    assert _load_job(first_job.id).stats_json["predictions"] == 4
+    assert _load_job(second_job.id).stats_json["predictions"] == 4
 
 
 def test_auth_expired_error_reauth_needed(db, monkeypatch):

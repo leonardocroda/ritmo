@@ -195,10 +195,10 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] Passo executa após records com exatamente 1 chamada do orçamento (`calls_made` conferido no teste)
-- [ ] Falha no passo → warning `{tipo: "predictions"}`, job termina `done`, stats com `predictions: 0`; happy path grava 4 eventos
-- [ ] Ordem preservada: records → predictions → pmc (teste confere `stats["step"]` final e contadores)
-- [ ] Testes: ≥ 5 novos (total ≥ 194)
+- [x] Passo executa após records com exatamente 1 chamada do orçamento (`calls_made` conferido no teste)
+- [x] Falha no passo → warning `{tipo: "predictions"}`, job termina `done`, stats com `predictions: 0`; happy path grava 4 eventos
+- [x] Ordem preservada: records → predictions → pmc (teste confere `stats["step"]` final e contadores)
+- [x] Testes: ≥ 5 novos (total ≥ 194)
 
 **Tests**: integration (`test_garmin_service.py`)
 **Gate**: full

@@ -32,6 +32,7 @@ STATS_KEYS = {
     "battery_days",
     "stress_days",
     "records",
+    "predictions",
     "calls_made",
     "duration_s",
     "warnings",
@@ -69,7 +70,7 @@ def test_post_creates_job_and_runs_sync_to_done(client):
     stats = job["stats"]
     assert stats["message"] == "Sync concluído."
     assert stats["activities_new"] == 12
-    assert stats["calls_made"] == 258
+    assert stats["calls_made"] == 259  # inclui a 1 chamada do passo de predições (POT-01)
 
 
 def test_post_conflict_409_with_running_job_state(client):

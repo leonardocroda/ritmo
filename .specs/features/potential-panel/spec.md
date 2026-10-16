@@ -215,10 +215,10 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| POT-01 | P1: Sync predições | Design | Pending |
+| POT-01 | P1: Sync predições | Design | Implemented |
 | POT-02 | P1: Sync predições | Design | Implemented |
-| POT-03 | P1: Sync predições | Design | Pending |
-| POT-04 | P1: Sync predições | Design | Pending |
+| POT-03 | P1: Sync predições | Design | Implemented |
+| POT-04 | P1: Sync predições | Design | Implemented |
 | POT-05 | P1: Data dos PRs | Design | Implemented |
 | POT-06 | P1: Data dos PRs | Design | Implemented |
 | POT-07 | P1: Endpoint /api/potential | Design | Pending |

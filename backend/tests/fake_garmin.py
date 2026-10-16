@@ -13,6 +13,7 @@ from helpers import (
     GARMIN_ACTIVITY_PAYLOAD,
     HRV_PAYLOAD,
     PERSONAL_RECORDS_PAYLOAD,
+    RACE_PREDICTIONS_PAYLOAD,
     RHR_PAYLOAD,
     SLEEP_PAYLOAD,
     SPARSE_ACTIVITY_PAYLOAD,
@@ -89,7 +90,7 @@ class FakeGateway:
         self._calls += 1
         self.calls.setdefault(name, []).append(args)
 
-    # -- 8 métodos de dados (interface do GarminGateway) -----------------
+    # -- 9 métodos de dados (interface do GarminGateway) -----------------
 
     def get_activities(self, start: date, end: date) -> list[dict]:
         self._record("activities", start, end)
@@ -158,3 +159,7 @@ class FakeGateway:
     def get_personal_records(self) -> list[dict]:
         self._record("personal_records")
         return PERSONAL_RECORDS_PAYLOAD
+
+    def get_race_predictions(self) -> dict:
+        self._record("race_predictions")
+        return RACE_PREDICTIONS_PAYLOAD

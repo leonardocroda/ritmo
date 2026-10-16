@@ -36,6 +36,7 @@ from app.garmin.mappers import (
     map_battery,
     map_hrv,
     map_personal_records,
+    map_race_predictions,
     map_rhr,
     map_sleep,
     map_splits,
@@ -47,6 +48,7 @@ from app.garmin.upserts import (
     set_sync_state,
     upsert_activity,
     upsert_health_rows,
+    upsert_race_predictions,
     upsert_records,
     upsert_splits,
 )
@@ -93,6 +95,7 @@ def _initial_stats() -> dict:
         "battery_days": 0,
         "stress_days": 0,
         "records": 0,
+        "predictions": 0,
         "calls_made": 0,
         "duration_s": 0.0,
         "warnings": [],
@@ -281,6 +284,35 @@ def _sync_records(db, gateway, job, stats, user_id) -> None:
         _save_stats(db, job, stats)
 
 
+def _sync_predictions(db, gateway, job, stats, user_id) -> None:
+    """Predições de prova (POT-01..04): snapshot latest após os recordes.
+
+    1 chamada sequencial do orçamento (POT-01); mesma tolerância do
+    records: falha -> warning `{tipo: "predictions"}` e o sync segue
+    (SYNC-20). Upsert por evento sem delete — evento ausente no payload
+    mantém a linha (POT-02).
+    """
+    stats["step"] = "predictions"
+    stats["message"] = "Puxando predições de prova…"
+    stats["calls_made"] = gateway.calls_made
+    _save_stats(db, job, stats)
+    try:
+        rows = map_race_predictions(gateway.get_race_predictions())
+        upsert_race_predictions(db, user_id, rows)
+        stats["predictions"] = len(rows)
+        stats["calls_made"] = gateway.calls_made
+        db.commit()
+    except (GarminAuthExpiredError, SyncBudgetExceededError):
+        db.rollback()
+        raise
+    except Exception as exc:
+        db.rollback()
+        stats["predictions"] = 0
+        stats["warnings"].append({"tipo": "predictions", "erro": str(exc)})
+        stats["calls_made"] = gateway.calls_made
+        _save_stats(db, job, stats)
+
+
 def _sync_pmc(db, job, stats, user_id, oldest: date) -> None:
     """PMC (SYNC-22/23): recompute só da janela afetada — zero chamadas extras."""
     stats["step"] = "pmc"
@@ -334,6 +366,7 @@ def run_sync(job_id: int) -> None:
             )
             _sync_battery(db, gateway, job, stats, user_id, settings)
             _sync_records(db, gateway, job, stats, user_id)
+            _sync_predictions(db, gateway, job, stats, user_id)
             _sync_pmc(db, job, stats, user_id, oldest)
             stats["message"] = "Sync concluído."
             _finish(db, job, stats, "done")
