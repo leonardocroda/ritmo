@@ -323,9 +323,9 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] Linha de rem_pct + banda sombreada de `rem_band` visível
-- [ ] Domínio Y 0–40 fixo (a média real ~14% não colapsa na base)
-- [ ] Tooltip com o valor da noite
+- [x] Linha de rem_pct + banda sombreada de `rem_band` visível
+- [x] Domínio Y 0–40 fixo (a média real ~14% não colapsa na base)
+- [x] Tooltip com o valor da noite
 
 **Tests**: none
 **Gate**: build
