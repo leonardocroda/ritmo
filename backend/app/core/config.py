@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     app_env: str = "dev"
     cors_origins: str = "*"
 
+    # Fuso da conversão de deitar/acordar do painel Saúde (bed_time/wake_time
+    # são gravados GMT naive; o horário exibido usa este fuso)
+    app_timezone: str = "America/Sao_Paulo"
+
     # Banco — Postgres desde a v1 (AD-007); driver psycopg3
     database_url: str = "postgresql+psycopg://ritmo:ritmo@localhost:5432/ritmo"
 
