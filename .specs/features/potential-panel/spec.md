@@ -240,7 +240,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | POT-23 | P1: Curva PMC | Design | Implemented |
 | POT-24 | P1: Curva PMC | Design | Implemented |
 | POT-25 | P1: Curva PMC | Design | Pending |
-| POT-26 | P2: VO2max | Design | Pending |
+| POT-26 | P2: VO2max | Design | Implemented |
 | POT-27 | P2: VO2max | Design | Pending |
 | POT-28 | P2: Decaimento | Design | Implemented |
 | POT-29 | P2: Decaimento | Design | Implemented |

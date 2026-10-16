@@ -399,8 +399,8 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] Linha com os pontos reais + selo "estimativa" + nota de hierarquia visível
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Linha com os pontos reais + selo "estimativa" + nota de hierarquia visível
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none (build gate + UAT)
 **Gate**: build (frontend)
