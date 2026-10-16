@@ -375,9 +375,9 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] Linha dos valores por data + valor atual em destaque
-- [ ] `current.status` exibido como badge textual (status cru da API, sem tradução inventada)
-- [ ] Tooltip com valor e status da noite
+- [x] Linha dos valores por data + valor atual em destaque
+- [x] `current.status` exibido como badge textual (status cru da API, sem tradução inventada)
+- [x] Tooltip com valor e status da noite
 
 **Tests**: none
 **Gate**: build
