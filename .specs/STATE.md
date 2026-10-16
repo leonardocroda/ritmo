@@ -68,11 +68,11 @@
 
 ## Handoff
 
-- **Feature**: `workouts-list` — **concluída e validada** (PASS do Verifier em `.specs/features/workouts-list/validation.md`; 32/32 ACs com evidência `file:line`, 5/5 mutantes mortos, `validate_state.py` exit 0)
-- **Phase / Task**: n/a — T1–T14 todas commitadas (`5584d44`..`a803911` + UAT `04dd0ba`); traceability 32/32 Verified
-- **Completed**: spec → design → tasks → execute (2 lotes de sub-agents + T13/T14 inline após erro de infra) → verificação independente; suite final **170 testes** no Postgres do compose; painel Treinos validado com dados reais (tipos inferidos conferidos em strides/limiar/longão; consistência do longão conferida contra cálculo manual; zero chamadas Garmin nos painéis)
-- **In-progress**: none
-- **Next step**: próxima feature da Fase 1 — **Painel Potencial** (timeline VDOT, previsões vs PRs, curva PMC — os dados de carga já são calculados pelo sync) ou Painel Saúde; pendências menores: estrutura de strides verbosa no detalhe ("8×Corrida" agregado seria melhor — melhoria futura), acesso LAN/celular exige `NEXT_PUBLIC_API_URL`+CORS com IP do host (infra, não feature)
+- **Feature**: `potential-panel` — em execução (spec → design → tasks aprovados; Batch 1 concluído)
+- **Phase / Task**: Batch 2 (Phases 3+4: T8–T15) despachado para sub-agent (glm-5.3-flash); depois T16 (UAT real, inline) + Verifier
+- **Completed**: Batch 1 — T1–T7 commitadas (`21ff067`..`9438246`): `vdot/daniels.py` extraído, `vdot/calibration.py`, fix data dos PRs, `RacePrediction`+mapper+upsert, etapa de sync de predições, calc puro (timeline/Riegel/predictions/decay); suite **215 testes** no Postgres do compose (verificada independentemente)
+- **In-progress**: Batch 2 — T8 (service) → T9 (router+mount) → T10–T15 (frontend: lib, charts Recharts, tabelas, composição)
+- **Next step**: T16 UAT real (rebuild + sync + validar `/potencial` contra pins: demonstrado 51,62, lacuna ~97%, decay maratona −22%) → Verifier independente → `validate_state.py`
 - **Blockers**: none
-- **Uncommitted files**: none (após o commit de fechamento)
+- **Uncommitted files**: none
 - **Branch**: main
