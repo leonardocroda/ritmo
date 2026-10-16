@@ -296,10 +296,10 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] 3 `Bar` com `stackId` único (light base + deep + rem), domínio Y 0–100
-- [ ] Tooltip com as 3 fases + "N despertares" (omitido quando null)
-- [ ] Sem normalização dos pcts (passam como gravados)
-- [ ] Legenda com rótulos PT-BR (leve/profundo/REM)
+- [x] 3 `Bar` com `stackId` único (light base + deep + rem), domínio Y 0–100
+- [x] Tooltip com as 3 fases + "N despertares" (omitido quando null)
+- [x] Sem normalização dos pcts (passam como gravados)
+- [x] Legenda com rótulos PT-BR (leve/profundo/REM)
 
 **Tests**: none
 **Gate**: build

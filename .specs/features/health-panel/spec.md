@@ -214,7 +214,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | HLT-27 | P2: Estados e responsividade | - | Pending |
 | HLT-28 | P2: Estados e responsividade | - | Pending |
 | HLT-29 | P2: Estados e responsividade | - | Pending |
-| HLT-30 | P1: UI Sono | - | Pending |
+| HLT-30 | P1: UI Sono | Tasks | Verified |
 
 **Coverage:** 30 total, 30 mapped to stories, 0 unmapped ✅
 
