@@ -209,8 +209,8 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | HLT-22 | P1: UI Dose-resposta | - | Pending |
 | HLT-23 | P1: UI Equilíbrio de vida | - | Pending |
 | HLT-24 | P1: UI Equilíbrio de vida | - | Pending |
-| HLT-25 | P1: UI Equilíbrio de vida | - | Pending |
-| HLT-26 | P1: UI Equilíbrio de vida | - | Pending |
+| HLT-25 | P1: UI Equilíbrio de vida | Tasks | Verified |
+| HLT-26 | P1: UI Equilíbrio de vida | Tasks | Verified |
 | HLT-27 | P2: Estados e responsividade | - | Pending |
 | HLT-28 | P2: Estados e responsividade | - | Pending |
 | HLT-29 | P2: Estados e responsividade | - | Pending |

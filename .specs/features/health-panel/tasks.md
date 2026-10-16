@@ -426,8 +426,8 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] Linha da média diária + card "média da janela"
-- [ ] `avg_window` null → "—" (nenhum número inventado)
+- [x] Linha da média diária + card "média da janela"
+- [x] `avg_window` null → "—" (nenhum número inventado)
 
 **Tests**: none
 **Gate**: build
