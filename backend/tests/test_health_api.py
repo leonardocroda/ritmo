@@ -12,14 +12,19 @@ véspera) — os seeds reproduzem o shape real para pinar a conversão.
 """
 
 from datetime import date, datetime
+import logging
 from pathlib import Path
+from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 import pytest
+from fastapi.testclient import TestClient
 
 from app.db.engine import SessionLocal, init_db
 from app.db.models import Activity, Hrv, Rhr, Sleep, Stress
+from app.health import router as health_router
 from app.health import service
+from app.main import app
 
 SAO_PAULO = ZoneInfo("America/Sao_Paulo")
 
@@ -34,6 +39,13 @@ def db():
     init_db()
     with SessionLocal() as session:
         yield session
+
+
+@pytest.fixture()
+def client():
+    """TestClient: o lifespan recria o schema do teste (conftest derruba antes)."""
+    with TestClient(app) as test_client:
+        yield test_client
 
 
 @pytest.fixture()
@@ -320,3 +332,125 @@ def test_health_domain_never_imports_garmin_gateway() -> None:
         source = module.read_text(encoding="utf-8")
         assert "from app.garmin" not in source, module.name
         assert "import app.garmin" not in source, module.name
+
+
+# ---------------------------------------------------------------
+# T4 — GET /api/health/summary (TestClient + superfície HTTP)
+# ---------------------------------------------------------------
+
+
+def test_api_happy_path_200_full_payload(client, fixed_today) -> None:
+    """HLT-01/02: 200 com o payload completo em JSON — datas ISO,
+    horários locais como "HH:MM", default days=60 e os pins do design
+    atravessando o HTTP."""
+    with SessionLocal() as db:
+        _seed_full_health(db)
+        db.commit()
+
+    response = client.get("/api/health/summary")
+    assert response.status_code == 200
+    body = response.json()
+
+    assert body["sleep"]["days"] == 60  # default do endpoint
+    assert body["sleep"]["floor_s"] == 25200
+    assert body["sleep"]["rem_band"] == [21.0, 31.0]
+    assert body["sleep"]["below_floor"] == {"nights": 2, "pct": 66.7}
+    assert body["sleep"]["regularity"] == {"avg_bed_min": 1339.7, "avg_wake_min": 292.0}
+    assert [(e["weekday"], e["nights"]) for e in body["sleep"]["weekday_pattern"]] == [
+        (0, 0), (1, 1), (2, 1), (3, 1), (4, 0), (5, 0), (6, 0),
+    ]
+    assert body["sleep"]["points"][1] == {
+        "date": "2026-10-14", "duration_s": 21000.0, "score": 60,
+        "rem_pct": 14.0, "deep_pct": 25.0, "light_pct": 61.0, "awakenings": 2,
+        "bed_local": "22:27", "wake_local": "04:32",
+    }
+
+    assert body["dose_response"] == {
+        "short": {"nights": 1, "avg_hrv": 68.0, "avg_score": 60.0},
+        "adequate": {"nights": 1, "avg_hrv": 82.0, "avg_score": 80.0},
+        "neutral_nights": 1,
+    }
+    assert body["hrv"]["current"] == {
+        "date": "2026-10-15", "value": 75.0, "status": "BALANCED",
+    }
+    assert body["rhr"]["baseline"] == 44.0
+    assert body["stress"]["avg_window"] == 24.0
+    assert body["lifestyle"] == {
+        "strength": {"streak_weeks": 4, "weeks_hit": 4, "weeks_total": 9,
+                     "current_week_sessions": 1},
+        "yoga": {"sessions": 3, "per_week_avg": 0.3},
+    }
+
+
+def test_api_days_out_of_range_responds_422(client) -> None:
+    """HLT-03: days fora de [7, 365] -> 422 antes de qualquer query."""
+    for params in ({"days": 6}, {"days": 366}, {"days": 0}, {"days": -1}):
+        response = client.get("/api/health/summary", params=params)
+        assert response.status_code == 422, params
+
+
+def test_api_days_boundaries_respond_200(client) -> None:
+    """HLT-02/03: os extremos do intervalo são válidos (7 e 365 -> 200);
+    sem dados, os blocos de série já atravessam como null."""
+    for params in ({"days": 7}, {"days": 365}):
+        response = client.get("/api/health/summary", params=params)
+        assert response.status_code == 200, params
+        assert response.json()["sleep"] is None
+
+
+def test_api_null_blocks_traverse_http_with_honest_zeros(client, fixed_today) -> None:
+    """HLT-11 via HTTP (done-when T4): banco vazio -> sono/HRV/RHR/
+    estresse null no JSON; dose_response e lifestyle presentes com zeros."""
+    response = client.get("/api/health/summary")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["sleep"] is None
+    assert body["hrv"] is None
+    assert body["rhr"] is None
+    assert body["stress"] is None
+    assert body["dose_response"] == {
+        "short": {"nights": 0, "avg_hrv": None, "avg_score": None},
+        "adequate": {"nights": 0, "avg_hrv": None, "avg_score": None},
+        "neutral_nights": 0,
+    }
+    assert body["lifestyle"]["yoga"] == {"sessions": 0, "per_week_avg": 0.0}
+    assert body["lifestyle"]["strength"]["streak_weeks"] == 0
+
+
+def test_api_window_cuts_oldest_points(client) -> None:
+    """HLT-02 (edge do spec): janela pedida corta as noites mais antigas —
+    8 noites semeadas, days=7 devolve as 7 mais recentes em ASC."""
+    with SessionLocal() as db:
+        for offset in range(8):
+            _seed_sleep(db, date(2026, 10, 8 + offset), 22000)
+        db.commit()
+
+    response = client.get("/api/health/summary", params={"days": 7})
+    assert response.status_code == 200
+    points = response.json()["sleep"]["points"]
+    assert [p["date"] for p in points] == [
+        "2026-10-09", "2026-10-10", "2026-10-11", "2026-10-12",
+        "2026-10-13", "2026-10-14", "2026-10-15",
+    ]
+
+
+def test_api_invalid_app_timezone_falls_back_with_warning(client, monkeypatch, caplog) -> None:
+    """Edge do spec (HLT-05): APP_TIMEZONE inválida -> fallback
+    America/Sao_Paulo com warning log, sem crash — 22:16 local, nunca o
+    GMT de 01:16."""
+    monkeypatch.setattr(
+        health_router, "get_settings", lambda: SimpleNamespace(app_timezone="Mars/Phobos")
+    )
+    with SessionLocal() as db:
+        _seed_sleep(db, date(2026, 10, 15), 23400,
+                    bed=datetime(2026, 10, 15, 1, 16), wake=datetime(2026, 10, 15, 8, 2))
+        db.commit()
+
+    with caplog.at_level(logging.WARNING, logger="app.health.router"):
+        response = client.get("/api/health/summary")
+
+    assert response.status_code == 200
+    point = response.json()["sleep"]["points"][0]
+    assert point["bed_local"] == "22:16"
+    assert point["wake_local"] == "05:02"
+    assert "Mars/Phobos" in caplog.text

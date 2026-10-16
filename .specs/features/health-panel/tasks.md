@@ -190,11 +190,11 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] `GET /api/health/summary?days=60` responde o payload do design §Contrato
-- [ ] `days` fora de [7, 365] → 422 antes de qualquer query
-- [ ] `APP_TIMEZONE` inválido → fallback default + warning log (sem crash)
-- [ ] `include_router(health_router)` em `app/main.py`; `/api/health` de infra intocado
-- [ ] TestClient: payload pinado com seeds; 422; blocos null; fallback de tz; série completa cortada pela janela
+- [x] `GET /api/health/summary?days=60` responde o payload do design §Contrato
+- [x] `days` fora de [7, 365] → 422 antes de qualquer query
+- [x] `APP_TIMEZONE` inválido → fallback default + warning log (sem crash)
+- [x] `include_router(health_router)` em `app/main.py`; `/api/health` de infra intocado
+- [x] TestClient: payload pinado com seeds; 422; blocos null; fallback de tz; série completa cortada pela janela
 
 **Tests**: integration
 **Gate**: quick

@@ -186,8 +186,8 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
 | HLT-01 | P1: Endpoint /api/health/summary | Tasks | Verified |
-| HLT-02 | P1: Endpoint /api/health/summary | - | Pending |
-| HLT-03 | P1: Endpoint /api/health/summary | - | Pending |
+| HLT-02 | P1: Endpoint /api/health/summary | Tasks | Verified |
+| HLT-03 | P1: Endpoint /api/health/summary | Tasks | Verified |
 | HLT-04 | P1: Endpoint /api/health/summary | Tasks | Verified |
 | HLT-05 | P1: Endpoint /api/health/summary | Tasks | Verified |
 | HLT-06 | P1: Endpoint /api/health/summary | Tasks | Verified |
