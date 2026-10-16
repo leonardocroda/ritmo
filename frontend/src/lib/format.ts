@@ -65,3 +65,25 @@ const TYPE_LABELS: Record<InferredType, string> = {
 export function formatInferredType(type: InferredType): string {
   return TYPE_LABELS[type];
 }
+
+/** Duração de sono em horas, vírgula e 1 casa: 22860 -> "6,3 h". */
+export function formatHours(seconds: number): string {
+  return `${(seconds / 3600).toFixed(1).replace(".", ",")} h`;
+}
+
+/** Minuto do dia -> HH:MM (wall clock local, já convertido no backend):
+ * 1336 -> "22:16". Médias fracionárias (regularity) arredondam. */
+export function formatClock(minuteOfDay: number): string {
+  const total = Math.round(minuteOfDay);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+const WEEKDAY_LABELS = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"];
+
+/** Rótulo PT-BR do weekday 0..6 (seg..dom) — a API usa número, o acento
+ * é camada de exibição (padrão ASCII na API/acento na UI). */
+export function formatWeekday(weekday: number): string {
+  return WEEKDAY_LABELS[weekday];
+}

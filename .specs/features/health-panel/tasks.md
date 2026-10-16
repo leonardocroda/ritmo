@@ -243,9 +243,9 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] `formatHours` com vírgula PT-BR e 1 casa
-- [ ] `formatClock` HH:MM a partir de minutos do dia (1336 → "22:16")
-- [ ] `formatWeekday` mapeia 0..6 para seg..dom (rótulo PT-BR — padrão ASCII na API)
+- [x] `formatHours` com vírgula PT-BR e 1 casa
+- [x] `formatClock` HH:MM a partir de minutos do dia (1336 → "22:16")
+- [x] `formatWeekday` mapeia 0..6 para seg..dom (rótulo PT-BR — padrão ASCII na API)
 
 **Tests**: none
 **Gate**: build
