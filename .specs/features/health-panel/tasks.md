@@ -503,12 +503,12 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] Seções: Sono (SleepChart + SleepStagesChart + RemChart + WeekdayPattern), Recuperação (HrvChart + RhrChart), Dose-resposta (DoseResponse), Equilíbrio de vida (Lifestyle + StressChart)
-- [ ] Bloco `null` → estado vazio próprio do bloco (orientando o sync, sem erro)
-- [ ] Painel inteiro vazio (todas as séries null) → estado vazio apontando o "Puxar do Garmin"
-- [ ] Falha da API → mensagem inline sem quebrar a navegação
-- [ ] `frontend/src/app/saude/page.tsx` renderiza `<HealthPanel />` (placeholder sai)
-- [ ] Layout legível em 390px sem scroll horizontal (padrão dos painéis anteriores)
+- [x] Seções: Sono (SleepChart + SleepStagesChart + RemChart + WeekdayPattern), Recuperação (HrvChart + RhrChart), Dose-resposta (DoseResponse), Equilíbrio de vida (Lifestyle + StressChart)
+- [x] Bloco `null` → estado vazio próprio do bloco (orientando o sync, sem erro)
+- [x] Painel inteiro vazio (todas as séries null) → estado vazio apontando o "Puxar do Garmin"
+- [x] Falha da API → mensagem inline sem quebrar a navegação
+- [x] `frontend/src/app/saude/page.tsx` renderiza `<HealthPanel />` (placeholder sai)
+- [x] Layout legível em 390px sem scroll horizontal (padrão dos painéis anteriores)
 
 **Tests**: none
 **Gate**: build

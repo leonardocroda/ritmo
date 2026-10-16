@@ -203,7 +203,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | HLT-16 | P1: UI Sono | Tasks | Verified |
 | HLT-17 | P1: UI HRV + RHR | Tasks | Verified |
 | HLT-18 | P1: UI HRV + RHR | Tasks | Verified |
-| HLT-19 | P1: UI HRV + RHR | - | Pending |
+| HLT-19 | P1: UI HRV + RHR | Tasks | Verified |
 | HLT-20 | P1: UI Dose-resposta | Tasks | Verified |
 | HLT-21 | P1: UI Dose-resposta | Tasks | Verified |
 | HLT-22 | P1: UI Dose-resposta | Tasks | Verified |
@@ -211,9 +211,9 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | HLT-24 | P1: UI Equilíbrio de vida | Tasks | Verified |
 | HLT-25 | P1: UI Equilíbrio de vida | Tasks | Verified |
 | HLT-26 | P1: UI Equilíbrio de vida | Tasks | Verified |
-| HLT-27 | P2: Estados e responsividade | - | Pending |
-| HLT-28 | P2: Estados e responsividade | - | Pending |
-| HLT-29 | P2: Estados e responsividade | - | Pending |
+| HLT-27 | P2: Estados e responsividade | Tasks | Verified |
+| HLT-28 | P2: Estados e responsividade | Tasks | Verified |
+| HLT-29 | P2: Estados e responsividade | Tasks | Verified |
 | HLT-30 | P1: UI Sono | Tasks | Verified |
 
 **Coverage:** 30 total, 30 mapped to stories, 0 unmapped ✅
