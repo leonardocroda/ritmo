@@ -176,9 +176,9 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | CLR-09 | P1: Seção Carga de treino | Design | Pending |
 | CLR-10 | P1: Seção Carga de treino | Design | Pending |
 | CLR-11 | P1: Seção Carga de treino | Design | Pending |
-| CLR-12 | P1: Cabeçalhos Saúde | Design | Pending |
-| CLR-13 | P1: Cabeçalhos Saúde | Design | Pending |
-| CLR-14 | P1: Cabeçalhos Saúde | Design | Pending |
+| CLR-12 | P1: Cabeçalhos Saúde | Design | Implementing |
+| CLR-13 | P1: Cabeçalhos Saúde | Design | Implementing |
+| CLR-14 | P1: Cabeçalhos Saúde | Design | Implementing |
 | CLR-15 | P1: Cabeçalhos Saúde | Design | Pending |
 | CLR-16 | P1: Cabeçalhos Saúde | Design | Pending |
 | CLR-17 | P1: Potencial narrativo | Design | Pending |

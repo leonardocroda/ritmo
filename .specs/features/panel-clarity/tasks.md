@@ -185,9 +185,9 @@ T11 → T12
 
 **Done when**:
 
-- [ ] Props conforme design; `index` opcional (Saúde usa 1–5, Potencial sem índice)
-- [ ] Subtítulo sempre visível sem interação; espaçamento externo > interno
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Props conforme design; `index` opcional (Saúde usa 1–5, Potencial sem índice)
+- [x] Subtítulo sempre visível sem interação; espaçamento externo > interno
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none
 **Gate**: build
