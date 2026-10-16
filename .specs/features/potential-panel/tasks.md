@@ -420,9 +420,9 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] Card da lacuna (`gap_pct`) com a narrativa honesta de §9.5; `pmc=null` → estado vazio apontando o sync; `vo2max=null` → bloco ausente
-- [ ] Erro de API → mensagem inline sem quebrar a nav; loading visível; painel legível em 390px
-- [ ] `/potencial` renderiza o painel (placeholder removido); `npm run build` + `npm run lint` verdes
+- [x] Card da lacuna (`gap_pct`) com a narrativa honesta de §9.5; `pmc=null` → estado vazio apontando o sync; `vo2max=null` → bloco ausente
+- [x] Erro de API → mensagem inline sem quebrar a nav; loading visível; painel legível em 390px
+- [x] `/potencial` renderiza o painel (placeholder removido); `npm run build` + `npm run lint` verdes
 
 **Tests**: none (build gate + UAT)
 **Gate**: build (frontend)

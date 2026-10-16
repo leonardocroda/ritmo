@@ -232,16 +232,16 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | POT-15 | P1: Endpoint /api/potential | Design | Implemented |
 | POT-16 | P1: Endpoint /api/potential | Design | Implemented |
 | POT-17 | P1: Timeline VDOT | Design | Implemented |
-| POT-18 | P1: Timeline VDOT | Design | Pending |
-| POT-19 | P1: Timeline VDOT | Design | Pending |
-| POT-20 | P1: Timeline VDOT | Design | Pending |
+| POT-18 | P1: Timeline VDOT | Design | Implemented |
+| POT-19 | P1: Timeline VDOT | Design | Implemented |
+| POT-20 | P1: Timeline VDOT | Design | Implemented |
 | POT-21 | P1: Previsões vs PRs | Design | Implemented |
 | POT-22 | P1: Previsões vs PRs | Design | Implemented |
 | POT-23 | P1: Curva PMC | Design | Implemented |
 | POT-24 | P1: Curva PMC | Design | Implemented |
-| POT-25 | P1: Curva PMC | Design | Pending |
+| POT-25 | P1: Curva PMC | Design | Implemented |
 | POT-26 | P2: VO2max | Design | Implemented |
-| POT-27 | P2: VO2max | Design | Pending |
+| POT-27 | P2: VO2max | Design | Implemented |
 | POT-28 | P2: Decaimento | Design | Implemented |
 | POT-29 | P2: Decaimento | Design | Implemented |
 
