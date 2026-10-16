@@ -15,7 +15,7 @@ a direção confiável (10K → meia → maratona, projeções para cima).
 
 from datetime import date
 
-from app.vdot.daniels import calculate_vdot
+from app.vdot.daniels import calculate_vdot, equivalent_time
 
 # Distâncias canônicas em metros — mesmas do RACE_DISTANCES_KM do script
 CANONICAL: dict[str, float] = {
@@ -126,3 +126,78 @@ def demonstrated(points: list[dict]) -> float | None:
     if not points:
         return None
     return max(p["vdot"] for p in points)
+
+
+def _canonical_prs(prs) -> dict[str, object]:
+    """PRs canônicos válidos por distância — esforço 0/negativo fica fora (spec)."""
+    by_event: dict[str, object] = {}
+    for pr in prs:
+        canonical = _PR_EVENT_TO_CANONICAL.get(pr.event)
+        if canonical is not None and pr.value and pr.value > 0:
+            by_event[canonical] = pr
+    return by_event
+
+
+def predictions(garmin, pr_5k_s, current_vdot, prs) -> dict[str, dict]:
+    """As 4 estimativas por distância canônica (design §Contrato).
+
+    - `riegel_s`: ancorado no PR de 5K (T2 = T1 × (D2/5000)^1.06); NULL
+      sem âncora — nunca substituída por outra distância (spec).
+    - `vdot_s`: equivalência do VDOT corrente (`equivalent_time`).
+    - `average_s`: média aritmética só das estimativas presentes — o
+      "—" do spec não entra na conta; todas ausentes -> None.
+    - `pr_s`/`pr_date`: do PR canônico; NULL quando ausente.
+
+    Valores calculados com 1 decimal — o payload é auto-consistente
+    (a média e o delta conferem com os números exibidos).
+    """
+    pr_by_event = _canonical_prs(prs)
+    rows: dict[str, dict] = {}
+    for event, distance_m in CANONICAL.items():
+        garmin_s = garmin.get(event)
+        riegel_s = (
+            round(riegel_time(pr_5k_s, CANONICAL["5K"], distance_m), 1)
+            if pr_5k_s and pr_5k_s > 0
+            else None
+        )
+        vdot_s = round(equivalent_time(current_vdot, distance_m / 1000), 1)
+        present = [v for v in (garmin_s, riegel_s, vdot_s) if v is not None]
+        pr = pr_by_event.get(event)
+        rows[event] = {
+            "garmin_s": round(garmin_s, 1) if garmin_s is not None else None,
+            "riegel_s": riegel_s,
+            "vdot_s": vdot_s,
+            "average_s": round(sum(present) / len(present), 1) if present else None,
+            "pr_s": round(pr.value, 1) if pr is not None else None,
+            "pr_date": pr.pr_date if pr is not None else None,
+        }
+    return rows
+
+
+def decay(prs, current_vdot) -> list[dict]:
+    """Decaimento de ritmo por distância canônica COM PR (POT-14).
+
+    `real_pace_s` (PR) vs `ideal_pace_s` (equivalência do VDOT corrente)
+    e `delta_pct = (ideal−real)/ideal × 100` — negativo = gap (o real
+    está mais lento que o ideal). Distância sem PR fica de fora da
+    lista (nenhum número inventado — spec); delta calculado dos paces
+    do payload (1 decimal), para os números exibidos se conferirem.
+    """
+    pr_by_event = _canonical_prs(prs)
+    rows: list[dict] = []
+    for event, distance_m in CANONICAL.items():
+        pr = pr_by_event.get(event)
+        if pr is None:
+            continue
+        distance_km = distance_m / 1000
+        real_pace_s = round(pr.value / distance_km, 1)
+        ideal_pace_s = round(equivalent_time(current_vdot, distance_km) / distance_km, 1)
+        rows.append(
+            {
+                "event": event,
+                "real_pace_s": real_pace_s,
+                "ideal_pace_s": ideal_pace_s,
+                "delta_pct": round((ideal_pace_s - real_pace_s) / ideal_pace_s * 100, 1),
+            }
+        )
+    return rows

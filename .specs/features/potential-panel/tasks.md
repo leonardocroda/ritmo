@@ -242,10 +242,10 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] Sem PR de 5K → `riegel_s=None` em todas as distâncias (âncora não substituída) e média recalcula com as presentes
-- [ ] Estimativa ausente (garmin null, pós-fix) fora da média; todas ausentes → `average_s=None`
-- [ ] Decay: distâncias sem PR ficam de fora; sinal pinado (real mais lento → delta negativo = gap); fixture real: maratona com maior gap
-- [ ] Testes: ≥ 6 novos (total ≥ 208)
+- [x] Sem PR de 5K → `riegel_s=None` em todas as distâncias (âncora não substituída) e média recalcula com as presentes
+- [x] Estimativa ausente (garmin null, pós-fix) fora da média; todas ausentes → `average_s=None`
+- [x] Decay: distâncias sem PR ficam de fora; sinal pinado (real mais lento → delta negativo = gap); fixture real: maratona com maior gap
+- [x] Testes: ≥ 6 novos (total ≥ 208)
 
 **Tests**: unit (`backend/tests/test_potential_calc.py`)
 **Gate**: quick
