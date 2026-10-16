@@ -401,8 +401,8 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] Linha dos valores + linha de referência do baseline visível e rotulada
-- [ ] Tooltip com o valor do dia
+- [x] Linha dos valores + linha de referência do baseline visível e rotulada
+- [x] Tooltip com o valor do dia
 
 **Tests**: none
 **Gate**: build

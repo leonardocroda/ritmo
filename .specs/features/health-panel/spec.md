@@ -202,7 +202,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | HLT-15 | P1: UI Sono | Tasks | Verified |
 | HLT-16 | P1: UI Sono | Tasks | Verified |
 | HLT-17 | P1: UI HRV + RHR | Tasks | Verified |
-| HLT-18 | P1: UI HRV + RHR | - | Pending |
+| HLT-18 | P1: UI HRV + RHR | Tasks | Verified |
 | HLT-19 | P1: UI HRV + RHR | - | Pending |
 | HLT-20 | P1: UI Dose-resposta | - | Pending |
 | HLT-21 | P1: UI Dose-resposta | - | Pending |
