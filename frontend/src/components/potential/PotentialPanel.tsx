@@ -11,7 +11,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { getPotential, type PotentialOut, type VdotBlock } from "@/lib/api";
 import { formatVdot } from "@/lib/format";
 import DecayTable from "@/components/potential/DecayTable";
-import PmcChart from "@/components/potential/PmcChart";
+import PmcChart from "@/components/health/PmcChart";
 import PredictionsTable from "@/components/potential/PredictionsTable";
 import VdotTimeline from "@/components/potential/VdotTimeline";
 import Vo2maxTrend from "@/components/potential/Vo2maxTrend";

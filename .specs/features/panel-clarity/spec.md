@@ -171,7 +171,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | CLR-04 | P1: Contrato PMC | Design | Pending |
 | CLR-05 | P1: Contrato PMC | Design | Implementing |
 | CLR-06 | P1: Contrato PMC | Design | Implementing |
-| CLR-07 | P1: Seção Carga de treino | Design | Pending |
+| CLR-07 | P1: Seção Carga de treino | Design | Implementing |
 | CLR-08 | P1: Seção Carga de treino | Design | Pending |
 | CLR-09 | P1: Seção Carga de treino | Design | Pending |
 | CLR-10 | P1: Seção Carga de treino | Design | Pending |

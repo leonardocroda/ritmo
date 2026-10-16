@@ -211,9 +211,9 @@ T11 → T12
 
 **Done when**:
 
-- [ ] Arquivo em `components/health/` com render idêntico (Recharts ComposedChart, cards, legenda, "—" em ACWR null)
-- [ ] `PotentialPanel` importa do novo caminho (painel segue renderizando até a T9); `components/potential/` sem o arquivo antigo
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Arquivo em `components/health/` com render idêntico (Recharts ComposedChart, cards, legenda, "—" em ACWR null)
+- [x] `PotentialPanel` importa do novo caminho (painel segue renderizando até a T9); `components/potential/` sem o arquivo antigo
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none
 **Gate**: build
