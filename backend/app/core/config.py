@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # App
     app_name: str = "Ritmo"
     app_env: str = "dev"
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "*"
 
     # Banco — Postgres desde a v1 (AD-007); driver psycopg3
     database_url: str = "postgresql+psycopg://ritmo:ritmo@localhost:5432/ritmo"
