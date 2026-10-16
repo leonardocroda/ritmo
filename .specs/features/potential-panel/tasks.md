@@ -218,11 +218,11 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] `riegel_time` com pins manuais (1163,83 s @5000 → 10K ≈ 2426,5 s; meia ≈ 5353,8 s; maratona ≈ 11162,4 s; expoente fixo 1.06)
-- [ ] Timeline com dados reais de fixture: PRs canônicos datados + prova deduplicada na data da maratona + teste de calibração; `vdot` de cada ponto = `calculate_vdot`; PR sem data fora da timeline
-- [ ] `demonstrated` = maior VDOT (fixture real → ≈ 51,62 do 5K; o "~53" do plano §9.5 é a tabela tabulada — a forma fechada é a fonte da verdade do app); lista vazia → `None`
-- [ ] Determinismo: mesma entrada → mesmos valores (teste repete)
-- [ ] Testes: ≥ 8 novos em `test_potential_calc.py` (total ≥ 202)
+- [x] `riegel_time` com pins manuais (1163,83 s @5000 → 10K ≈ 2426,5 s; meia ≈ 5353,8 s; maratona ≈ 11162,4 s; expoente fixo 1.06)
+- [x] Timeline com dados reais de fixture: PRs canônicos datados + prova deduplicada na data da maratona + teste de calibração; `vdot` de cada ponto = `calculate_vdot`; PR sem data fora da timeline
+- [x] `demonstrated` = maior VDOT (fixture real → ≈ 51,62 do 5K; o "~53" do plano §9.5 é a tabela tabulada — a forma fechada é a fonte da verdade do app); lista vazia → `None`
+- [x] Determinismo: mesma entrada → mesmos valores (teste repete)
+- [x] Testes: ≥ 8 novos em `test_potential_calc.py` (total ≥ 202)
 
 **Tests**: unit (`backend/tests/test_potential_calc.py`)
 **Gate**: quick
