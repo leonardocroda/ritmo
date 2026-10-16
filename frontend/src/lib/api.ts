@@ -304,3 +304,97 @@ export async function getPotential(days = 180): Promise<PotentialOut> {
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as PotentialOut;
 }
+
+// ---- Painel Saúde: contratos do design health-panel ----
+
+/** Ponto de sono — horários já locais no backend ("HH:MM"), a UI nunca
+ * converte fuso (design §Contrato). */
+export type SleepPoint = {
+  date: string;
+  duration_s: number;
+  score: number | null;
+  rem_pct: number | null;
+  deep_pct: number | null;
+  light_pct: number | null;
+  awakenings: number | null;
+  bed_local: string | null;
+  wake_local: string | null;
+};
+
+export type BelowFloor = { nights: number; pct: number };
+
+/** Weekday 0..6 = seg..dom (o rótulo PT-BR é camada de exibição — formatWeekday). */
+export type WeekdayEntry = {
+  weekday: number;
+  avg_duration_s: number | null;
+  nights: number;
+};
+
+/** Médias em minutos do dia local (o truque ±12h é do backend). */
+export type Regularity = { avg_bed_min: number; avg_wake_min: number };
+
+/** Bloco sono — piso/banda são réguas do payload (a UI não inventa régua). */
+export type SleepBlock = {
+  days: number;
+  floor_s: number;
+  rem_band: number[];
+  below_floor: BelowFloor;
+  regularity: Regularity | null;
+  weekday_pattern: WeekdayEntry[];
+  points: SleepPoint[];
+};
+
+export type HrvPoint = { date: string; value: number; status: string | null };
+
+/** HRV — `current` é o último dia com dado (mesma forma do ponto). */
+export type HrvBlock = { points: HrvPoint[]; current: HrvPoint };
+
+export type RhrPoint = { date: string; value: number };
+export type RhrBlock = { points: RhrPoint[]; baseline: number };
+
+export type StressPoint = { date: string; avg: number };
+export type StressBlock = { points: StressPoint[]; avg_window: number };
+
+/** Bucket do dose-resposta — média null = bucket vazio ("—" na UI). */
+export type DoseBucket = {
+  nights: number;
+  avg_hrv: number | null;
+  avg_score: number | null;
+};
+
+export type DoseResponse = {
+  short: DoseBucket;
+  adequate: DoseBucket;
+  neutral_nights: number;
+};
+
+export type Strength = {
+  streak_weeks: number;
+  weeks_hit: number;
+  weeks_total: number;
+  current_week_sessions: number;
+};
+
+export type Yoga = { sessions: number; per_week_avg: number };
+
+export type Lifestyle = { strength: Strength; yoga: Yoga };
+
+/** Espelho do `HealthSummaryOut` (backend/app/health/router.py). Séries
+ * vazias -> bloco null; dose_response/lifestyle sempre presentes. */
+export type HealthSummaryOut = {
+  sleep: SleepBlock | null;
+  hrv: HrvBlock | null;
+  rhr: RhrBlock | null;
+  stress: StressBlock | null;
+  dose_response: DoseResponse;
+  lifestyle: Lifestyle;
+};
+
+/** Painel Saúde inteiro em 1 payload (HLT-02). A UI fixa 60 dias (spec). */
+export async function getHealthSummary(days = 60): Promise<HealthSummaryOut> {
+  const res = await fetch(`${API_BASE}/api/health/summary?days=${days}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as HealthSummaryOut;
+}

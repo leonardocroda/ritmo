@@ -218,8 +218,8 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] Tipos completos (null atravessa o contrato: blocos e médias opcionais)
-- [ ] `getHealthSummary` com `cache: "no-store"` e `parseError`
+- [x] Tipos completos (null atravessa o contrato: blocos e médias opcionais)
+- [x] `getHealthSummary` com `cache: "no-store"` e `parseError`
 
 **Tests**: none
 **Gate**: build
