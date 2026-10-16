@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 3,
+  "next_id": 5,
   "lessons": [
     {
       "id": "L-001",
@@ -40,6 +40,42 @@
       ],
       "created": "2026-10-15T00:38:48Z",
       "last_seen": "2026-10-15T00:38:48Z"
+    },
+    {
+      "id": "L-003",
+      "key": "spec_precision_gap::edge case que alarga um ac precisa ser reconciliado com o qualificador do ac no design se o ac restringe ex prs datados o extra do edge case nasce sem implementacao e sem teste",
+      "text": "Edge case que alarga um AC precisa ser reconciliado com o qualificador do AC no design — se o AC restringe (ex.: 'PRs datados'), o extra do edge case nasce sem implementação e sem teste",
+      "signal": "spec_precision_gap",
+      "scope": "spec",
+      "status": "candidate",
+      "features": [
+        "potential-panel"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "spec.md:201 vs AC POT-07 (spec.md:106) (spec)"
+      ],
+      "created": "2026-10-16T10:07:26Z",
+      "last_seen": "2026-10-16T10:07:26Z"
+    },
+    {
+      "id": "L-004",
+      "key": "spec_precision_gap::pine no ac o formato de campos exibidos derivados labels narrativas sem formato definido o teste acaba afirmando a escolha da implementacao nao um requisito",
+      "text": "Pine no AC o formato de campos exibidos derivados (labels, narrativas) — sem formato definido, o teste acaba afirmando a escolha da implementação, não um requisito",
+      "signal": "spec_precision_gap",
+      "scope": "spec",
+      "status": "candidate",
+      "features": [
+        "potential-panel"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AC POT-08 (label do ponto teste) / design payload ilustrativo (spec)"
+      ],
+      "created": "2026-10-16T10:07:27Z",
+      "last_seen": "2026-10-16T10:07:27Z"
     }
   ]
 }

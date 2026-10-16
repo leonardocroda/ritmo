@@ -198,7 +198,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 
 ## Edge Cases
 
-- IF um PR canônico está sem data (payload sem nenhum dos timestamps) THEN ele não vira ponto da timeline (não há como plotar) mas permanece elegível ao "demonstrado".
+- IF um PR canônico está sem data (payload sem nenhum dos timestamps) THEN ele não vira ponto da timeline e não entra no "demonstrado" (POT-07 define demonstrado sobre PRs **datados** — sem data, não há como saber se o esforço é posterior ao teste de calibração vigente; reconciliação pós-Verifier 16/10/2026).
 - IF duas entradas da timeline caem na mesma data (ex.: teste de calibração e PR) THEN ambas são pontos (eventos distintos plotáveis lado a lado).
 - IF a tabela de predições está vazia (sync antigo ao bugfix, predição nunca sincronizada) THEN a coluna Garmin é "—" e a média honesta usa Riegel + VDOT.
 - IF não existe PR de 5K THEN `riegel_s` é NULL em todas as distâncias (âncora ausente, não substituída por outra distância) e a média honesta usa só as estimativas presentes.
@@ -215,35 +215,35 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| POT-01 | P1: Sync predições | Design | Implemented |
-| POT-02 | P1: Sync predições | Design | Implemented |
-| POT-03 | P1: Sync predições | Design | Implemented |
-| POT-04 | P1: Sync predições | Design | Implemented |
-| POT-05 | P1: Data dos PRs | Design | Implemented |
-| POT-06 | P1: Data dos PRs | Design | Implemented |
-| POT-07 | P1: Endpoint /api/potential | Design | Implemented |
-| POT-08 | P1: Endpoint /api/potential | Design | Implemented |
-| POT-09 | P1: Endpoint /api/potential | Design | Implemented |
-| POT-10 | P1: Endpoint /api/potential | Design | Implemented |
-| POT-11 | P1: Endpoint /api/potential | Design | Implemented |
-| POT-12 | P1: Endpoint /api/potential | Design | Implemented |
-| POT-13 | P1: Endpoint /api/potential | Design | Implemented |
-| POT-14 | P1: Endpoint /api/potential | Design | Implemented |
-| POT-15 | P1: Endpoint /api/potential | Design | Implemented |
-| POT-16 | P1: Endpoint /api/potential | Design | Implemented |
-| POT-17 | P1: Timeline VDOT | Design | Implemented |
-| POT-18 | P1: Timeline VDOT | Design | Implemented |
-| POT-19 | P1: Timeline VDOT | Design | Implemented |
-| POT-20 | P1: Timeline VDOT | Design | Implemented |
-| POT-21 | P1: Previsões vs PRs | Design | Implemented |
-| POT-22 | P1: Previsões vs PRs | Design | Implemented |
-| POT-23 | P1: Curva PMC | Design | Implemented |
-| POT-24 | P1: Curva PMC | Design | Implemented |
-| POT-25 | P1: Curva PMC | Design | Implemented |
-| POT-26 | P2: VO2max | Design | Implemented |
-| POT-27 | P2: VO2max | Design | Implemented |
-| POT-28 | P2: Decaimento | Design | Implemented |
-| POT-29 | P2: Decaimento | Design | Implemented |
+| POT-01 | P1: Sync predições | Design | Verified |
+| POT-02 | P1: Sync predições | Design | Verified |
+| POT-03 | P1: Sync predições | Design | Verified |
+| POT-04 | P1: Sync predições | Design | Verified |
+| POT-05 | P1: Data dos PRs | Design | Verified |
+| POT-06 | P1: Data dos PRs | Design | Verified |
+| POT-07 | P1: Endpoint /api/potential | Design | Verified |
+| POT-08 | P1: Endpoint /api/potential | Design | Verified |
+| POT-09 | P1: Endpoint /api/potential | Design | Verified |
+| POT-10 | P1: Endpoint /api/potential | Design | Verified |
+| POT-11 | P1: Endpoint /api/potential | Design | Verified |
+| POT-12 | P1: Endpoint /api/potential | Design | Verified |
+| POT-13 | P1: Endpoint /api/potential | Design | Verified |
+| POT-14 | P1: Endpoint /api/potential | Design | Verified |
+| POT-15 | P1: Endpoint /api/potential | Design | Verified |
+| POT-16 | P1: Endpoint /api/potential | Design | Verified |
+| POT-17 | P1: Timeline VDOT | Design | Verified |
+| POT-18 | P1: Timeline VDOT | Design | Verified |
+| POT-19 | P1: Timeline VDOT | Design | Verified |
+| POT-20 | P1: Timeline VDOT | Design | Verified |
+| POT-21 | P1: Previsões vs PRs | Design | Verified |
+| POT-22 | P1: Previsões vs PRs | Design | Verified |
+| POT-23 | P1: Curva PMC | Design | Verified |
+| POT-24 | P1: Curva PMC | Design | Verified |
+| POT-25 | P1: Curva PMC | Design | Verified |
+| POT-26 | P2: VO2max | Design | Verified |
+| POT-27 | P2: VO2max | Design | Verified |
+| POT-28 | P2: Decaimento | Design | Verified |
+| POT-29 | P2: Decaimento | Design | Verified |
 
 **Coverage:** 29 total, 29 mapped to stories, 0 unmapped ✅
 

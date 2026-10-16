@@ -68,11 +68,11 @@
 
 ## Handoff
 
-- **Feature**: `potential-panel` — implementação completa (T1–T16 commitadas; aguardando Verifier independente)
-- **Phase / Task**: Verifier (sensor de mutação + spec-anchored check + `validation.md`) — próximo passo automático
-- **Completed**: spec → design → tasks (16 tarefas) → execute em 2 lotes (sub-agents glm-5.3-flash; 2 primeiras tentativas abortadas por loop degenerado do glm-5.3 default) + T16 inline; suite **228 testes** no Postgres do compose; UAT real aprovado pelo usuário (sync com `predictions: 4`, `pr_date` auto-curado, pins conferidos: demonstrado 51,62, lacuna 97,3%, decay maratona −22,1%)
+- **Feature**: `potential-panel` — **concluída e validada** (PASS do Verifier em `.specs/features/potential-panel/validation.md`; 29/29 ACs com evidência `file:line`, 4/4 mutantes mortos, `validate_state.py` exit 0)
+- **Phase / Task**: n/a — T1–T16 todas commitadas (`21ff067`..`f930868` + UAT/finalização); traceability 29/29 Verified
+- **Completed**: spec → design → tasks (16 tarefas) → execute em 2 lotes (sub-agents glm-5.3-flash; 2 primeiras tentativas abortadas por loop degenerado do glm-5.3 default) + T16 inline; suite **228 testes** no Postgres do compose; UAT real aprovado pelo usuário (sync com `predictions: 4`, `pr_date` auto-curado, pins conferidos: demonstrado 51,62, lacuna 97,3%, decay maratona −22,1%); Gap #1 do Verifier reconciliado na spec (edge case alinhado ao AC POT-07 — doc-only)
 - **In-progress**: none
-- **Next step**: Verifier → fechar Fase 1 com o próximo painel (**Saúde** §4.5) ou **Avaliar com IA** (§4.6); pendências menores: alvo da próxima prova entra com o painel Hoje (CRUD `races`), média ponderada dos PRs é v2 (Out of Scope da spec)
+- **Next step**: próxima feature da Fase 1 — **Painel Saúde** (§4.5) ou **Avaliar com IA** (§4.6); pendências menores registradas: alvo da próxima prova entra com o painel Hoje (CRUD `races`), média ponderada dos PRs é v2 (Out of Scope da spec), teste direto do edge "calibração na mesma data de PR" (validation.md), lições L-003/L-004 como candidates
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main

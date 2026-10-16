@@ -26,6 +26,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: .specs/features/garmin-sync/spec.md:223 (specs)
 - last seen: 2026-10-15T00:38:48Z
 
+### L-003 - Edge case que alarga um AC precisa ser reconciliado com o qualificador do AC no design — se o AC restringe (ex.: 'PRs datados'), o extra do edge case nasce sem implementação e sem teste
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: potential-panel
+- evidence: spec.md:201 vs AC POT-07 (spec.md:106) (spec)
+- last seen: 2026-10-16T10:07:26Z
+
+### L-004 - Pine no AC o formato de campos exibidos derivados (labels, narrativas) — sem formato definido, o teste acaba afirmando a escolha da implementação, não um requisito
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: potential-panel
+- evidence: AC POT-08 (label do ponto teste) / design payload ilustrativo (spec)
+- last seen: 2026-10-16T10:07:27Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

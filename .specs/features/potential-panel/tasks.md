@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/potential-panel/design.md`
-**Status**: Draft
+**Status**: Done (T1–T16 commitadas `21ff067`..`f930868`; Verifier PASS — 29/29 ACs, 4/4 mutantes mortos, 228 testes; `validation.md`)
 
 ---
 
