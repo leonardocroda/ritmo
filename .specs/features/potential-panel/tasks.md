@@ -128,9 +128,9 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] `Calibration` carrega o JSON real (`vdot=50.2`, `source="10K em 41:15"`, `test_date=2026-10-03`, `distance_m=10012`, `time_s=2475`)
-- [ ] Arquivo ausente/inválido/sem campos raiz → `ZoneConfigError` (o endpoint vira 500 — POT-16)
-- [ ] Testes: ≥ 4 novos em `test_vdot_calibration.py` (total ≥ 179)
+- [x] `Calibration` carrega o JSON real (`vdot=50.2`, `source="10K em 41:15"`, `test_date=2026-10-03`, `distance_m=10012`, `time_s=2475`)
+- [x] Arquivo ausente/inválido/sem campos raiz → `ZoneConfigError` (o endpoint vira 500 — POT-16)
+- [x] Testes: ≥ 4 novos em `test_vdot_calibration.py` (total ≥ 179)
 
 **Tests**: unit (`backend/tests/test_vdot_calibration.py`)
 **Gate**: quick
