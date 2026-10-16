@@ -349,9 +349,9 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] Cards: deitar médio e acordar médio em horário local (minutos → HH:MM)
-- [ ] Barras de média por weekday com rótulos PT-BR (seg..dom) e domínio começando em 0
-- [ ] `regularity` null → cards "—" sem quebrar o gráfico
+- [x] Cards: deitar médio e acordar médio em horário local (minutos → HH:MM)
+- [x] Barras de média por weekday com rótulos PT-BR (seg..dom) e domínio começando em 0
+- [x] `regularity` null → cards "—" sem quebrar o gráfico
 
 **Tests**: none
 **Gate**: build
