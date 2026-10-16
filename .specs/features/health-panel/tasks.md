@@ -134,12 +134,12 @@ T15 -> T16
 
 **Done when**:
 
-- [ ] `dose_response` cruza sono↔HRV/score da mesma data; buckets `<6h`/`≥6h45`; médias None em bucket vazio; noites sem HRV fora (neutra só se 6h–6h45)
-- [ ] `weekday_pattern` devolve 7 entradas seg..dom (avg + nights; dia vazio → None/0)
-- [ ] `regularity` usa minutos locais com o truque ±12h (meia-noite não vira meio-dia); noite sem horário fica fora; sem elegíveis → None
-- [ ] `local_minute` converte naive UTC → minuto local via `ZoneInfo` (01:16 GMT → 1336)
-- [ ] `strength_weeks`: semana ISO ≥2 sessões; streak de semanas completas até a última completa (pode exceder janela); `weeks_hit`/`weeks_total` na janela; `current_week_sessions` separado
-- [ ] `below_floor` com nights + pct (1 casa)
+- [x] `dose_response` cruza sono↔HRV/score da mesma data; buckets `<6h`/`≥6h45`; médias None em bucket vazio; noites sem HRV fora (neutra só se 6h–6h45)
+- [x] `weekday_pattern` devolve 7 entradas seg..dom (avg + nights; dia vazio → None/0)
+- [x] `regularity` usa minutos locais com o truque ±12h (meia-noite não vira meio-dia); noite sem horário fica fora; sem elegíveis → None
+- [x] `local_minute` converte naive UTC → minuto local via `ZoneInfo` (01:16 GMT → 1336)
+- [x] `strength_weeks`: semana ISO ≥2 sessões; streak de semanas completas até a última completa (pode exceder janela); `weeks_hit`/`weeks_total` na janela; `current_week_sessions` separado
+- [x] `below_floor` com nights + pct (1 casa)
 
 **Tests**: unit
 **Gate**: quick
