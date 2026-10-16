@@ -68,11 +68,11 @@
 
 ## Handoff
 
-- **Feature**: `potential-panel` — em execução (spec → design → tasks aprovados; Batch 1 concluído)
-- **Phase / Task**: Batch 2 (Phases 3+4: T8–T15) despachado para sub-agent (glm-5.3-flash); depois T16 (UAT real, inline) + Verifier
-- **Completed**: Batch 1 — T1–T7 commitadas (`21ff067`..`9438246`): `vdot/daniels.py` extraído, `vdot/calibration.py`, fix data dos PRs, `RacePrediction`+mapper+upsert, etapa de sync de predições, calc puro (timeline/Riegel/predictions/decay); suite **215 testes** no Postgres do compose (verificada independentemente)
-- **In-progress**: Batch 2 — T8 (service) → T9 (router+mount) → T10–T15 (frontend: lib, charts Recharts, tabelas, composição)
-- **Next step**: T16 UAT real (rebuild + sync + validar `/potencial` contra pins: demonstrado 51,62, lacuna ~97%, decay maratona −22%) → Verifier independente → `validate_state.py`
+- **Feature**: `potential-panel` — implementação completa (T1–T16 commitadas; aguardando Verifier independente)
+- **Phase / Task**: Verifier (sensor de mutação + spec-anchored check + `validation.md`) — próximo passo automático
+- **Completed**: spec → design → tasks (16 tarefas) → execute em 2 lotes (sub-agents glm-5.3-flash; 2 primeiras tentativas abortadas por loop degenerado do glm-5.3 default) + T16 inline; suite **228 testes** no Postgres do compose; UAT real aprovado pelo usuário (sync com `predictions: 4`, `pr_date` auto-curado, pins conferidos: demonstrado 51,62, lacuna 97,3%, decay maratona −22,1%)
+- **In-progress**: none
+- **Next step**: Verifier → fechar Fase 1 com o próximo painel (**Saúde** §4.5) ou **Avaliar com IA** (§4.6); pendências menores: alvo da próxima prova entra com o painel Hoje (CRUD `races`), média ponderada dos PRs é v2 (Out of Scope da spec)
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main

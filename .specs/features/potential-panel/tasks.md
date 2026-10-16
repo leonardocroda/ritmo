@@ -442,11 +442,11 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] Sync real conclui com `predictions` no stats e `pr_date` preenchido nas 7 PRs (self-heal do T3 confirmado no banco)
-- [ ] `/potencial` real: timeline com os pontos (out/2024 → out/2026), linha 50,2, faixa até ~53, lacuna ~95%; 4 estimativas × 4 distâncias com PR datado; PMC com o histórico; VO2max com selo; decay com maratona destacada
-- [ ] `GET /api/potential` sem nenhuma chamada Garmin (verificação: nenhum import do gateway em `potential/`)
-- [ ] Suite completa verde (≥ 220 testes); `npm run build` + `npm run lint` verdes
-- [ ] STATE.md handoff atualizado (feature concluída, pendências, próximo passo)
+- [x] Sync real conclui com `predictions` no stats e `pr_date` preenchido nas 7 PRs (self-heal do T3 confirmado no banco)
+- [x] `/potencial` real: timeline com os pontos (out/2024 → out/2026), linha 50,2, faixa até ~53, lacuna ~95%; 4 estimativas × 4 distâncias com PR datado; PMC com o histórico; VO2max com selo; decay com maratona destacada *(UAT aprovado pelo usuário; demonstrado 51,62 e lacuna 97,3% pela forma fechada — pins atualizados na spec/design)*
+- [x] `GET /api/potential` sem nenhuma chamada Garmin (verificação: nenhum import do gateway em `potential/`)
+- [x] Suite completa verde (≥ 220 testes); `npm run build` + `npm run lint` verdes
+- [x] STATE.md handoff atualizado (feature concluída, pendências, próximo passo)
 
 **Tests**: none (validação integrativa — o Verifier roda `validate_state.py` a seguir)
 **Gate**: build (backend + frontend)

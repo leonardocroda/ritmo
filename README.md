@@ -5,7 +5,7 @@ Plataforma pessoal de corrida: sync do Garmin, painéis que importam
 
 > Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
 >
-> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · próximos: Potencial, Saúde, Avaliar com IA, Hoje.
+> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Potencial ✅ · próximos: Saúde, Avaliar com IA, Hoje.
 
 ## Estrutura
 
@@ -161,6 +161,44 @@ conhecidos (strides → intervalado, 8x800m → intervalado, 2x3km limiar →
 limiar, 16km → longão); consistência do longão conferida contra cálculo
 manual (Δ pace −4,65s/km · drift +9,98 bpm · decoupling +7,9%); suite com
 170 testes no Postgres do compose.
+
+## Painel Potencial
+
+"Qual meu máximo e a que distância dele estou?" — `/potencial` responde
+com o retrato honesto (AD-004: **faixa, nunca número único mágico**).
+Leitura 100% do banco próprio: **zero chamadas à API do Garmin**
+(AD-002); o sync é quem ganhou a etapa nova de **predições de prova**
+(`get_race_predictions`, 1 chamada sequencial por sync, upsert por
+evento).
+
+- **Timeline VDOT**: cada teste/prova máxima datada vira um ponto (VDOT
+  recalculado pela forma fechada de Daniels — a mesma que gerou o 50,2
+  do teste de calibração), linha no VDOT corrente e **faixa sombreada até
+  o demonstrado**, com a lacuna narrada ("você já demonstrou X; o teste
+  atual valida Y — o meio é o alvo honesto", §9.5). Provas com PR
+  certificado na mesma data não duplicam ponto; PRs sem data não viram
+  ponto (não há como plotar sem inventar).
+- **Previsões vs PRs**: 4 estimativas lado a lado por distância
+  (5K/10K/meia/maratona) — **Garmin** (preditor sincronizado),
+  **Riegel** (T2 = T1 × (D2/5000)^1.06, âncora fixa no PR de 5K — sem
+  âncora, "—"), **equivalência VDOT** (do número do
+  `vdot_zones.json`, nunca parse das strings de pace) e **média honesta**
+  (só das estimativas presentes) — + PR histórico com data.
+- **PMC**: CTL/ATL linhas + TSB barras (janela de 180 dias, `days`
+  aceita 1–365), cards do último dia com ACWR ("—" até 28 dias completos
+  de carga — SYNC-24).
+- **Tendência VO2max**: linha do `vO2MaxValue` do relógio com selo
+  "estimativa" e nota de hierarquia (provas/testes > algoritmo — AD-005).
+- **Decay por distância**: pace real (PR) vs ideal (equivalência VDOT
+  corrente) com Δ% sinalizado e o maior gap destacado — v1 em números,
+  sem gráfico dedicado (§9.1).
+
+Validação real (16/10/2026): sync com `predictions: 4` no stats e
+`pr_date` auto-curado nas 7 PRs (fix do key-case `prStartTimeGmt`);
+endpoint pinado contra o código — demonstrado 51,62 (5K 19:23,8),
+lacuna 97,3%, Riegel 10K 2426,5s, decaimento da maratona −22,1% (gap de
+execução: 5K/meia rendem no ideal, maratona não); suite com 228 testes
+no Postgres do compose.
 
 ## Workflow de desenvolvimento — spec-driven
 
