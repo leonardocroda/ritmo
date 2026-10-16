@@ -219,8 +219,8 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | POT-02 | P1: Sync predições | Design | Pending |
 | POT-03 | P1: Sync predições | Design | Pending |
 | POT-04 | P1: Sync predições | Design | Pending |
-| POT-05 | P1: Data dos PRs | Design | Pending |
-| POT-06 | P1: Data dos PRs | Design | Pending |
+| POT-05 | P1: Data dos PRs | Design | Implemented |
+| POT-06 | P1: Data dos PRs | Design | Implemented |
 | POT-07 | P1: Endpoint /api/potential | Design | Pending |
 | POT-08 | P1: Endpoint /api/potential | Design | Pending |
 | POT-09 | P1: Endpoint /api/potential | Design | Pending |

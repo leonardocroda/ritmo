@@ -150,10 +150,10 @@ T15 -> T16
 - Skill: NONE
 
 **Done when**:
-- [ ] PR com `activityStartDateTimeLocal` → `pr_date` = data local (fixture espelha o payload real: `prStartTimeGmt` + `activityStartDateTimeLocal` + `activityStartDateTimeLocalFormatted`)
-- [ ] Sem `activityStartDateTimeLocal` → fallback `prStartTimeGmt`; sem nenhum → NULL
-- [ ] Re-upsert atualiza `pr_date` de linha existente (self-heal — teste de upsert 2×)
-- [ ] Testes: fixture corrigida + ≥ 4 novos/ajustados (total ≥ 183)
+- [x] PR com `activityStartDateTimeLocal` → `pr_date` = data local (fixture espelha o payload real: `prStartTimeGmt` + `activityStartDateTimeLocal` + `activityStartDateTimeLocalFormatted`)
+- [x] Sem `activityStartDateTimeLocal` → fallback `prStartTimeGmt`; sem nenhum → NULL
+- [x] Re-upsert atualiza `pr_date` de linha existente (self-heal — teste de upsert 2×)
+- [x] Testes: fixture corrigida + ≥ 4 novos/ajustados (total ≥ 183)
 
 **Tests**: unit + integration (`test_garmin_mappers.py`, `test_garmin_upserts.py`)
 **Gate**: full

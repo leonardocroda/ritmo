@@ -242,17 +242,52 @@ def test_map_personal_records_filters_running_records() -> None:
     rows = map_personal_records(PERSONAL_RECORDS_PAYLOAD)
     assert [r["event"] for r in rows] == ["FASTEST_5K", "LONGEST_RUN"]
     five_k = rows[0]
-    assert five_k["value"] == 1200.0
-    assert five_k["pr_date"] == date(2024, 1, 15)
+    assert five_k["value"] == 1163.8299560546875
+    assert five_k["pr_date"] == date(2026, 4, 26)  # data local do payload real
     assert five_k["raw_json"] == PERSONAL_RECORDS_PAYLOAD[0]
     assert rows[1]["value"] == 32000.0
-    assert rows[1]["pr_date"] == date(2024, 1, 14)
+    assert rows[1]["pr_date"] == date(2024, 1, 14)  # fallback prStartTimeGmt
 
 
 def test_map_personal_records_normalizes_wrapper_shape() -> None:
     rows = map_personal_records(PERSONAL_RECORDS_WRAPPER)
     assert [r["event"] for r in rows] == ["FASTEST_5K"]
-    assert rows[0]["value"] == 1200.0
+    assert rows[0]["value"] == 1163.8299560546875
+
+
+def test_map_personal_records_pr_date_is_local_wall_clock() -> None:
+    """POT-05 (done-when T3): pr_date = data LOCAL do esforço, não a GMT.
+
+    Payload derivado da sonda real com relógio deslocado: esforço às
+    22:30 do dia 26 no fuso local (= 01:30 UTC do dia 27) — a data
+    gravada é 26/04 (wall clock, mesma convenção de `start_time`), e
+    não 27/04 (data GMT). Falha sob a leitura GMT do bug original.
+    """
+    payload = [
+        {
+            "typeId": 3,
+            "value": 1163.83,
+            "activityStartDateTimeLocal": 1777242600000,  # 2026-04-26 22:30 local
+            "activityStartDateTimeLocalFormatted": "2026-04-26T22:30:00.0",
+            "prStartTimeGmt": 1777253400000,  # 2026-04-27 01:30 UTC
+        }
+    ]
+    rows = map_personal_records(payload)
+    assert rows[0]["pr_date"] == date(2026, 4, 26)
+
+
+def test_map_personal_records_falls_back_to_pr_start_time_gmt() -> None:
+    """POT-05 (done-when T3): sem activityStartDateTimeLocal → data do prStartTimeGmt."""
+    payload = [{"typeId": 4, "value": 2425.0, "prStartTimeGmt": 1705190400000}]
+    rows = map_personal_records(payload)
+    assert rows[0]["pr_date"] == date(2024, 1, 14)
+
+
+def test_map_personal_records_pr_date_null_without_timestamps() -> None:
+    """POT-05 (done-when T3): nenhum timestamp → pr_date NULL (nada inventado)."""
+    payload = [{"typeId": 4, "value": 2425.0}]
+    rows = map_personal_records(payload)
+    assert rows[0]["pr_date"] is None
 
 
 def test_map_personal_records_empty_shapes() -> None:

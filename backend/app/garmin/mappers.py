@@ -193,7 +193,12 @@ def map_personal_records(raw: list | dict | None) -> list[dict]:
     """Recordes -> `PersonalRecord`; filtra para corrida (SYNC-16).
 
     Normaliza lista direta e wrapper `{"personalRecords": [...]}`;
-    `raw_json` preserva o recorde original (spec).
+    `raw_json` preserva o recorde original (spec). `pr_date` é a data
+    local do esforço (wall clock — mesma convenção de `start_time`):
+    `activityStartDateTimeLocal`, com fallback `prStartTimeGmt`; sem
+    nenhum dos dois -> NULL. Keys reais da sonda de 15/10/2026: o
+    payload usa `Gmt` (o antigo `prStartTimeGMT` nunca existiu — bug
+    que deixava todas as `pr_date` NULL).
     """
     if isinstance(raw, dict):
         raw = raw.get("personalRecords") or []
@@ -202,7 +207,10 @@ def map_personal_records(raw: list | dict | None) -> list[dict]:
         event = RUNNING_PR_EVENTS.get(record.get("typeId"))
         if event is None:
             continue  # não é recorde de corrida
-        started = _gmt_ms_to_naive_datetime(record.get("prStartTimeGMT"))
+        local_ms = record.get("activityStartDateTimeLocal")
+        started = _gmt_ms_to_naive_datetime(
+            local_ms if local_ms is not None else record.get("prStartTimeGmt")
+        )
         rows.append(
             {
                 "event": event,

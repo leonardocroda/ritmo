@@ -345,8 +345,8 @@ def test_upsert_records_by_user_event(db):
         select(PersonalRecord).where(PersonalRecord.event == "FASTEST_5K")
     ).scalar_one()
     assert five_k.user_id == 1
-    assert five_k.value == 1200.0
-    assert five_k.pr_date == date(2024, 1, 15)
+    assert five_k.value == 1163.8299560546875
+    assert five_k.pr_date == date(2026, 4, 26)  # data local do payload real
     assert five_k.raw_json == PERSONAL_RECORDS_PAYLOAD[0]
 
     beaten = [dict(rows[0], value=1150.0, pr_date=date(2024, 2, 20))]
@@ -359,6 +359,32 @@ def test_upsert_records_by_user_event(db):
     ).scalar_one()
     assert five_k.value == 1150.0
     assert five_k.pr_date == date(2024, 2, 20)
+
+
+def test_upsert_records_self_heals_pr_date_of_existing_row(db):
+    """POT-06 (done-when T3): re-upsert preenche a pr_date de linhas gravadas
+    pelo mapper antigo (todas NULL) — o próximo sync após o fix cura o banco
+    sem duplicar linhas."""
+    legacy = [
+        {"event": "FASTEST_5K", "value": 1163.8299560546875, "pr_date": None,
+         "raw_json": PERSONAL_RECORDS_PAYLOAD[0]},
+    ]
+    assert upsert_records(db, 1, legacy) == 1
+    db.commit()
+    stored = db.execute(
+        select(PersonalRecord).where(PersonalRecord.event == "FASTEST_5K")
+    ).scalar_one()
+    assert stored.pr_date is None
+
+    assert upsert_records(db, 1, map_personal_records(PERSONAL_RECORDS_PAYLOAD)) == 2
+    db.commit()
+
+    assert _count(db, PersonalRecord) == 2  # a linha existente foi atualizada, não duplicada
+    healed = db.execute(
+        select(PersonalRecord).where(PersonalRecord.event == "FASTEST_5K")
+    ).scalar_one()
+    assert healed.id == stored.id
+    assert healed.pr_date == date(2026, 4, 26)
 
 
 def test_set_and_get_sync_state_by_data_type(db):

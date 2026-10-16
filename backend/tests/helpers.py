@@ -267,13 +267,32 @@ BATTERY_ROWS = [
     {"date": "2026-10-11", "bodyBatteryValuesArray": []},
 ]
 
-# Recordes: typeId é o identificador real do Garmin; corrida = 1..7
-# (mapa estimado no garmin_mcp "based on real data"). typeId 8 é
-# Longest Ride — filtrado pelo spec (só corrida).
+# Recordes: shape REAL do banco (sonda de 15/10/2026, PR 2909304221 —
+# "Londrina Corrida"): a data vem de `activityStartDateTimeLocal` (ms,
+# wall clock local — bate com o campo `...LocalFormatted`) e a key GMT
+# é `prStartTimeGmt` (o antigo `prStartTimeGMT` nunca existiu no payload).
+# O 1º espelha a sonda exata; o 2º (typeId 8 = Longest Ride, filtrado —
+# só corrida) e o 3º (LONGEST_RUN, sem timestamp local → fallback GMT)
+# mantêm os timestamps das fixtures originais com as keys reais.
 PERSONAL_RECORDS_PAYLOAD = [
-    {"typeId": 3, "value": 1200.0, "prStartTimeGMT": 1705276800000, "activityId": 12345678901},
-    {"typeId": 8, "value": 45000.0, "prStartTimeGMT": 1705276800000, "activityId": 12345678902},
-    {"typeId": 7, "value": 32000.0, "prStartTimeGMT": 1705190400000, "activityId": 12345678903},
+    {
+        "id": 2909304221,
+        "typeId": 3,
+        "status": "ACCEPTED",
+        "activityId": 22664345610,
+        "activityName": "Londrina Corrida",
+        "activityType": "running",
+        "activityStartDateTimeInGMT": 1777198253000,
+        "actStartDateTimeInGMTFormatted": "2026-04-26T10:10:53.0",
+        "activityStartDateTimeLocal": 1777187453000,
+        "activityStartDateTimeLocalFormatted": "2026-04-26T07:10:53.0",
+        "value": 1163.8299560546875,
+        "prStartTimeGmt": 1777198254000,
+        "prStartTimeGmtFormatted": "2026-04-26T10:10:54.0",
+        "prStartTimeLocal": None,
+    },
+    {"typeId": 8, "value": 45000.0, "prStartTimeGmt": 1705276800000, "activityId": 12345678902},
+    {"typeId": 7, "value": 32000.0, "prStartTimeGmt": 1705190400000, "activityId": 12345678903},
 ]
 
 PERSONAL_RECORDS_WRAPPER = {"personalRecords": [PERSONAL_RECORDS_PAYLOAD[0]]}
