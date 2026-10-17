@@ -32,7 +32,7 @@ def test_default_sync_repull_days() -> None:
 
 
 def test_default_sync_backfill_windows() -> None:
-    """SYNC-15: primeiro sync = 180d de atividades / 60d de saúde."""
+    """SYNC-15/HRV-15: primeiro sync = 180d de atividades / 120d de saúde."""
     settings = Settings(_env_file=None)
     assert settings.sync_backfill_activities_days == 180
     assert settings.sync_backfill_health_days == 120

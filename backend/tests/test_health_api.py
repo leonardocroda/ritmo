@@ -339,7 +339,7 @@ def test_other_users_rows_never_leak_into_panel(db, fixed_today) -> None:
     for day, duration_s, score, hrv, bed, wake in NIGHTS:
         _seed_sleep(db, day, duration_s, score=score, bed=bed, wake=wake)
         _seed_hrv(db, day, hrv)
-    # Dados alheios que mudariam cada bloco se vazaSEM: sono de 4h
+    # Dados alheios que mudariam cada bloco se vazassem: sono de 4h
     # (cairia no bucket short com HRV 40), RHR 99, estresse 90 e
     # forças que virariam streak (2 na semana completa 05-11/10 + 1 na
     # corrente) + yoga na janela.

@@ -84,11 +84,11 @@
 
 ## Handoff
 
-- **Feature**: `hrv-baseline` — modelo científico de HRV no painel Saúde (linha média 7d + banda móvel 60d ± 0,75 DP + status local + tabela paginada); T1–T7 commitadas, T2+T3 fundidas em 1 commit coeso (corte intermediário deixaria a suite vermelha)
+- **Feature**: `hrv-baseline` — **concluída e validada** (Verifier PASS na iteração 1: 14/14 ACs com evidência `file:line`, 3/3 mutantes mortos em worktree descartável, `.specs/features/hrv-baseline/validation.md`; 268 → 280 testes); UAT real 390px pendente — modelo científico de HRV no painel Saúde (linha média 7d + banda móvel 60d ± 0,75 DP + status local + tabela paginada)
 - **Phase / Task**: Execute completo em 1 lote inline — T1 `a04fe92` (calc puro) · T2+T3 `1ca1af7` (service+router+contrato+pins) · T4 `0318b5d` (backfill 120d) · T5 `d805cec` (HrvChart científico) · T6 `9e7fbab` (HrvTable) · T7 este commit (plano §4.5 + AD-010 + traceability)
 - **Completed**: discuss (context.md: status 100% local, banda por dia, gráfico Altini completo) → spec (15 ACs, gate limpo) → design (AD-010) → tasks (7 tasks, 5 fases) → execute inline; suite **268 → 280 testes** no Postgres do compose; build+lint verdes
-- **In-progress**: Verifier (author ≠ verifier) roda ao fechar este commit; UAT real 390px depois dele
-- **Next step**: Verifier PASS → UAT no celular. **Ops para o usuário**: a base atual (60d) só ganha os 60 dias extras de backfill num sync completo — limpar o estado incremental dos tipos de saúde (`DELETE FROM sync_state WHERE data_type IN ('sleep','hrv','rhr','stress','body_battery')`) e "Puxar do Garmin"; até lá a banda dos primeiros dias fica ausente (threshold por dia já comunica). Depois: Avaliar com IA (§4.6) ou Painel Hoje (§4.2 — usará o mesmo modelo HRV da AD-010)
+- **In-progress**: none — Verifier **PASS** (it. 1): 14/14 ACs com evidência `file:line`, 3/3 mutantes mortos em worktree descartável, `validate_state.py` exit 0; 2 notas cosméticas de teste corrigidas no commit de fechamento
+- **Next step**: **UAT real 390px** com dados do usuário (pendente). **Ops para o usuário**: a base atual (60d) só ganha os 60 dias extras de backfill num sync completo — limpar o estado incremental dos tipos de saúde (`DELETE FROM sync_state WHERE data_type IN ('sleep','hrv','rhr','stress','body_battery')`) e "Puxar do Garmin"; até lá a banda dos primeiros dias fica ausente (threshold por dia já comunica). Depois: Avaliar com IA (§4.6) ou Painel Hoje (§4.2 — usará o mesmo modelo HRV da AD-010)
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main
