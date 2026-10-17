@@ -54,8 +54,6 @@ T1
 
 ```
 T1 → T2
-
-T2 → T3
 ```
 
 ### Phase 3: Sync (backfill)
@@ -67,7 +65,7 @@ T4
 ### Phase 4: Frontend (gráfico + tabela)
 
 ```
-T3 → T5
+T2 → T5
 
 T5 → T6
 ```
@@ -118,6 +116,8 @@ T6 → T7
 
 ### T2: `_hrv_history` + `_hrv_block` novo no service + isolamento user_id
 
+> **Correção de plano em execução**: T2 e T3 fundidas num único commit — o service troca o contrato e o router valida o novo shape no mesmo corte; qualquer estado intermediário deixaria a suite vermelha (mesmo padrão coeso do T10 do panel-clarity).
+
 **What**: `_hrv_history(db, days)` — `max(date)` do usuário → linhas com `date ≥ L−(days+58)` ASC (exibição + lookback de banda 59d), **filtro `user_id`** (AD-001); `_hrv_block` reescrito via `hrv_model` com arredondamento de 1 casa só no payload (`avg7`, `band_low`, `band_high`). `_series(db, Hrv, days)` segue alimentando o `hrv_by_date` do dose-resposta — intocado (design §Components.2).
 **Where**: `backend/app/health/service.py` (modify), `backend/tests/test_health_api.py` (modify)
 **Depends on**: T1
@@ -131,42 +131,23 @@ T6 → T7
 
 **Done when**:
 
-- [ ] Query por janela de datas (não por nº de linhas) cobrindo exibição + lookback; sem linhas → `[]` → bloco `None`
-- [ ] Teste de isolamento: HRV de **outro usuário** não entra em série/banda/status (padrão do teste existente `test_health_api.py:327-337`)
-- [ ] Dose-resposta sem mudança de comportamento (teste existente verde sem edição)
-- [ ] Gate passa; contagem sobe
+- [x] Query por janela de datas (não por nº de linhas) cobrindo exibição + lookback; sem linhas → `[]` → bloco `None`
+- [x] Teste de isolamento: HRV de **outro usuário** não entra em série/banda/status (padrão do teste existente `test_health_api.py:327-337`)
+- [x] Dose-resposta sem mudança de comportamento (teste existente verde sem edição)
+- [x] Gate passa; contagem sobe
 
 **Tests**: integration
 **Gate**: quick
 
-**Commit**: `feat(health): hrv history window service`
+**Commit**: `feat(health): scientific hrv contract` (fundido com T3)
 
 ---
 
 ### T3: Contrato novo no router + pins + cenários de API
 
-**What**: `HrvPoint {date, value|None, avg7|None, band_low|None, band_high|None}`, `HrvCurrent {date, value, avg7, band_low|None, band_high|None, status|None}`, `HrvBlock {points, current}` — `status` Garmin **sai do payload** (continua na tabela). Atualizar os 3 pins existentes (linhas ~190-197, 364-369, 509-511) para o formato dias corridos + `current.status: null` (3 dias semeados → coletando); adicionar cenários: **119 dias determinístico** (banda presente nos 60 dias exibidos, valores pinados em dias-chave), **UNBALANCED** (queda recente derruba média 7d abaixo da banda), `days=7` (banda mantém lookback de 60d) (design §Components.3).
-**Where**: `backend/app/health/router.py` (modify), `backend/tests/test_health_api.py` (modify)
-**Depends on**: T2
-**Reuses**: padrão de modelos inline com docstrings citando ACs; `_seed_hrv` (`test_health_api.py:76-77`)
-**Requirement**: HRV-01..HRV-09 (contrato), HRV-15 (efeito de leitura)
+> **Fundida na T2** (ver nota lá) — service, router, pins e cenários mudaram no MESMO commit (`feat(health): scientific hrv contract`): o corte intermediário deixaria a suite vermelha. Evidências: pins atualizados (`test_health_api.py` — cenário de 3 noites com `current.status: null`, isolamento com leak-check em 12/10) + cenários novos (119d com banda deslizando 69,2/71,1 → 80,0/80,0, UNBALANCED 38,3/81,7, `days=7` com lookback de 60d).
 
-**Tools**:
-
-- MCP: NONE
-- Skill: NONE
-
-**Done when**:
-
-- [ ] `GET /api/health/summary` responde bloco `hrv` novo; nenhum campo `status` por ponto; `current` com banda/status do último dia com dado
-- [ ] Pins antigos atualizados (janela dias corridos, `current.status` null no cenário de 3 dias); cenários novos 119d/UNBALANCED/days=7 pinados
-- [ ] `days` fora de [7, 365] segue 422 (HLT-03 sem regressão)
-- [ ] Gate passa; contagem sobe
-
-**Tests**: integration
-**Gate**: quick
-
-**Commit**: `feat(health): scientific hrv contract`
+**Status**: ✅ Completa (executada dentro da T2)
 
 ---
 
@@ -284,9 +265,9 @@ T6 → T7
 Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5
 
 Phase 1:  T1
-Phase 2:  T2 → T3
+Phase 2:  T2 (service+router+pins no mesmo corte — T3 absorvida)
 Phase 3:  T4
-Phase 4:  T5 → T6
+Phase 4:  T5 → T6 (T5 após T2)
 Phase 5:  T7 (após T1..T6)
 ```
 
@@ -332,11 +313,11 @@ Packing desta feature: **7 tasks → 1 lote** (5 fases inteiras, dentro do orça
 | ---- | ---------------------- | ------------- | ------ |
 | T1 | None | Phase 1: T1 sem seta de entrada | ✅ Match |
 | T2 | T1 | Phase 2: `T1 → T2` | ✅ Match |
-| T3 | T2 | Phase 2: `T2 → T3` | ✅ Match |
+| T3 | (fundida na T2) | Phase 2: mesmo corte da T2 | ✅ Absorvida |
 | T4 | None | Phase 3: T4 sem seta | ✅ Match |
-| T5 | T3 | Phase 4: `T3 → T5` | ✅ Match |
+| T5 | T2 (contrato da T2/T3) | Phase 4: `T2 → T5` | ✅ Match |
 | T6 | T5 | Phase 4: `T5 → T6` | ✅ Match |
-| T7 | T1, T2, T3, T4, T5, T6 | Phase 5: `T1..T6 → T7` | ✅ Match |
+| T7 | T1, T2, T4, T5, T6 | Phase 5: `T1..T6 → T7` | ✅ Match |
 
 **Rules check**: nenhuma dependência aponta para fase posterior — T5 depende de T3 (Phase 2), T6 de T5 (Phase 4), T7 de T1..T6 (todas anteriores à Phase 5). ✅
 

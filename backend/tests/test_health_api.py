@@ -11,7 +11,7 @@ naive que caem no próprio calendarDate (01:16 GMT = 22:16 local da
 véspera) — os seeds reproduzem o shape real para pinar a conversão.
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import logging
 from pathlib import Path
 from types import SimpleNamespace
@@ -187,13 +187,25 @@ def test_get_health_full_payload_from_seeds(db, fixed_today) -> None:
         "neutral_nights": 1,
     }
 
-    assert payload["hrv"] == {
-        "points": [
-            {"date": date(2026, 10, 13), "value": 82.0, "status": "BALANCED"},
-            {"date": date(2026, 10, 14), "value": 68.0, "status": "BALANCED"},
-            {"date": date(2026, 10, 15), "value": 75.0, "status": "BALANCED"},
-        ],
-        "current": {"date": date(2026, 10, 15), "value": 75.0, "status": "BALANCED"},
+    # HRV (HRV-01..09): janela de 60 dias corridos terminando em 15/10;
+    # 3 noites semeadas -> média 7d sobre o disponível, banda/status null
+    # (<14 valores — "coletando linha de base")
+    hrv = payload["hrv"]
+    assert len(hrv["points"]) == 60
+    assert hrv["points"][0]["date"] == date(2026, 8, 17)
+    assert hrv["points"][0] == {
+        "date": date(2026, 8, 17), "value": None, "avg7": None,
+        "band_low": None, "band_high": None,
+    }
+    by_day = {p["date"]: p for p in hrv["points"]}
+    assert by_day[date(2026, 10, 13)]["avg7"] == 82.0  # janela truncada: só ela
+    assert by_day[date(2026, 10, 14)]["avg7"] == 75.0  # (82+68)/2
+    assert by_day[date(2026, 10, 15)]["value"] == 75.0
+    assert by_day[date(2026, 10, 15)]["avg7"] == 75.0  # (82+68+75)/3
+    assert all(p["band_low"] is None for p in hrv["points"])
+    assert hrv["current"] == {
+        "date": date(2026, 10, 15), "value": 75.0, "avg7": 75.0,
+        "band_low": None, "band_high": None, "status": None,
     }
     assert payload["rhr"] == {
         "points": [
@@ -360,12 +372,19 @@ def test_other_users_rows_never_leak_into_panel(db, fixed_today) -> None:
         "adequate": {"nights": 1, "avg_hrv": 82.0, "avg_score": 80.0},
         "neutral_nights": 1,
     }
-    # HRV alheia ausente; current continua a última noite do usuário 1
-    assert [p["date"] for p in payload["hrv"]["points"]] == [
-        date(2026, 10, 13), date(2026, 10, 14), date(2026, 10, 15),
-    ]
-    assert payload["hrv"]["current"] == {
-        "date": date(2026, 10, 15), "value": 75.0, "status": "BALANCED",
+    # HRV alheia ausente do modelo (lição L-005): a noite alheia de 12/10
+    # (valor 40) não vira value nem alimenta a média 7d daquele dia; o
+    # current continua sendo a última noite do usuário 1
+    hrv = payload["hrv"]
+    assert len(hrv["points"]) == 60  # dias corridos da janela do usuário 1
+    by_day = {p["date"]: p for p in hrv["points"]}
+    assert by_day[date(2026, 10, 12)] == {
+        "date": date(2026, 10, 12), "value": None, "avg7": None,
+        "band_low": None, "band_high": None,
+    }  # sem o filtro user_id, value seria 40 e avg7 40
+    assert hrv["current"] == {
+        "date": date(2026, 10, 15), "value": 75.0, "avg7": 75.0,
+        "band_low": None, "band_high": None, "status": None,
     }
     # Usuário 1 não tem RHR/estresse: bloco null — a linha alheia
     # (RHR 99 / estresse 90) tornaria os blocos não-null.
@@ -377,6 +396,83 @@ def test_other_users_rows_never_leak_into_panel(db, fixed_today) -> None:
         "current_week_sessions": 0,
     }
     assert payload["lifestyle"]["yoga"] == {"sessions": 0, "per_week_avg": 0.0}
+
+
+# ---------------------------------------------------------------
+# hrv-baseline — modelo científico na API (HRV-01..HRV-15)
+# ---------------------------------------------------------------
+
+
+def test_hrv_band_slides_day_by_day_with_full_history(db, fixed_today) -> None:
+    """HRV-04 (banda por dia): 119 dias semeados (70,0 até 16/08; 80,0 de
+    17/08 a 15/10) — os 60 dias exibidos têm banda com janela completa e
+    ela DESLIZA: no primeiro dia exibido (17/08: 59×70 + 1×80 -> média
+    70,1667, DP √(5/3) -> banda 69,2/71,1) difere do último (80,0
+    chapada). A média 7d do primeiro dia usa noites de FORA da janela de
+    exibição (6×70 + 1×80 = 71,4 — sem lookback seria 80,0)."""
+    day = date(2026, 6, 19)
+    while day <= date(2026, 10, 15):
+        _seed_hrv(db, day, 70.0 if day < date(2026, 8, 17) else 80.0)
+        day += timedelta(days=1)
+    db.commit()
+
+    hrv = service.get_health(db, 60, SAO_PAULO)["hrv"]
+
+    assert len(hrv["points"]) == 60
+    assert hrv["points"][0]["date"] == date(2026, 8, 17)
+    assert all(p["band_low"] is not None for p in hrv["points"])
+    assert hrv["points"][0]["avg7"] == 71.4  # 6×70 (11..16/08) + 1×80 (lookback)
+    assert hrv["points"][0]["band_low"] == 69.2
+    assert hrv["points"][0]["band_high"] == 71.1
+    assert hrv["current"] == {
+        "date": date(2026, 10, 15), "value": 80.0, "avg7": 80.0,
+        "band_low": 80.0, "band_high": 80.0, "status": "BALANCED",
+    }
+
+
+def test_hrv_status_unbalanced_after_recent_suppression(db, fixed_today) -> None:
+    """HRV-06/05: queda recente (14 dias a 80 e 7 a 20) — média 7d 20
+    abaixo da banda (60 ± 0,75√840 -> 38,3/81,7) -> UNBALANCED no card;
+    dias com janela vazia ficam sem banda (threshold por dia)."""
+    day = date(2026, 9, 25)
+    while day <= date(2026, 10, 8):
+        _seed_hrv(db, day, 80.0)
+        day += timedelta(days=1)
+    day = date(2026, 10, 9)
+    while day <= date(2026, 10, 15):
+        _seed_hrv(db, day, 20.0)
+        day += timedelta(days=1)
+    db.commit()
+
+    hrv = service.get_health(db, 60, SAO_PAULO)["hrv"]
+
+    assert hrv["points"][0]["date"] == date(2026, 8, 17)
+    assert hrv["points"][0]["band_low"] is None  # janela sem valor nenhum
+    assert hrv["current"] == {
+        "date": date(2026, 10, 15), "value": 20.0, "avg7": 20.0,
+        "band_low": 38.3, "band_high": 81.7, "status": "UNBALANCED",
+    }
+
+
+def test_hrv_short_window_keeps_sixty_day_band_lookback(db, fixed_today) -> None:
+    """HRV-15 (efeito de leitura) + design §Riscos: days=7 exibe 7 pontos
+    mas a banda continua com a janela de 60 dias — o lookback de 65 dias
+    (12/08..15/10, tudo 80) sustenta banda mesmo no primeiro dia exibido."""
+    day = date(2026, 8, 12)
+    while day <= date(2026, 10, 15):
+        _seed_hrv(db, day, 80.0)
+        day += timedelta(days=1)
+    db.commit()
+
+    hrv = service.get_health(db, 7, SAO_PAULO)["hrv"]
+
+    assert len(hrv["points"]) == 7
+    assert hrv["points"][0]["date"] == date(2026, 10, 9)
+    assert hrv["points"][0]["band_low"] == 80.0  # 59 valores na janela 60d
+    assert hrv["current"] == {
+        "date": date(2026, 10, 15), "value": 80.0, "avg7": 80.0,
+        "band_low": 80.0, "band_high": 80.0, "status": "BALANCED",
+    }
 
 
 def test_lifestyle_streak_exceeds_window(db, fixed_today) -> None:
@@ -506,8 +602,13 @@ def test_api_happy_path_200_full_payload(client, fixed_today) -> None:
         "adequate": {"nights": 1, "avg_hrv": 82.0, "avg_score": 80.0},
         "neutral_nights": 1,
     }
+    assert body["hrv"]["points"][59] == {
+        "date": "2026-10-15", "value": 75.0, "avg7": 75.0,
+        "band_low": None, "band_high": None,
+    }
     assert body["hrv"]["current"] == {
-        "date": "2026-10-15", "value": 75.0, "status": "BALANCED",
+        "date": "2026-10-15", "value": 75.0, "avg7": 75.0,
+        "band_low": None, "band_high": None, "status": None,
     }
     assert body["rhr"]["baseline"] == 44.0
     assert body["stress"]["avg_window"] == 24.0

@@ -12,7 +12,7 @@ typeKey é em Python (AD-001: escala pessoal, ~233 linhas).
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import (
@@ -25,10 +25,12 @@ from app.db.models import (
     Stress,
 )
 from app.health.calc import (
+    HRV_BASELINE_DAYS,
     REM_BAND,
     SLEEP_FLOOR_S,
     below_floor,
     dose_response,
+    hrv_model,
     local_minute,
     regularity,
     strength_weeks,
@@ -112,13 +114,59 @@ def _sleep_block(sleep_rows: list[Sleep], nights: list[dict], days: int) -> dict
     }
 
 
-def _hrv_block(rows: list[Hrv]) -> dict | None:
-    """Bloco HRV (AC 6): série ASC + current = último dia com dado."""
+def _hrv_history(db: Session, days: int) -> list[Hrv]:
+    """Janela do modelo de HRV (hrv-baseline, design §Components.2):
+    exibição de `days` dias corridos + lookback de banda de 59 — todas
+    as linhas do usuário a partir de L−(days+58), ASC. Sem linhas -> []."""
+    latest = db.execute(
+        select(func.max(Hrv.date)).where(Hrv.user_id == DEFAULT_USER_ID)
+    ).scalar()
+    if latest is None:
+        return []
+    start = latest - timedelta(days=days - 1 + HRV_BASELINE_DAYS - 1)
+    return (
+        db.execute(
+            select(Hrv)
+            .where(Hrv.user_id == DEFAULT_USER_ID, Hrv.date >= start)
+            .order_by(Hrv.date.asc())
+        )
+        .scalars()
+        .all()
+    )
+
+
+def _hrv_block(rows: list[Hrv], days: int) -> dict | None:
+    """Bloco HRV (HRV-01..HRV-09): modelo científico do calc — pontos
+    por dia corrido (noite + média 7d + banda), `current` = último dia
+    com dado com status local. O `status` cru da Garmin sai do payload
+    (continua na tabela — decisão da spec); 1 casa é só de exibição, a
+    comparação do status acontece sem arredondar no calc."""
     if not rows:
         return None
+    model = hrv_model([(r.date, r.value) for r in rows], days)
+
+    def _one(value: float | None) -> float | None:
+        return None if value is None else round(value, 1)
+
     return {
-        "points": [{"date": r.date, "value": r.value, "status": r.status} for r in rows],
-        "current": {"date": rows[-1].date, "value": rows[-1].value, "status": rows[-1].status},
+        "points": [
+            {
+                "date": p["date"],
+                "value": p["value"],
+                "avg7": _one(p["avg7"]),
+                "band_low": _one(p["band_low"]),
+                "band_high": _one(p["band_high"]),
+            }
+            for p in model["points"]
+        ],
+        "current": {
+            "date": model["current"]["date"],
+            "value": model["current"]["value"],
+            "avg7": _one(model["current"]["avg7"]),
+            "band_low": _one(model["current"]["band_low"]),
+            "band_high": _one(model["current"]["band_high"]),
+            "status": model["current"]["status"],
+        },
     }
 
 
@@ -217,7 +265,7 @@ def get_health(db: Session, days: int, tz: ZoneInfo) -> dict:
 
     return {
         "sleep": _sleep_block(sleep_rows, nights, days),
-        "hrv": _hrv_block(hrv_rows),
+        "hrv": _hrv_block(_hrv_history(db, days), days),
         "rhr": _rhr_block(rhr_rows),
         "stress": _stress_block(stress_rows),
         "pmc": _pmc_block(load_rows, days),

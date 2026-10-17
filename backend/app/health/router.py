@@ -66,14 +66,34 @@ class SleepBlock(BaseModel):
 
 
 class HrvPoint(BaseModel):
+    """Dia corrido da janela de exibição (HRV-01..05): noite individual
+    (null = sem captura), média móvel 7d e banda do dia (null sob o
+    threshold de 14 valores na janela de 60 dias)."""
+
+    date: date
+    value: float | None
+    avg7: float | None
+    band_low: float | None
+    band_high: float | None
+
+
+class HrvCurrent(BaseModel):
+    """Último dia com dado (HRV-06..09): status local BALANCED ou
+    UNBALANCED (média 7d vs banda, limites inclusos) e null quando a
+    banda ainda não existe ("coletando linha de base") — o status cru
+    da Garmin não atravessa mais o contrato."""
+
     date: date
     value: float
+    avg7: float
+    band_low: float | None
+    band_high: float | None
     status: str | None
 
 
 class HrvBlock(BaseModel):
     points: list[HrvPoint]
-    current: HrvPoint
+    current: HrvCurrent
 
 
 class RhrPoint(BaseModel):
