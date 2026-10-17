@@ -5,7 +5,7 @@ Plataforma pessoal de corrida: sync do Garmin, painéis que importam
 
 > Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
 >
-> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Potencial ✅ · próximos: Saúde, Avaliar com IA, Hoje.
+> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Potencial ✅ · painel Saúde ✅ · próximos: Avaliar com IA, Hoje.
 
 ## Estrutura
 
@@ -165,33 +165,45 @@ manual (Δ pace −4,65s/km · drift +9,98 bpm · decoupling +7,9%); suite com
 ## Painel Potencial
 
 "Qual meu máximo e a que distância dele estou?" — `/potencial` responde
-com o retrato honesto (AD-004: **faixa, nunca número único mágico**).
-Leitura 100% do banco próprio: **zero chamadas à API do Garmin**
-(AD-002); o sync é quem ganhou a etapa nova de **predições de prova**
-(`get_race_predictions`, 1 chamada sequencial por sync, upsert por
-evento).
+em 3 blocos narrativos, abertos pela linha-guia no topo (a pergunta do
+painel + a régua de leitura: provas e testes de campo medem,
+estimativas do relógio só aproximam) e com o retrato honesto (AD-004:
+**faixa, nunca número único mágico**). Leitura 100% do banco próprio:
+**zero chamadas à API do Garmin** (AD-002); o sync é quem ganhou a
+etapa de **predições de prova** (`get_race_predictions`, 1 chamada
+sequencial por sync, upsert por evento).
 
-- **Timeline VDOT**: cada teste/prova máxima datada vira um ponto (VDOT
-  recalculado pela forma fechada de Daniels — a mesma que gerou o 50,2
-  do teste de calibração), linha no VDOT corrente e **faixa sombreada até
-  o demonstrado**, com a lacuna narrada ("você já demonstrou X; o teste
-  atual valida Y — o meio é o alvo honesto", §9.5). Provas com PR
-  certificado na mesma data não duplicam ponto; PRs sem data não viram
-  ponto (não há como plotar sem inventar).
-- **Previsões vs PRs**: 4 estimativas lado a lado por distância
-  (5K/10K/meia/maratona) — **Garmin** (preditor sincronizado),
-  **Riegel** (T2 = T1 × (D2/5000)^1.06, âncora fixa no PR de 5K — sem
-  âncora, "—"), **equivalência VDOT** (do número do
-  `vdot_zones.json`, nunca parse das strings de pace) e **média honesta**
-  (só das estimativas presentes) — + PR histórico com data.
-- **PMC**: CTL/ATL linhas + TSB barras (janela de 180 dias, `days`
-  aceita 1–365), cards do último dia com ACWR ("—" até 28 dias completos
-  de carga — SYNC-24).
-- **Tendência VO2max**: linha do `vO2MaxValue` do relógio com selo
-  "estimativa" e nota de hierarquia (provas/testes > algoritmo — AD-005).
-- **Decay por distância**: pace real (PR) vs ideal (equivalência VDOT
-  corrente) com Δ% sinalizado e o maior gap destacado — v1 em números,
-  sem gráfico dedicado (§9.1).
+- **Onde estou** — a lacuna e a régua: card da lacuna com a narrativa
+  honesta de §9.5 ("você já demonstrou X; o teste atual valida Y — o
+  meio é o alvo honesto") + timeline VDOT: cada teste/prova máxima
+  datada vira um ponto (VDOT recalculado pela forma fechada de
+  Daniels), linha no VDOT corrente e **faixa sombreada até o
+  demonstrado**; provas com PR certificado na mesma data não duplicam
+  ponto e PRs sem data não viram ponto (não há como plotar sem
+  inventar). O subtítulo da seção define VDOT (régua de equivalência
+  de Daniels), corrente (último teste calibrado), demonstrado (melhor
+  prova máxima) e a lacuna %.
+- **O que isso prevê** — estimativas por método contra os PRs: 4
+  estimativas lado a lado por distância (5K/10K/meia/maratona) com
+  **legenda por método sempre visível** — **Garmin** (preditor
+  sincronizado), **Riegel** (T2 = T1 × (D2/5000)^1.06, âncora fixa no
+  PR de 5K — sem âncora, "—"), **equivalência VDOT** (do número do
+  `vdot_zones.json`, nunca parse das strings de pace) e **média
+  honesta** (só das estimativas presentes) — + PR histórico com data.
+  Seguido do **decay por distância**: pace real (PR) vs ideal
+  (equivalência VDOT corrente), Δ% sinalizado com o maior gap
+  destacado e explicação do sinal (negativo = gap de
+  execução/especificidade, não de motor).
+- **O que o relógio estima** — VO2max: linha do `vO2MaxValue` do
+  relógio com selo "estimativa" e nota de hierarquia (provas/testes >
+  algoritmo — AD-005); bloco inteiro ausente quando não há dados
+  (POT-27).
+
+Sem PMC e sem janela de dias: a curva de carga mora no painel Saúde
+(posição 2) e `GET /api/potential` entrega só `{vdot, predictions,
+vo2max, decay}` — o `?days=` saiu do contrato (um valor qualquer é
+query não declarada, ignorada). Estado vazio (timeline só com o teste
+de calibração, sem VO2max e sem PRs canônicos) orienta o primeiro sync.
 
 Validação real (16/10/2026): sync com `predictions: 4` no stats e
 `pr_date` auto-curado nas 7 PRs (fix do key-case `prStartTimeGmt`);
@@ -199,6 +211,40 @@ endpoint pinado contra o código — demonstrado 51,62 (5K 19:23,8),
 lacuna 97,3%, Riegel 10K 2426,5s, decaimento da maratona −22,1% (gap de
 execução: 5K/meia rendem no ideal, maratona não); suite com 228 testes
 no Postgres do compose.
+
+## Painel Saúde
+
+O corpo sob o treino — `/saude` conta a história em 5 seções numeradas,
+ligadas pela linha-guia no topo (o fio: o sono recupera, o treino impõe
+carga, o corpo responde, dormir mal custa — e a vida fora da corrida
+sustenta tudo). Um round-trip: `GET /api/health/summary?days=60`
+(`days` 7–365 validado, 422 fora do intervalo) traz o painel inteiro;
+blocos de série vazios vêm `null` — estado vazio honesto, não erro.
+Leitura 100% do banco próprio (AD-002).
+
+- **1. Sono**: duração de cada noite contra o piso de 7h, fases do sono,
+  REM na banda de 21–31% e o padrão por dia da semana.
+- **2. Carga de treino**: a curva PMC — CTL/ATL em linhas e TSB em
+  barras (janela de 60 dias) com os destaques do último dia: fitness,
+  fadiga, forma e ACWR ("—" até 28 dias completos de carga — SYNC-24).
+  A curva migrou do painel Potencial: fala do histórico de treino, não
+  do potencial.
+- **3. Recuperação**: HRV noturna e frequência cardíaca de repouso —
+  os sinais diários de quanto da carga está virando adaptação.
+- **4. Dose-resposta**: noites curtas (<6h) contra adequadas (≥6h45) —
+  o preço de dormir mal em HRV e score médios.
+- **5. Equilíbrio de vida**: força por semana, yoga e estresse médio —
+  a base fora da corrida que sustenta (ou sabota) a recuperação.
+
+Com só a série de carga no banco, a seção 2 já renderiza com dados — o
+painel nunca se diz vazio escondendo a carga; com nada pessoal, o
+estado vazio orienta o primeiro sync.
+
+Os dois painéis seguem o padrão de clareza **AD-009**: cabeçalho forte
+por seção (índice + título + subtítulo "o que é / por que importa"
+sempre visível), selo de fonte/método quando o número precisa de
+origem e o payload de cada endpoint espelhando exatamente o que o
+painel renderiza.
 
 ## Workflow de desenvolvimento — spec-driven
 

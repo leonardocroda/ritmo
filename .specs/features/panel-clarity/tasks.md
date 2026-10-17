@@ -395,8 +395,8 @@ T11 → T12
 
 **Done when**:
 
-- [ ] Seção Potencial sem PMC/`days`; seção Saúde com Carga de treino e a nova composição de 5 seções
-- [ ] AD-009 citada como padrão dos painéis; nenhuma menção a comportamento antigo (PMC 180d no potencial)
+- [x] Seção Potencial sem PMC/`days`; seção Saúde com Carga de treino e a nova composição de 5 seções
+- [x] AD-009 citada como padrão dos painéis; nenhuma menção a comportamento antigo (PMC 180d no potencial)
 
 **Tests**: none
 **Gate**: build
