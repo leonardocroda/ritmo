@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     # Garmin sync — janelas, cadência e guard rails (SYNC_*)
     sync_repull_days: int = 3                 # SYNC_REPULL_DAYS
     sync_backfill_activities_days: int = 180  # SYNC_BACKFILL_ACTIVITIES_DAYS
-    sync_backfill_health_days: int = 60       # SYNC_BACKFILL_HEALTH_DAYS
+    sync_backfill_health_days: int = 120      # SYNC_BACKFILL_HEALTH_DAYS (HRV-15: exibição 60d + lookback de banda 59d)
     sync_call_interval_s: float = 1.0         # SYNC_CALL_INTERVAL_S
     sync_max_calls: int = 1500                 # SYNC_MAX_CALLS
     sync_retry_max: int = 3                   # SYNC_RETRY_MAX (backoff 2/4/8s)

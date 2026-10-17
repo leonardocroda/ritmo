@@ -35,7 +35,7 @@ def test_default_sync_backfill_windows() -> None:
     """SYNC-15: primeiro sync = 180d de atividades / 60d de saúde."""
     settings = Settings(_env_file=None)
     assert settings.sync_backfill_activities_days == 180
-    assert settings.sync_backfill_health_days == 60
+    assert settings.sync_backfill_health_days == 120
 
 
 def test_default_sync_call_interval() -> None:

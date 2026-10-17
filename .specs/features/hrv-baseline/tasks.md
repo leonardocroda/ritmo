@@ -166,10 +166,10 @@ T6 → T7
 
 **Done when**:
 
-- [ ] Default 120 com comentário citando HRV-15; env var `SYNC_BACKFILL_HEALTH_DAYS` segue override (100% env vars)
-- [ ] Teste: sync full em base nova persiste ≥119 dias de HRV (fake garmin servindo janela suficiente); pins existentes de sync verdes
-- [ ] Teto de chamadas conferido (120 × 4 tipos diários ≈ 480 < `sync_max_calls=1500`)
-- [ ] Gate passa; contagem sobe
+- [x] Default 120 com comentário citando HRV-15; env var `SYNC_BACKFILL_HEALTH_DAYS` segue override (100% env vars)
+- [x] Teste: sync full em base nova persiste ≥119 dias de HRV (fake garmin servindo janela suficiente); pins existentes de sync verdes
+- [x] Teto de chamadas conferido (120 × 4 tipos diários ≈ 480 < `sync_max_calls=1500`)
+- [x] Gate passa; contagem sobe
 
 **Tests**: integration
 **Gate**: quick

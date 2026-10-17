@@ -38,7 +38,7 @@ from fake_garmin import CYCLING_ID, FakeGateway
 
 TODAY = date(2026, 10, 14)
 BACKFILL_ACTIVITIES_START = date(2026, 4, 17)  # TODAY - 180d (SYNC-15)
-BACKFILL_HEALTH_START = date(2026, 8, 15)  # TODAY - 60d (SYNC-15)
+BACKFILL_HEALTH_START = date(2026, 6, 16)  # TODAY - 120d (SYNC-15, HRV-15: lookback de banda)
 REPULL_START = date(2026, 10, 11)  # TODAY - 3d (SYNC-10)
 
 
@@ -112,14 +112,14 @@ def test_run_sync_happy_path_done_with_full_stats(db, monkeypatch):
     assert stats["activities_new"] == 12
     assert stats["activities_updated"] == 0
     assert stats["splits"] == 20
-    assert stats["sleep_days"] == 61
-    assert stats["hrv_days"] == 61
-    assert stats["rhr_days"] == 61
-    assert stats["battery_days"] == 61
-    assert stats["stress_days"] == 61
+    assert stats["sleep_days"] == 121
+    assert stats["hrv_days"] == 121
+    assert stats["rhr_days"] == 121
+    assert stats["battery_days"] == 121
+    assert stats["stress_days"] == 121
     assert stats["records"] == 2
     assert stats["predictions"] == 4
-    assert stats["calls_made"] == 259  # 1 atividades + 11 splits + 4x61 saúde + battery + recordes + 1 predições
+    assert stats["calls_made"] == 499  # 1 atividades + 11 splits + 4x121 saúde + battery + recordes + 1 predições
     assert stats["duration_s"] >= 0
     assert stats["warnings"] == []
     assert stats["reauth_needed"] is False
@@ -134,11 +134,11 @@ def test_run_sync_happy_path_done_with_full_stats(db, monkeypatch):
         assert _table_counts(s) == {
             "activities": 12,
             "splits": 20,
-            "sleep": 61,
-            "hrv": 61,
-            "rhr": 61,
-            "stress": 61,
-            "body_battery": 61,
+            "sleep": 121,
+            "hrv": 121,
+            "rhr": 121,
+            "stress": 121,
+            "body_battery": 121,
             "personal_records": 2,
             "race_predictions": 4,
             "load": 12,  # 2026-10-03 (mais antiga) .. 10-14 (SYNC-23)
@@ -184,7 +184,7 @@ def test_sync_is_idempotent_2x_same_counts(db, monkeypatch):
 
 
 def test_incremental_windows_after_backfill(db, monkeypatch):
-    """SYNC-10/15/18: backfill 180d/60d na 1ª sync; depois last_date - 3d."""
+    """SYNC-10/15/18: backfill 180d/120d na 1ª sync; depois last_date - 3d."""
     monkeypatch.setattr(service, "GarminGateway", FakeGateway)
 
     first_job = _create_job()
@@ -192,7 +192,7 @@ def test_incremental_windows_after_backfill(db, monkeypatch):
     fake = FakeGateway.last
     assert fake.calls["activities"] == [(BACKFILL_ACTIVITIES_START, TODAY)]
     assert fake.calls["sleep"][0] == (BACKFILL_HEALTH_START,)
-    assert len(fake.calls["sleep"]) == 61
+    assert len(fake.calls["sleep"]) == 121
     assert fake.calls["body_battery"] == [(BACKFILL_HEALTH_START, TODAY)]
 
     second_job = _create_job()
@@ -215,7 +215,7 @@ def test_second_sync_calls_made_much_smaller(db, monkeypatch):
     second_job = _create_job()
     run_sync(second_job.id)
 
-    assert _load_job(first_job.id).stats_json["calls_made"] == 259
+    assert _load_job(first_job.id).stats_json["calls_made"] == 499
     assert _load_job(second_job.id).stats_json["calls_made"] == 23
 
 
@@ -320,15 +320,15 @@ def test_health_type_failure_warns_and_continues(db, monkeypatch):
     stats = finished.stats_json
     assert stats["warnings"] == [{"tipo": "sleep", "erro": "sleep fora do ar"}]
     assert stats["sleep_days"] == 0
-    assert stats["hrv_days"] == 61
-    assert stats["rhr_days"] == 61
-    assert stats["stress_days"] == 61
-    assert stats["battery_days"] == 61
+    assert stats["hrv_days"] == 121
+    assert stats["rhr_days"] == 121
+    assert stats["stress_days"] == 121
+    assert stats["battery_days"] == 121
     assert stats["records"] == 2
     assert stats["activities_new"] == 12
     with SessionLocal() as s:
         assert _count(s, Sleep) == 0
-        assert _count(s, Hrv) == 61
+        assert _count(s, Hrv) == 121
         assert get_sync_state(s, DEFAULT_USER_ID, "sleep") is None  # tipo falhou
         assert get_sync_state(s, DEFAULT_USER_ID, "hrv") == TODAY  # os demais avançam
         assert _count(s, DailyLoad) == 12  # PMC rodou mesmo com warning
@@ -354,7 +354,7 @@ def test_records_failure_warns_and_done(db, monkeypatch):
     with SessionLocal() as s:
         assert _count(s, PersonalRecord) == 0
         assert _count(s, Activity) == 12
-        assert _count(s, Sleep) == 61
+        assert _count(s, Sleep) == 121
 
 
 def test_predictions_synced_after_records_exactly_one_call(db, monkeypatch):
@@ -377,11 +377,11 @@ def test_predictions_synced_after_records_exactly_one_call(db, monkeypatch):
 
 
 def test_predictions_step_consumes_one_extra_budget_call(db, monkeypatch):
-    """POT-01: +1 chamada no orçamento total do sync (backfill 258 -> 259)."""
+    """POT-01: +1 chamada no orçamento total do sync (backfill 498 -> 499)."""
     monkeypatch.setattr(service, "GarminGateway", FakeGateway)
     job = _create_job()
     run_sync(job.id)
-    assert _load_job(job.id).stats_json["calls_made"] == 259
+    assert _load_job(job.id).stats_json["calls_made"] == 499
 
 
 def test_predictions_failure_warns_and_sync_continues(db, monkeypatch):
@@ -504,10 +504,10 @@ def test_budget_exceeded_error_with_calls_stats(db, monkeypatch):
     assert finished.status == "error"
     assert finished.error == "Teto de chamadas atingido (1500); feitas 1500."
     stats = finished.stats_json
-    assert stats["calls_made"] == 196  # stats das chamadas feitas até o teto
+    assert stats["calls_made"] == 376  # stats das chamadas feitas até o teto
     assert stats["reauth_needed"] is False
     with SessionLocal() as s:
-        assert _count(s, Sleep) == 61  # tipos concluídos antes do teto ficam
+        assert _count(s, Sleep) == 121  # tipos concluídos antes do teto ficam
         assert _count(s, Stress) == 0
         assert get_sync_state(s, DEFAULT_USER_ID, "stress") is None
         assert get_sync_state(s, DEFAULT_USER_ID, "sleep") == TODAY
@@ -526,15 +526,32 @@ def test_health_day_without_data_skipped_silently(db, monkeypatch):
     finished = _load_job(job.id)
     assert finished.status == "done"
     stats = finished.stats_json
-    assert stats["hrv_days"] == 60  # 61 - o dia sem dado
+    assert stats["hrv_days"] == 120  # 121 - o dia sem dado
     assert stats["warnings"] == []
     with SessionLocal() as s:
-        assert _count(s, Hrv) == 60
+        assert _count(s, Hrv) == 120
         assert (
             s.execute(select(Hrv).where(Hrv.date == date(2026, 10, 13))).scalar_one_or_none()
             is None
         )
         assert get_sync_state(s, DEFAULT_USER_ID, "hrv") == TODAY  # tipo concluído
+
+
+def test_health_backfill_covers_hrv_band_lookback(db, monkeypatch):
+    """HRV-15 (Independent Test): backfill de 120 dias persiste janela
+    completa para a banda móvel do modelo de HRV — exibição de 60 dias
+    + lookback de banda de 59 = 119 necessários; 121 dias corridos
+    gravados, do TODAY-120 ao TODAY."""
+    monkeypatch.setattr(service, "GarminGateway", FakeGateway)
+    job = _create_job()
+    run_sync(job.id)
+
+    with SessionLocal() as s:
+        oldest = s.execute(select(func.min(Hrv.date))).scalar_one()
+        newest = s.execute(select(func.max(Hrv.date))).scalar_one()
+        assert oldest == BACKFILL_HEALTH_START  # 2026-06-16 = TODAY - 120d
+        assert newest == TODAY
+        assert _count(s, Hrv) == 121  # [start, hoje] fechado >= 119 do AC
 
 
 def test_per_item_progress_during_health_phase(db, monkeypatch):
