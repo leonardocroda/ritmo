@@ -44,6 +44,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: mutant M3: backend/app/health/service.py:56 (backend/service-layer)
 - last seen: 2026-10-16T20:21:01Z
 
+### L-006 - Gate de UI (build+lint) so cobre sintaxe/tipos: a discriminacao comportamental de ACs de frontend vem da inspecao spec-anchored + UAT, nunca do gate
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend/ui` · harmful: 0
+- features: health-window
+- evidence: mutantes M1-M4: .specs/features/health-window/validation.md (Discrimination Sensor) (frontend/ui)
+- last seen: 2026-10-17T21:33:15Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 6,
+  "next_id": 7,
   "lessons": [
     {
       "id": "L-001",
@@ -94,6 +94,24 @@
       ],
       "created": "2026-10-16T20:21:01Z",
       "last_seen": "2026-10-16T20:21:01Z"
+    },
+    {
+      "id": "L-006",
+      "key": "surviving_mutant::gate de ui build lint so cobre sintaxe tipos a discriminacao comportamental de acs de frontend vem da inspecao spec anchored uat nunca do gate",
+      "text": "Gate de UI (build+lint) so cobre sintaxe/tipos: a discriminacao comportamental de ACs de frontend vem da inspecao spec-anchored + UAT, nunca do gate",
+      "signal": "surviving_mutant",
+      "scope": "frontend/ui",
+      "status": "candidate",
+      "features": [
+        "health-window"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "mutantes M1-M4: .specs/features/health-window/validation.md (Discrimination Sensor) (frontend/ui)"
+      ],
+      "created": "2026-10-17T21:33:15Z",
+      "last_seen": "2026-10-17T21:33:15Z"
     }
   ]
 }
