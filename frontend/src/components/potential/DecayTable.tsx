@@ -1,7 +1,8 @@
 // Tabela de decaimento por distância (POT-28/29) — pace real (PR) vs
 // ideal (equivalência do VDOT corrente) e Δ% com sinal; o maior gap (o
-// delta mais negativo) é destacado — só o número, sem interpretação
-// inventada (§9.1: "v1 mostra o número, sem gráfico dedicado").
+// delta mais negativo) é destacado. Explicação sempre visível do que
+// compara e do sinal (CLR-20) — método explicado, número sem
+// interpretação inventada e sem gráfico dedicado (§9.1).
 
 import type { CanonicalEvent, DecayRow } from "@/lib/api";
 import { formatPace } from "@/lib/format";
@@ -83,8 +84,9 @@ export default function DecayTable({ rows }: { rows: DecayRow[] }) {
         </table>
       </div>
       <p className="mt-2 text-xs text-muted">
-        Negativo = pace real mais lento que o ideal do VDOT corrente — gap de
-        execução, não de motor.
+        Compara o pace real dos seus PRs com o pace ideal da equivalência
+        VDOT do teste corrente. Negativo = pace real mais lento que o
+        ideal — gap de execução/especificidade, não de motor.
       </p>
     </div>
   );

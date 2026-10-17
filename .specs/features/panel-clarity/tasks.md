@@ -290,8 +290,8 @@ T11 → T12
 
 **Done when**:
 
-- [ ] Explicação sempre visível sem interação, PT-BR
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Explicação sempre visível sem interação, PT-BR
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none
 **Gate**: build
