@@ -246,6 +246,14 @@ sempre visível), selo de fonte/método quando o número precisa de
 origem e o payload de cada endpoint espelhando exatamente o que o
 painel renderiza.
 
+Validação real (17/10/2026, feature panel-clarity): UAT aprovado no
+celular 390px via LAN — 5 seções e 3 blocos distinguíveis de relance,
+Carga de treino com os valores do dia (CTL 132,2 · ATL 141,3 · TSB
+−9,2 · ACWR 1,1), sem scroll horizontal; contrato verificado ao vivo
+(`pmc` entre `stress` e `dose_response`, potencial sem `pmc`/`days`);
+suite com 268 testes no Postgres do compose, migração 1:1 dos testes
+de PMC para a suite de saúde (262 → 268).
+
 ## Workflow de desenvolvimento — spec-driven
 
 Toda feature nasce de um **spec validado**, vira **tasks atômicas** e termina em

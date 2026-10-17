@@ -9,7 +9,7 @@
 
 ## Validation — Veredito: PASS ✅
 
-**27/27 ACs (CLR-01..27) com evidência `file:line`** e resultado conforme o desfecho definido pela spec (0 spec-precision gaps); 6/6 edge cases verificados; gates verdes (backend **268 passed** = 262 base + 6 novos, 0 failed, 0 skipped; frontend build+lint exit 0); sensor **3/3 mutações mortas**. UAT interativo 390px (user-facing) permanece para o orquestrador — ACs de UI verificados por inspeção de código, conforme a matriz da própria spec (assumption "Verificação de UI sem runner": sem runner de teste no projeto).
+**27/27 ACs (CLR-01..27) com evidência `file:line`** e resultado conforme o desfecho definido pela spec (0 spec-precision gaps); 6/6 edge cases verificados; gates verdes (backend **268 passed** = 262 base + 6 novos, 0 failed, 0 skipped; frontend build+lint exit 0); sensor **3/3 mutações mortas**. UAT interativo 390px **realizado e aprovado pelo usuário (17/10/2026)** — ACs de UI verificados por inspeção de código na rodada do Verifier (conforme a matriz da própria spec, assumption "Verificação de UI sem runner": sem runner de teste no projeto) e confirmados visualmente no aparelho.
 
 ---
 
@@ -166,13 +166,21 @@ Todas as 12 tasks `[x]` em `tasks.md`; nenhuma blocked ou parcial.
 - [x] **Contrato: health traz `pmc` (ou null) na janela; potencial sem `pmc` e sem `days`; pytest verde; migração 1:1** — gate 268; tabela de contrapartidas no Gate Check
 - [x] **Zero chamadas à API do Garmin nos endpoints de leitura** — `test_health_api.py:460-470` + `test_potential_api.py:256-266` (POT-15 vivo)
 - [x] **Estados vazios honestos**: seção Carga com `pmc=null` (CLR-09), painel vazio geral só com tudo ausente (CLR-11), Potencial vazio recalculado sem pmc (CLR-24)
-- [ ] **390px sem scroll horizontal nos dois painéis** — **UAT do orquestrador** (user-facing): inspeção não encontrou fonte de overflow (nenhuma largura fixa nova; grids fluidos, wrappers `overflow-hidden`, texto que flui), mas a confirmação no aparelho é interativa
+- [x] **390px sem scroll horizontal nos dois painéis** — UAT aprovado pelo usuário (17/10/2026, celular 390px via LAN `http://192.168.15.16:3000`): 5 seções numeradas e 3 blocos distinguíveis de relance, sem scroll horizontal; valores reais conferidos (Carga de treino com CTL 132,2 · ATL 141,3 · TSB −9,2 · ACWR 1,1 de 16/10)
 
 ---
 
 ## Interactive UAT Results
 
-Não realizado nesta rodada (Verifier é sub-agente; sem usuário interativo). Pendências para o orquestrador: (1) `/saude` e `/potencial` a 390px — 5 seções numeradas e 3 blocos distinguíveis de relance, sem scroll horizontal (CLR-15/25); (2) valores reais do banco nos dois painéis (PMC com os mesmos números de antes da migração).
+Realizado pelo usuário (Leonardo) em 17/10/2026, celular 390px via LAN (`http://192.168.15.16:3000`), com a stack do compose rebuildada (`NEXT_PUBLIC_API_URL` apontando para o IP da LAN — o Next assa a URL no build).
+
+| #   | Test                                             | Result   | Details                                                                                                      |
+| --- | ------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------ |
+| 1   | `/potencial`: 3 blocos narrativos, sem PMC, legenda por métodos, linha-guia | ✅ Pass  | "Ficou ok" (resposta do usuário) — veredito sobre o checklist completo do UAT apresentado                      |
+| 2   | `/saude`: 5 seções numeradas com Carga de treino na posição 2 (valores reais do dia), linha-guia | ✅ Pass  | idem — checklist apresentado em uma passada; resposta única cobrindo os dois painéis                          |
+| 3   | 390px sem scroll horizontal nos dois painéis     | ✅ Pass  | idem — nenhum relato de overflow                                                                              |
+
+Resposta literal do usuário ao checklist completo: **"Ficou ok"** — aprovado sem ressalvas. Severity: n/a (nenhum issue relatado).
 
 ---
 
@@ -202,6 +210,6 @@ Nenhum. 27/27 ACs verificados; 3/3 mutantes mortos; 6/6 edge cases; gates verdes
 
 **What works**: o contrato migrou ponta a ponta — `pmc` (mesma shape, zero recálculo, janela única da Saúde) entra em `/api/health/summary` entre `stress` e `dose_response` e sai de `/api/potential` junto com o `days` morto (`?days=90` → 200 sem efeito); a Saúde narra em 5 seções numeradas com subtítulos sempre visíveis, linha-guia no topo e a Carga de treino na posição 2 reusando o `PmcChart` (move puro); o Potencial conta a história em 3 blocos com legenda por método, explainer do decaimento, selo/hierarquia do relógio e empty state recalculado; cliente `api.ts` espelha os dois contratos; README honesto sobre a nova composição (incluindo o conserto do status pré-existente desatualizado).
 
-**Issues found**: nenhum bloqueante. Duas notas não-gaps: (1) UAT interativo 390px pendente — inspeção limpa, confirmação visual é do orquestrador; (2) a mutação M3 é mascarada no HTTP pelo `response_model` (pydantic `extra='ignore'`), mas o pin duplo (service `test_potential_api.py:285` + HTTP `:357-359`) cobre as duas camadas do contrato.
+**Issues found**: nenhum bloqueante. Duas notas não-gaps: (1) UAT interativo 390px **aprovado pelo usuário (17/10/2026)** — ver Interactive UAT Results; (2) a mutação M3 é mascarada no HTTP pelo `response_model` (pydantic `extra='ignore'`), mas o pin duplo (service `test_potential_api.py:285` + HTTP `:357-359`) cobre as duas camadas do contrato.
 
-**Next steps**: UAT interativo com o usuário (390px + valores reais nos dois painéis); commit de `validation.md` + `spec.md` a cargo do orquestrador. Lições: nenhum sinal (PASS limpo, 0 mutantes sobreviventes, 0 gaps) — nada a registrar.
+**Next steps**: nenhum — feature fechada (Verifier PASS + UAT aprovado). Lições: nenhum sinal (PASS limpo, 0 mutantes sobreviventes, 0 gaps) — nada a registrar.

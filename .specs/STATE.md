@@ -76,11 +76,11 @@
 
 ## Handoff
 
-- **Feature**: `health-panel` — **concluída e validada** (PASS do Verifier na iteração 2 de 3, `.specs/features/health-panel/validation.md`; 30/30 ACs com evidência `file:line`, 3/3 mutantes mortos — M3 morto pela Fix 1, `validate_state.py` exit 0)
-- **Phase / Task**: n/a — T1–T16 todas commitadas (`3db133d`..`14af2c5`) + Fix 1 do Verifier (`c3df7e5`, teste de isolamento multiusuário); traceability 30/30 Verified
-- **Completed**: spec → design → tasks (16 tarefas, 5 fases) → execute em 3 lotes (sub-agents glm-5.3-flash; Lote 3 T14/T15 pelo worker e T16 completada inline após HTTP 429 derrubar o worker no meio da task — gates rodados e commit feitos pelo orquestrador) + Fix 1 inline; suite **262 testes** no Postgres do compose (228 → 262, +34); UAT real aprovado pelo usuário (16/10/2026, celular 390px: ~83% noites <7h, fases ~100%, dose 69,5 vs 81,0, sexta 5,74h, deitar 22:42 local)
+- **Feature**: `panel-clarity` — **concluída e validada** (Verifier PASS na iteração 1: 27/27 ACs com evidência `file:line`, 3/3 mutantes mortos em worktree descartável, `.specs/features/panel-clarity/validation.md`; UAT real aprovado pelo usuário em 17/10/2026, celular 390px via LAN — 5 seções numeradas na Saúde com Carga de treino na posição 2, 3 blocos narrativos no Potencial sem PMC, legenda por método, zero scroll horizontal)
+- **Phase / Task**: n/a — T1–T12 commitadas (`1fbb055`..`2892734`) em 2 lotes de sub-agents (Lote 1 T1–T6, Lote 2 T7–T12) + artefatos do orquestrador (`1a10b7c` docs context/design/AD-009, `d0b0922` validation PASS); traceability 27/27 ✅ Verified
+- **Completed**: discuss (context.md) → spec (27 ACs) → design (AD-009: padrão de clareza/payload-espelha-render) → tasks (12, 5 fases) → execute 2 lotes + Verifier PASS + UAT; suite **268 testes** no Postgres do compose (262 → 268; testes de PMC migrados 1:1 de `test_potential_api.py` para `test_health_api.py`)
 - **In-progress**: none
-- **Next step**: última dupla da Fase 1 — **Avaliar com IA** (§4.6, motor híbrido Python+LLM) ou **Painel Hoje** (§4.2, readiness + countdown + CRUD `races`); pendências menores registradas: sync de passos/NEAT como feature própria (dado importantíssimo para saúde geral — context.md Deferred Ideas), sequência `users_pkey` desincronizada no `init_db` (Fase 2.5, test_health_api.py + context.md), lição L-005 (candidate: isolamento multiusuário indetectável por suite sem segundo usuário semeado — confirmará se reincidir em outra feature)
+- **Next step**: última dupla da Fase 1 — **Avaliar com IA** (§4.6, motor híbrido Python+LLM) ou **Painel Hoje** (§4.2, readiness + countdown + CRUD `races`); painéis novos seguem AD-009 (cabeçalho forte + subtítulo sempre visível + payload espelhando a tela); pendências menores de features passadas seguem vivas: sync de passos/NEAT como feature própria, sequência `users_pkey` desincronizada no `init_db` (Fase 2.5), lição L-005 (candidate)
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main
