@@ -165,33 +165,33 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| CLR-01 | P1: Contrato PMC | Design | Implementing |
-| CLR-02 | P1: Contrato PMC | Design | Implementing |
-| CLR-03 | P1: Contrato PMC | Design | Implementing |
-| CLR-04 | P1: Contrato PMC | Design | Implementing |
-| CLR-05 | P1: Contrato PMC | Design | Implementing |
-| CLR-06 | P1: Contrato PMC | Design | Implementing |
-| CLR-07 | P1: Seção Carga de treino | Design | Implementing |
-| CLR-08 | P1: Seção Carga de treino | Design | Implementing |
-| CLR-09 | P1: Seção Carga de treino | Design | Implementing |
-| CLR-10 | P1: Seção Carga de treino | Design | Implementing |
-| CLR-11 | P1: Seção Carga de treino | Design | Implementing |
-| CLR-12 | P1: Cabeçalhos Saúde | Design | Implementing |
-| CLR-13 | P1: Cabeçalhos Saúde | Design | Implementing |
-| CLR-14 | P1: Cabeçalhos Saúde | Design | Implementing |
-| CLR-15 | P1: Cabeçalhos Saúde | Design | Implementing |
-| CLR-16 | P1: Cabeçalhos Saúde | Design | Implementing |
-| CLR-17 | P1: Potencial narrativo | Design | Implementing |
-| CLR-18 | P1: Potencial narrativo | Design | Implementing |
-| CLR-19 | P1: Potencial narrativo | Design | Implementing |
-| CLR-20 | P1: Potencial narrativo | Design | Implementing |
-| CLR-21 | P1: Potencial narrativo | Design | Implementing |
-| CLR-22 | P1: Potencial narrativo | Design | Implementing |
-| CLR-23 | P1: Potencial narrativo | Design | Implementing |
-| CLR-24 | P1: Potencial narrativo | Design | Implementing |
-| CLR-25 | P1: Potencial narrativo | Design | Implementing |
-| CLR-26 | P2: Linha-guia | Design | Implementing |
-| CLR-27 | P2: Linha-guia | Design | Implementing |
+| CLR-01 | P1: Contrato PMC | Design | ✅ Verified |
+| CLR-02 | P1: Contrato PMC | Design | ✅ Verified |
+| CLR-03 | P1: Contrato PMC | Design | ✅ Verified |
+| CLR-04 | P1: Contrato PMC | Design | ✅ Verified |
+| CLR-05 | P1: Contrato PMC | Design | ✅ Verified |
+| CLR-06 | P1: Contrato PMC | Design | ✅ Verified |
+| CLR-07 | P1: Seção Carga de treino | Design | ✅ Verified |
+| CLR-08 | P1: Seção Carga de treino | Design | ✅ Verified |
+| CLR-09 | P1: Seção Carga de treino | Design | ✅ Verified |
+| CLR-10 | P1: Seção Carga de treino | Design | ✅ Verified |
+| CLR-11 | P1: Seção Carga de treino | Design | ✅ Verified |
+| CLR-12 | P1: Cabeçalhos Saúde | Design | ✅ Verified |
+| CLR-13 | P1: Cabeçalhos Saúde | Design | ✅ Verified |
+| CLR-14 | P1: Cabeçalhos Saúde | Design | ✅ Verified |
+| CLR-15 | P1: Cabeçalhos Saúde | Design | ✅ Verified |
+| CLR-16 | P1: Cabeçalhos Saúde | Design | ✅ Verified |
+| CLR-17 | P1: Potencial narrativo | Design | ✅ Verified |
+| CLR-18 | P1: Potencial narrativo | Design | ✅ Verified |
+| CLR-19 | P1: Potencial narrativo | Design | ✅ Verified |
+| CLR-20 | P1: Potencial narrativo | Design | ✅ Verified |
+| CLR-21 | P1: Potencial narrativo | Design | ✅ Verified |
+| CLR-22 | P1: Potencial narrativo | Design | ✅ Verified |
+| CLR-23 | P1: Potencial narrativo | Design | ✅ Verified |
+| CLR-24 | P1: Potencial narrativo | Design | ✅ Verified |
+| CLR-25 | P1: Potencial narrativo | Design | ✅ Verified |
+| CLR-26 | P2: Linha-guia | Design | ✅ Verified |
+| CLR-27 | P2: Linha-guia | Design | ✅ Verified |
 
 **Coverage:** 27 total, 27 mapped to stories, 0 unmapped ✅
 
