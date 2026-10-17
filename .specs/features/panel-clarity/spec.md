@@ -167,8 +167,8 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | -------------- | ----- | ----- | ------ |
 | CLR-01 | P1: Contrato PMC | Design | Implementing |
 | CLR-02 | P1: Contrato PMC | Design | Implementing |
-| CLR-03 | P1: Contrato PMC | Design | Pending |
-| CLR-04 | P1: Contrato PMC | Design | Pending |
+| CLR-03 | P1: Contrato PMC | Design | Implementing |
+| CLR-04 | P1: Contrato PMC | Design | Implementing |
 | CLR-05 | P1: Contrato PMC | Design | Implementing |
 | CLR-06 | P1: Contrato PMC | Design | Implementing |
 | CLR-07 | P1: Seção Carga de treino | Design | Implementing |

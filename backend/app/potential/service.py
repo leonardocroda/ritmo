@@ -1,7 +1,7 @@
 """Service do painel Potencial — leitura pura do banco (AD-002).
 
 Nenhuma importação do gateway Garmin: todo número vem do banco próprio
-(PRs, predições, load, atividades) e da calibração vigente — o painel
+(PRs, predições, atividades) e da calibração vigente — o painel
 inteiro é montável offline (Success Criteria do spec). O filtro de
 corridas/provas é em Python (AD-001: escala pessoal, ~233 linhas;
 sintaxe JSON de SQL acoplaria o driver — design §Riscos).
@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 from app.db.models import (
     DEFAULT_USER_ID,
     Activity,
-    DailyLoad,
     PersonalRecord,
     RacePrediction,
 )
@@ -34,41 +33,6 @@ def _garmin_by_event(db: Session) -> dict[str, float]:
         .all()
     )
     return {row.event: row.time_s for row in rows if row.time_s is not None}
-
-
-def _pmc_block(db: Session, days: int) -> dict | None:
-    """Janela da PMC: últimas `days` linhas de load, mais recente por último.
-
-    Janela maior que o histórico devolve as linhas disponíveis (edge do
-    spec — a pedida, não uma inventada). Sem linhas -> None (estado vazio).
-    """
-    rows = (
-        db.execute(
-            select(DailyLoad)
-            .where(DailyLoad.user_id == DEFAULT_USER_ID)
-            .order_by(DailyLoad.date.desc())
-            .limit(days)
-        )
-        .scalars()
-        .all()
-    )
-    if not rows:
-        return None
-
-    def entry(row: DailyLoad) -> dict:
-        return {
-            "date": row.date,
-            "ctl": row.ctl,
-            "atl": row.atl,
-            "tsb": row.tsb,
-            "acwr": row.acwr,
-        }
-
-    return {
-        "days": days,
-        "points": [entry(row) for row in reversed(rows)],
-        "current": entry(rows[0]),
-    }
 
 
 def _vo2max_block(activities: list[Activity]) -> dict | None:
@@ -123,11 +87,12 @@ def _demonstrated_block(points: list[dict], prs: list[PersonalRecord]) -> dict |
     return {"vdot": best["vdot"], "source": source, "date": best["date"]}
 
 
-def get_potential(db: Session, days: int, calibration: Calibration) -> dict:
-    """Payload completo do painel — os 5 blocos do design §Contrato.
+def get_potential(db: Session, calibration: Calibration) -> dict:
+    """Payload do painel — os 4 blocos do design §Contrato.
 
-    `days` já validado (1–365) pelo router; a matemática vive em calc.py
-    (pura, AD-003) — aqui é só leitura e montagem.
+    Sem `pmc` e sem janela `days` (CLR-03): a curva de carga mora no
+    health (panel-clarity T1/T2). A matemática vive em calc.py (pura,
+    AD-003) — aqui é só leitura e montagem.
     """
     prs = (
         db.execute(
@@ -163,7 +128,6 @@ def get_potential(db: Session, days: int, calibration: Calibration) -> dict:
             "timeline": points,
         },
         "predictions": predictions(_garmin_by_event(db), pr_5k_s, calibration.vdot, prs),
-        "pmc": _pmc_block(db, days),
         "vo2max": _vo2max_block(activities),
         "decay": decay(prs, calibration.vdot),
     }

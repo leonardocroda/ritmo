@@ -343,10 +343,10 @@ T11 → T12
 
 **Done when**:
 
-- [ ] `GET /api/potential` responde `{vdot, predictions, vo2max, decay}` — sem `pmc` (CLR-03); `?days=90` → 200 com payload idêntico (CLR-04)
-- [ ] 500 "zonas VDOT não configuradas" sem calibração preservado (fora de escopo, sem regressão)
-- [ ] Checklist de migração 1:1 executado (janela/current/null/payload-pmc do `test_potential_api.py` têm contraparte viva em `test_health_api.py`); contagem da suite não cai em relação ao início da task
-- [ ] `uv run pytest` verde no Postgres do compose
+- [x] `GET /api/potential` responde `{vdot, predictions, vo2max, decay}` — sem `pmc` (CLR-03); `?days=90` → 200 com payload idêntico (CLR-04)
+- [x] 500 "zonas VDOT não configuradas" sem calibração preservado (fora de escopo, sem regressão)
+- [x] Checklist de migração 1:1 executado (janela/current/null/payload-pmc do `test_potential_api.py` têm contraparte viva em `test_health_api.py`); contagem da suite não cai em relação ao início da task
+- [x] `uv run pytest` verde no Postgres do compose
 
 **Tests**: integration
 **Gate**: quick

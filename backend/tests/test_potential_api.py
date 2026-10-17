@@ -1,8 +1,12 @@
-"""Painel Potencial (T8/T9) — service direto + HTTP, no Postgres real.
+"""Painel Potencial (T8/T9 + panel-clarity T10) — service direto + HTTP,
+no Postgres real.
 
 T8: chamadas diretas a `get_potential` com seeds (o domínio lê
 exclusivamente o banco próprio — AD-002; nenhuma chamada Garmin).
-T9: TestClient cobrindo a superfície HTTP (422/500/estados vazios).
+T9: TestClient cobrindo a superfície HTTP (500/estados vazios).
+T10 (panel-clarity): `pmc` e `days` saem do contrato (CLR-03/04) — os
+asserts de PMC migraram 1:1 para test_health_api.py (T1/T2 da feature);
+o espaço do param morto não herda validação nova.
 Valores afirmados são literais derivados das fixtures com a forma
 fechada de Daniels (T1) — nunca constantes compartilhadas com a
 implementação (lições L-001/L-002).
@@ -101,7 +105,7 @@ def _seed_activity(db, *, garmin_id: str, start: datetime, name: str = "Morning 
 
 
 def test_get_potential_full_payload_from_seeds(db) -> None:
-    """Done-when T8: os 5 blocos montados a partir do banco — pins do
+    """Done-when T8: os 4 blocos montados a partir do banco — pins do
     design §Contrato (PRs reais + predições da sonda + prova deduplicada)."""
     _seed_prs(db)
     _seed_garmin_predictions(db)
@@ -123,7 +127,7 @@ def test_get_potential_full_payload_from_seeds(db) -> None:
     )
     db.commit()
 
-    payload = service.get_potential(db, 180, CALIBRATION)
+    payload = service.get_potential(db, CALIBRATION)
 
     # Bloco vdot: corrente da calibração; demonstrado = 5K com o evento na origem
     assert payload["vdot"]["current"] == {
@@ -174,44 +178,11 @@ def test_get_potential_full_payload_from_seeds(db) -> None:
         "delta_pct": -22.1,
     }
 
-    # vo2max do relógio; pmc null (sem linhas em load neste teste)
+    # vo2max do relógio (sem linhas em load neste teste — nada de pmc no
+    # payload: CLR-03; os pins de janela/current/null moram no health)
     assert payload["vo2max"] == {
         "points": [{"date": date(2026, 4, 22), "value": 54.0}],
     }
-    assert payload["pmc"] is None
-
-
-def test_pmc_block_respects_days_window_and_current(db) -> None:
-    """Done-when T8 (POT-11): janela pedida (ORDER BY date DESC LIMIT days,
-    revertida — mais antiga primeiro) e current = último dia; janela maior
-    que o histórico devolve todas as linhas disponíveis (edge do spec)."""
-    _seed_load(db, date(2026, 10, 13), 20.0, 25.0, -5.0, 1.31)
-    _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
-    _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
-    db.commit()
-
-    payload = service.get_potential(db, 2, CALIBRATION)
-    assert payload["pmc"]["days"] == 2
-    assert payload["pmc"]["points"] == [
-        {"date": date(2026, 10, 14), "ctl": 21.0, "atl": 27.0, "tsb": -6.0, "acwr": 1.40},
-        {"date": date(2026, 10, 15), "ctl": 22.0, "atl": 28.0, "tsb": -6.0, "acwr": 1.42},
-    ]
-    assert payload["pmc"]["current"] == {
-        "date": date(2026, 10, 15), "ctl": 22.0, "atl": 28.0, "tsb": -6.0, "acwr": 1.42,
-    }
-
-    payload = service.get_potential(db, 365, CALIBRATION)
-    assert payload["pmc"]["days"] == 365
-    assert [p["date"] for p in payload["pmc"]["points"]] == [
-        date(2026, 10, 13), date(2026, 10, 14), date(2026, 10, 15),
-    ]
-
-
-def test_pmc_null_without_load_rows(db) -> None:
-    """Done-when T8 (POT-12): sem linhas em load -> pmc=None (estado vazio,
-    não erro — spec AC 6)."""
-    payload = service.get_potential(db, 180, CALIBRATION)
-    assert payload["pmc"] is None
 
 
 def test_vo2max_points_filtered_and_ordered_from_raw_json(db) -> None:
@@ -233,7 +204,7 @@ def test_vo2max_points_filtered_and_ordered_from_raw_json(db) -> None:
                    activity_type="trail_running", raw_json={"vO2MaxValue": 56.0})
     db.commit()
 
-    payload = service.get_potential(db, 180, CALIBRATION)
+    payload = service.get_potential(db, CALIBRATION)
     assert payload["vo2max"] == {
         "points": [
             {"date": date(2026, 4, 22), "value": 54.0},
@@ -249,7 +220,7 @@ def test_vo2max_null_without_watch_data(db) -> None:
     (spec AC 7 — bloco null, não lista vazia)."""
     _seed_activity(db, garmin_id="20", start=datetime(2026, 4, 22, 7, 0), raw_json={})
     db.commit()
-    payload = service.get_potential(db, 180, CALIBRATION)
+    payload = service.get_potential(db, CALIBRATION)
     assert payload["vo2max"] is None
 
 
@@ -257,7 +228,7 @@ def test_get_potential_without_user_data_keeps_empty_states(db) -> None:
     """Done-when T8: sem PRs/predições/provas -> decay=[], timeline só com o
     teste de calibração (demonstrado = o próprio teste), colunas de PR null,
     Riegel null (sem âncora de 5K) — nenhum número inventado."""
-    payload = service.get_potential(db, 180, CALIBRATION)
+    payload = service.get_potential(db, CALIBRATION)
 
     (point,) = payload["vdot"]["timeline"]
     assert point["source"] == "teste"
@@ -279,7 +250,6 @@ def test_get_potential_without_user_data_keeps_empty_states(db) -> None:
         "pr_date": None,
     }
     assert payload["decay"] == []
-    assert payload["pmc"] is None
     assert payload["vo2max"] is None
 
 
@@ -297,12 +267,32 @@ def test_potential_domain_never_imports_garmin_gateway() -> None:
 
 
 # ---------------------------------------------------------------
+# T10 (panel-clarity) — service sem pmc (CLR-03)
+# ---------------------------------------------------------------
+
+
+def test_service_payload_omits_pmc_even_with_load_rows(db) -> None:
+    """Done-when T10 (CLR-03): payload só com os 4 blocos — a exclusão é
+    do contrato, não do dado vazio: com linhas de `load` no banco a chave
+    continua ausente (a curva de carga mora no health, T1/T2). Ordem das
+    chaves pinada — o espelho do router e do cliente seguem a posição."""
+    _seed_load(db, date(2026, 10, 13), 20.0, 25.0, -5.0, 1.31)
+    _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
+    _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
+    db.commit()
+
+    payload = service.get_potential(db, CALIBRATION)
+    assert list(payload.keys()) == ["vdot", "predictions", "vo2max", "decay"]
+
+
+# ---------------------------------------------------------------
 # T9 — GET /api/potential (TestClient + superfície HTTP)
 # ---------------------------------------------------------------
 
 
 def _seed_full_panel(db) -> None:
-    """Painel completo: PRs reais + predições da sonda + PMC + vo2max."""
+    """Painel completo: PRs reais + predições da sonda + linhas de load
+    (que não viram bloco — CLR-03) + vo2max."""
     _seed_prs(db)
     _seed_garmin_predictions(db)
     _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
@@ -314,8 +304,9 @@ def _seed_full_panel(db) -> None:
 
 
 def test_api_happy_path_200_full_payload(client) -> None:
-    """POT-11/16: 200 com o payload completo em JSON — datas ISO, default
-    days=180 no bloco pmc e os pins do design atravessando o HTTP."""
+    """POT-11: 200 com o payload completo em JSON — datas ISO e os pins
+    do design atravessando o HTTP (sem `pmc` — CLR-03; janela/current do
+    bloco são pinados no health, T1/T2 da panel-clarity)."""
     with SessionLocal() as db:
         _seed_full_panel(db)
         db.commit()
@@ -348,35 +339,51 @@ def test_api_happy_path_200_full_payload(client) -> None:
     }
     assert list(body["predictions"].keys()) == ["5K", "10K", "HALF_MARATHON", "MARATHON"]
 
-    assert body["pmc"]["days"] == 180  # default do endpoint
-    assert [p["date"] for p in body["pmc"]["points"]] == ["2026-10-14", "2026-10-15"]
-    assert body["pmc"]["current"] == {
-        "date": "2026-10-15", "ctl": 22.0, "atl": 28.0, "tsb": -6.0, "acwr": 1.42,
-    }
-
     assert body["vo2max"] == {"points": [{"date": "2026-04-22", "value": 54.0}]}
     by_event = {row["event"]: row for row in body["decay"]}
     assert by_event["MARATHON"]["delta_pct"] == -22.1
 
 
-def test_api_days_out_of_range_responds_422(client) -> None:
-    """POT-16: days fora de [1, 365] -> 422 antes de qualquer query."""
-    for params in ({"days": 0}, {"days": 366}, {"days": -1}):
-        response = client.get("/api/potential", params=params)
-        assert response.status_code == 422, params
-
-
-def test_api_days_boundaries_respond_200(client) -> None:
-    """POT-16: os extremos do intervalo são válidos (1 e 365 -> 200)."""
+def test_api_payload_omits_pmc_even_with_load_rows(client) -> None:
+    """Done-when T10 (CLR-03): 200 com o payload de 4 blocos mesmo com
+    linhas em `load` — a exclusão é do contrato, não do dado vazio (a
+    curva de carga mora no health). Ordem das chaves pinada no JSON."""
     with SessionLocal() as db:
         _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
         db.commit()
 
-    for params in ({"days": 1}, {"days": 365}):
+    response = client.get("/api/potential")
+    assert response.status_code == 200
+    assert list(response.json().keys()) == [
+        "vdot", "predictions", "vo2max", "decay",
+    ]
+
+
+def test_api_dead_days_param_returns_identical_payload(client) -> None:
+    """Done-when T10 (CLR-04): `?days=90` (param morto do cliente antigo)
+    -> 200 com payload idêntico ao da chamada sem param — o painel cheio
+    (com `load` semeados) mostraria qualquer efeito de janela."""
+    with SessionLocal() as db:
+        _seed_full_panel(db)
+        db.commit()
+
+    plain = client.get("/api/potential")
+    with_days = client.get("/api/potential", params={"days": 90})
+    assert plain.status_code == 200
+    assert with_days.status_code == 200
+    assert with_days.json() == plain.json()
+
+
+def test_api_dead_days_param_space_has_no_validation(client) -> None:
+    """Edge do spec (CLR-04): o espaço do param morto não herda validação
+    nova — os valores que eram 422 no contrato antigo (0, -1, 366) agora
+    são query ignorada: 200 com payload idêntico. Os bounds vivos de
+    `days` são os do health (7–365 — test_health_api)."""
+    baseline = client.get("/api/potential").json()
+    for params in ({"days": 0}, {"days": -1}, {"days": 366}):
         response = client.get("/api/potential", params=params)
         assert response.status_code == 200, params
-        assert response.json()["pmc"]["days"] == params["days"]
-        assert len(response.json()["pmc"]["points"]) == 1
+        assert response.json() == baseline, params
 
 
 def test_api_missing_zones_file_responds_500(client, monkeypatch) -> None:
@@ -391,14 +398,19 @@ def test_api_missing_zones_file_responds_500(client, monkeypatch) -> None:
     assert response.json()["detail"] == "zonas VDOT não configuradas"
 
 
-def test_api_pmc_null_traverses_http_as_json_null(client) -> None:
-    """POT-12 via HTTP (done-when T9): banco sem load -> pmc=null no JSON,
-    com o resto do painel intacto (estado vazio, não erro)."""
+def test_api_empty_bank_keeps_empty_states_without_pmc(client) -> None:
+    """Done-when T10 (CLR-03 × estado vazio): banco vazio -> 200 com os 4
+    blocos e os estados vazios honestos que o empty check da UI lê
+    (timeline só com o teste, vo2max null, decay []) — estado vazio, não
+    erro; o `pmc` null agora mora no health (T2)."""
     response = client.get("/api/potential")
     assert response.status_code == 200
     body = response.json()
-    assert body["pmc"] is None
+    assert list(body.keys()) == ["vdot", "predictions", "vo2max", "decay"]
+    assert len(body["vdot"]["timeline"]) == 1
     assert body["vdot"]["timeline"][0]["source"] == "teste"
+    assert body["vo2max"] is None
+    assert body["decay"] == []
 
 
 def test_api_vo2max_null_traverses_http_as_json_null(client) -> None:
