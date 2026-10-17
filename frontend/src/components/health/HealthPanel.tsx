@@ -15,6 +15,7 @@ import { getHealthSummary, type HealthSummaryOut } from "@/lib/api";
 import PanelSection from "@/components/PanelSection";
 import DoseResponse from "@/components/health/DoseResponse";
 import HrvChart from "@/components/health/HrvChart";
+import HrvTable from "@/components/health/HrvTable";
 import Lifestyle from "@/components/health/Lifestyle";
 import PmcChart from "@/components/health/PmcChart";
 import RemChart from "@/components/health/RemChart";
@@ -152,6 +153,8 @@ export default function HealthPanel() {
           {hrv !== null ? (
             <div className="rounded-xl border border-white/10 bg-card p-3">
               <HrvChart hrv={hrv} />
+              {/* Valores diários com paginação (hrv-baseline, HRV-10..12) */}
+              <HrvTable hrv={hrv} />
             </div>
           ) : (
             <BlockEmpty>

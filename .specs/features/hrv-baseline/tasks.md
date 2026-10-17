@@ -221,9 +221,9 @@ T6 → T7
 
 **Done when**:
 
-- [ ] Tabela exibe até 7 dias com dado mais recentes (desc) com Data/HRV/média 7d; paginação de 7 em 7 com indicador `atual/total` sobre a janela; ≤7 dias → sem controles
-- [ ] Tabela dentro do card do HRV (abaixo do gráfico), sem quebra em 390px
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Tabela exibe até 7 dias com dado mais recentes (desc) com Data/HRV/média 7d; paginação de 7 em 7 com indicador `atual/total` sobre a janela; ≤7 dias → sem controles
+- [x] Tabela dentro do card do HRV (abaixo do gráfico), sem quebra em 390px
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none
 **Gate**: build

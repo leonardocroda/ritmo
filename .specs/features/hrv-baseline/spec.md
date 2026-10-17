@@ -161,9 +161,9 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | HRV-07 | P1: Status local explicável | Implementing | Pending |
 | HRV-08 | P1: Status local explicável | Implementing | Pending |
 | HRV-09 | P1: Status local explicável | Implementing | Pending |
-| HRV-10 | P1: Tabela diária com paginação | Design | Pending |
-| HRV-11 | P1: Tabela diária com paginação | Design | Pending |
-| HRV-12 | P1: Tabela diária com paginação | Design | Pending |
+| HRV-10 | P1: Tabela diária com paginação | Implementing | Pending |
+| HRV-11 | P1: Tabela diária com paginação | Implementing | Pending |
+| HRV-12 | P1: Tabela diária com paginação | Implementing | Pending |
 | HRV-15 | P1: Histórico que sustenta a banda | Implementing | Pending |
 | HRV-13 | P2: Noites fora da faixa destacadas | Implementing | Pending |
 | HRV-14 | P3: Histórico além de 60 dias | - | Pending |
