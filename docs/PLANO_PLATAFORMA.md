@@ -106,7 +106,7 @@ Detalhe do treino:
 Pergunta: **"Meu corpo está absorvendo o treino?"**
 
 - **Sono**: duração vs piso 7h (linha no gráfico — o gráfico de "quantas noites abaixo do piso"), score, **REM %** (minha assinatura: 14% vs ideal 21–31%), horário de dormir/acordar (regularidade ±min), debt acumulado no mês. Padrão por dia da semana (minha sexta é o buraco).
-- **HRV noturno**: linha 60d + status; RHR: linha vs baseline.
+- **HRV noturno**: modelo científico (hrv-baseline) — linha = média móvel de 7 dias (lacunas de captura preenchidas pela janela disponível), banda normal por dia (janela móvel de 60 dias, média ± 0,75 DP amostral; threshold de 14 valores), noites individuais como pontos (fora da banda em âmbar) e status local BALANCED/UNBALANCED (média 7d vs banda do dia) com os números visíveis no card — "coletando linha de base" com histórico insuficiente; tabela diária (data, HRV, média 7d) paginada de 7 em 7. O status cru da Garmin saiu da UI do Saúde (continua no banco); RHR: linha vs baseline.
 - **Dose-resposta pessoal** (o gráfico que provou o ponto na análise de saúde): noites <6h → HRV/score médios vs noites ≥6h45. Meu corpo cobra juros visíveis — mostrar isso me convence a dormir.
 - **Equilíbrio de vida**: força 2×/sem (streak), yoga (mantém como está), passos/NEAT nos dias de escritório, estresse médio.
 - Correlações simples: sono × HRV do dia seguinte × FC do treino.

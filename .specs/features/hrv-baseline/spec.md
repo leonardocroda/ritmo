@@ -152,20 +152,20 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------- |
-| HRV-01 | P1: Gráfico no modelo científico | Implementing | Pending |
-| HRV-02 | P1: Gráfico no modelo científico | Implementing | Pending |
-| HRV-03 | P1: Gráfico no modelo científico | Implementing | Pending |
-| HRV-04 | P1: Gráfico no modelo científico | Implementing | Pending |
-| HRV-05 | P1: Gráfico no modelo científico | Implementing | Pending |
-| HRV-06 | P1: Status local explicável | Implementing | Pending |
-| HRV-07 | P1: Status local explicável | Implementing | Pending |
-| HRV-08 | P1: Status local explicável | Implementing | Pending |
-| HRV-09 | P1: Status local explicável | Implementing | Pending |
-| HRV-10 | P1: Tabela diária com paginação | Implementing | Pending |
-| HRV-11 | P1: Tabela diária com paginação | Implementing | Pending |
-| HRV-12 | P1: Tabela diária com paginação | Implementing | Pending |
-| HRV-15 | P1: Histórico que sustenta a banda | Implementing | Pending |
-| HRV-13 | P2: Noites fora da faixa destacadas | Implementing | Pending |
+| HRV-01 | P1: Gráfico no modelo científico | Design | ✅ Verified |
+| HRV-02 | P1: Gráfico no modelo científico | Design | ✅ Verified |
+| HRV-03 | P1: Gráfico no modelo científico | Design | ✅ Verified |
+| HRV-04 | P1: Gráfico no modelo científico | Design | ✅ Verified |
+| HRV-05 | P1: Gráfico no modelo científico | Design | ✅ Verified |
+| HRV-06 | P1: Status local explicável | Design | ✅ Verified |
+| HRV-07 | P1: Status local explicável | Design | ✅ Verified |
+| HRV-08 | P1: Status local explicável | Design | ✅ Verified |
+| HRV-09 | P1: Status local explicável | Design | ✅ Verified |
+| HRV-10 | P1: Tabela diária com paginação | Design | ✅ Verified |
+| HRV-11 | P1: Tabela diária com paginação | Design | ✅ Verified |
+| HRV-12 | P1: Tabela diária com paginação | Design | ✅ Verified |
+| HRV-15 | P1: Histórico que sustenta a banda | Design | ✅ Verified |
+| HRV-13 | P2: Noites fora da faixa destacadas | - | ✅ Verified |
 | HRV-14 | P3: Histórico além de 60 dias | - | Pending |
 
 **ID format**: `HRV-NN` (categoria HRV)

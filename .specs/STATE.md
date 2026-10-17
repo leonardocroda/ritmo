@@ -74,13 +74,21 @@
 - **Date**: 2026-10-16
 - **Status**: active
 
+### AD-010
+- **Decision**: Modelo de avaliação de HRV = Altini/HRV4Training: linha = média móvel de 7 dias (sobre os valores disponíveis na janela — lacuna de captura não quebra a linha); banda normal por dia = janela móvel de 60 dias, média ± 0,75 × DP amostral (smallest worthwhile change, Plews et al.), emitida só com ≥14 valores na janela; status local BALANCED/UNBALANCED (média 7d vs banda do dia, limites inclusos), null = "coletando linha de base". O status cru da Garmin sai da UI do Saúde (continua persistido na tabela `hrv`); backfill de saúde sobe para 120 dias (60 de exibição + 59 de lookback de banda).
+- **Reason**: Decisão do usuário (17/10/2026): a Garmin compara média 7d com um range pessoal mas não publica a fórmula; o método Altini é publicado, cientificamente ancorado (SWC) e reproduz o comportamento com fórmula aberta e testável. Banda móvel por dia (usuário vetou banda plana) requer histórico além da janela exibida.
+- **Trade-off**: Status local pode divergir do relógio (bandas diferentes) em troca de transparência total — os números que decidem o status estão visíveis no card e no gráfico; primeira sync pós-mudança traz só o histórico antigo (a banda dos primeiros dias fica ausente até um re-sync completo com `sync_state` limpa).
+- **Scope**: `health/calc.py` (modelo puro), `health/service.py` (janela + montagem), `health/router.py` (contrato), `core/config.py` (backfill 120), `HrvChart`/`HrvTable` (Saúde), futuro Painel Hoje (§4.2 — readiness usará o mesmo modelo).
+- **Date**: 2026-10-17
+- **Status**: active
+
 ## Handoff
 
-- **Feature**: `panel-clarity` — **concluída e validada** (Verifier PASS na iteração 1: 27/27 ACs com evidência `file:line`, 3/3 mutantes mortos em worktree descartável, `.specs/features/panel-clarity/validation.md`; UAT real aprovado pelo usuário em 17/10/2026, celular 390px via LAN — 5 seções numeradas na Saúde com Carga de treino na posição 2, 3 blocos narrativos no Potencial sem PMC, legenda por método, zero scroll horizontal)
-- **Phase / Task**: n/a — T1–T12 commitadas (`1fbb055`..`2892734`) em 2 lotes de sub-agents (Lote 1 T1–T6, Lote 2 T7–T12) + artefatos do orquestrador (`1a10b7c` docs context/design/AD-009, `d0b0922` validation PASS); traceability 27/27 ✅ Verified
-- **Completed**: discuss (context.md) → spec (27 ACs) → design (AD-009: padrão de clareza/payload-espelha-render) → tasks (12, 5 fases) → execute 2 lotes + Verifier PASS + UAT; suite **268 testes** no Postgres do compose (262 → 268; testes de PMC migrados 1:1 de `test_potential_api.py` para `test_health_api.py`)
-- **In-progress**: none
-- **Next step**: última dupla da Fase 1 — **Avaliar com IA** (§4.6, motor híbrido Python+LLM) ou **Painel Hoje** (§4.2, readiness + countdown + CRUD `races`); painéis novos seguem AD-009 (cabeçalho forte + subtítulo sempre visível + payload espelhando a tela); pendências menores de features passadas seguem vivas: sync de passos/NEAT como feature própria, sequência `users_pkey` desincronizada no `init_db` (Fase 2.5), lição L-005 (candidate)
+- **Feature**: `hrv-baseline` — modelo científico de HRV no painel Saúde (linha média 7d + banda móvel 60d ± 0,75 DP + status local + tabela paginada); T1–T7 commitadas, T2+T3 fundidas em 1 commit coeso (corte intermediário deixaria a suite vermelha)
+- **Phase / Task**: Execute completo em 1 lote inline — T1 `a04fe92` (calc puro) · T2+T3 `1ca1af7` (service+router+contrato+pins) · T4 `0318b5d` (backfill 120d) · T5 `d805cec` (HrvChart científico) · T6 `9e7fbab` (HrvTable) · T7 este commit (plano §4.5 + AD-010 + traceability)
+- **Completed**: discuss (context.md: status 100% local, banda por dia, gráfico Altini completo) → spec (15 ACs, gate limpo) → design (AD-010) → tasks (7 tasks, 5 fases) → execute inline; suite **268 → 280 testes** no Postgres do compose; build+lint verdes
+- **In-progress**: Verifier (author ≠ verifier) roda ao fechar este commit; UAT real 390px depois dele
+- **Next step**: Verifier PASS → UAT no celular. **Ops para o usuário**: a base atual (60d) só ganha os 60 dias extras de backfill num sync completo — limpar o estado incremental dos tipos de saúde (`DELETE FROM sync_state WHERE data_type IN ('sleep','hrv','rhr','stress','body_battery')`) e "Puxar do Garmin"; até lá a banda dos primeiros dias fica ausente (threshold por dia já comunica). Depois: Avaliar com IA (§4.6) ou Painel Hoje (§4.2 — usará o mesmo modelo HRV da AD-010)
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main

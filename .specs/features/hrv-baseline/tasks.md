@@ -247,10 +247,10 @@ T6 → T7
 
 **Done when**:
 
-- [ ] Plano §4.5 descreve o modelo novo (sem menção a "linha 60d + status" antiga no bloco HRV)
-- [ ] AD-010 registrada (decision/reason/trade-off/scope/date/status active); Handoff com feature, fase e ops-note do re-sync
-- [ ] Traceability da spec: HRV-01..HRV-13 + HRV-15 → Verified (HRV-14 fica Pending — P3 deferred)
-- [ ] `cd backend; uv run pytest` completo verde (contagem final > 268) + `cd frontend; npm run build; npm run lint` verdes
+- [x] Plano §4.5 descreve o modelo novo (sem menção a "linha 60d + status" antiga no bloco HRV)
+- [x] AD-010 registrada (decision/reason/trade-off/scope/date/status active); Handoff com feature, fase e ops-note do re-sync
+- [x] Traceability da spec: HRV-01..HRV-13 + HRV-15 → ✅ Verified (HRV-14 fica Pending — P3 deferred)
+- [x] `cd backend; uv run pytest` completo verde (contagem final > 268) + `cd frontend; npm run build; npm run lint` verdes
 
 **Tests**: none (docs/memory) — gate de suíte completa como verificação
 **Gate**: full + build
