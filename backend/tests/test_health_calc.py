@@ -1,7 +1,8 @@
 """Calc do painel Saúde (health/calc.py) — funções puras, pins literais.
 
 Cenários derivados dos done-when de T2, dos ACs do endpoint
-(HLT-04/09/10/11/12) e dos edge cases do spec: buckets <6h/≥6h45
+(HLT-04/09/10/11/12), do modelo científico de HRV (hrv-baseline,
+HRV-01..HRV-08) e dos edge cases do spec: buckets <6h/≥6h45
 cruzados na mesma data, faixa neutra 6h–6h45, truque ±12h perto da
 meia-noite, virada de ano ISO, noite sem horário fora da regularidade,
 bucket vazio -> médias None. Valores afirmados são literais derivados
@@ -9,16 +10,21 @@ das fixtures (lição L-001) — nunca constantes compartilhadas com a
 implementação.
 """
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from app.health.calc import (
     ADEQUATE_MIN_S,
+    HRV_AVG_DAYS,
+    HRV_BASELINE_DAYS,
+    HRV_BASELINE_MIN_VALUES,
+    HRV_BASELINE_SD_FACTOR,
     REM_BAND,
     SHORT_MAX_S,
     SLEEP_FLOOR_S,
     below_floor,
     dose_response,
+    hrv_model,
     local_minute,
     regularity,
     strength_weeks,
@@ -372,3 +378,160 @@ def test_strength_weeks_iso_year_boundary() -> None:
         "weeks_total": 3,
         "current_week_sessions": 1,
     }
+
+
+# ---------------------------------------------------------------
+# hrv_model (hrv-baseline — HRV-01..HRV-08, modelo científico)
+# ---------------------------------------------------------------
+
+
+def test_hrv_model_constants_match_spec() -> None:
+    """Done-when T1 (réguas do backend): média móvel de 7 dias, banda =
+    janela de 60 dias ± 0,75 DP amostral, threshold de 14 valores."""
+    assert HRV_AVG_DAYS == 7
+    assert HRV_BASELINE_DAYS == 60
+    assert HRV_BASELINE_MIN_VALUES == 14
+    assert HRV_BASELINE_SD_FACTOR == 0.75
+
+
+def test_hrv_model_rolling_avg_fills_capture_gaps() -> None:
+    """HRV-02: cada ponto é a média 7d sobre os valores disponíveis — o
+    dia sem captura (10-03) é preenchido com a média da janela e a noite
+    segue null; janela truncada no início do histórico usa o que existe
+    (10-01 = só ela mesma; dias anteriores ficam None)."""
+    rows = [
+        (date(2026, 10, 1), 60.0),
+        (date(2026, 10, 2), 70.0),
+        (date(2026, 10, 4), 80.0),
+    ]
+    model = hrv_model(rows, days=7)
+
+    assert [p["date"] for p in model["points"]] == [
+        date(2026, 9, 28) + timedelta(days=i) for i in range(7)
+    ]
+    by_day = {p["date"]: p for p in model["points"]}
+    assert by_day[date(2026, 9, 28)]["avg7"] is None  # janela vazia
+    assert by_day[date(2026, 10, 1)]["avg7"] == 60.0  # truncada: só ela
+    assert by_day[date(2026, 10, 2)]["avg7"] == 65.0  # (60+70)/2
+    assert by_day[date(2026, 10, 3)]["value"] is None  # sem captura
+    assert by_day[date(2026, 10, 3)]["avg7"] == 65.0  # preenchida (HRV-02)
+    assert by_day[date(2026, 10, 4)]["avg7"] == 70.0  # (60+70+80)/3
+
+
+def test_hrv_model_day_with_empty_window_has_no_avg() -> None:
+    """HRV-03: mais de 7 dias seguidos sem captura -> o dia corrido fica
+    sem ponto na linha (avg7 None) — nenhum valor é inventado."""
+    rows = [
+        (date(2026, 9, 1), 50.0),
+        (date(2026, 10, 10), 60.0),
+    ]
+    model = hrv_model(rows, days=60)
+
+    assert len(model["points"]) == 60
+    by_day = {p["date"]: p for p in model["points"]}
+    assert by_day[date(2026, 10, 4)]["avg7"] is None
+    assert by_day[date(2026, 10, 4)]["value"] is None
+    assert by_day[date(2026, 10, 9)]["avg7"] is None  # véspera: janela vazia
+    assert by_day[date(2026, 10, 10)]["avg7"] == 60.0  # só ela na janela
+    assert by_day[date(2026, 9, 5)]["avg7"] == 50.0  # 09-01 na janela 7d
+
+
+def test_hrv_model_band_pin_and_threshold() -> None:
+    """HRV-04/05: banda pinada à mão — 15 valores 60..88 (passo 2):
+    média 74, SQ 1120, var amostral 1120/14 = 80, DP √80; banda =
+    74 ± 0,75√80 = (67,291796, 80,708204). Threshold: 13 valores na
+    janela -> sem banda; 14 -> banda. Bônus determinístico: tendência de
+    alta deixa a média 7d (82) acima da banda -> UNBALANCED (HRV-06)."""
+    rows = [
+        (date(2026, 9, 16) + timedelta(days=i), 60.0 + 2.0 * i)
+        for i in range(15)
+    ]
+    model = hrv_model(rows, days=20)
+
+    by_day = {p["date"]: p for p in model["points"]}
+    assert by_day[date(2026, 9, 28)]["band_low"] is None  # 13 valores
+    assert by_day[date(2026, 9, 29)]["band_low"] is not None  # 14 valores
+    last = by_day[date(2026, 9, 30)]
+    assert round(last["band_low"], 6) == 67.291796
+    assert round(last["band_high"], 6) == 80.708204
+    assert last["avg7"] == 82.0  # (76+78+80+82+84+86+88)/7
+    assert model["current"]["status"] == "UNBALANCED"
+
+
+def test_hrv_model_status_balanced_on_inclusive_edge() -> None:
+    """HRV-06 edge (limites inclusos): 15 valores iguais -> DP 0, banda
+    (70, 70), média 7d 70 — igual ao limite é BALANCED, não UNBALANCED."""
+    rows = [(date(2026, 9, 16) + timedelta(days=i), 70.0) for i in range(15)]
+    model = hrv_model(rows, days=20)
+
+    assert model["current"] == {
+        "date": date(2026, 9, 30),
+        "value": 70.0,
+        "avg7": 70.0,
+        "band_low": 70.0,
+        "band_high": 70.0,
+        "status": "BALANCED",
+    }
+
+
+def test_hrv_model_status_unbalanced_after_suppression() -> None:
+    """HRV-06: queda recente — 14 dias a 80 e 7 a 20; média 7d 20 fica
+    abaixo da banda (média 60 ± 0,75√840 = 38,262935..81,737065) ->
+    UNBALANCED."""
+    rows = [
+        *((date(2026, 9, 14) + timedelta(days=i), 80.0) for i in range(14)),
+        *((date(2026, 9, 28) + timedelta(days=i), 20.0) for i in range(7)),
+    ]
+    model = hrv_model(rows, days=21)
+
+    current = model["current"]
+    assert current["date"] == date(2026, 10, 4)
+    assert current["value"] == 20.0
+    assert current["avg7"] == 20.0
+    assert round(current["band_low"], 6) == 38.262935
+    assert round(current["band_high"], 6) == 81.737065
+    assert current["status"] == "UNBALANCED"
+
+
+def test_hrv_model_without_band_status_is_none() -> None:
+    """HRV-08: menos de 14 valores na janela do último dia -> banda null
+    e status None (o card mostra "coletando linha de base"); a janela de
+    exibição continua sendo `days` dias corridos (edge do spec — história
+    menor que a janela gera dias corrido vazios, não janela inventada)."""
+    rows = [
+        (date(2026, 10, 13), 82.0),
+        (date(2026, 10, 14), 68.0),
+        (date(2026, 10, 15), 75.0),
+    ]
+    model = hrv_model(rows, days=60)
+
+    assert len(model["points"]) == 60
+    assert model["points"][0]["date"] == date(2026, 8, 17)
+    assert model["current"] == {
+        "date": date(2026, 10, 15),
+        "value": 75.0,
+        "avg7": 75.0,
+        "band_low": None,
+        "band_high": None,
+        "status": None,
+    }
+    assert all(p["band_low"] is None for p in model["points"])
+
+
+def test_hrv_model_window_is_calendar_days_ending_at_latest_data() -> None:
+    """HRV-01: a janela termina na última data COM dado (não em hoje) e
+    tem `days` dias corridos — dado anterior à janela fica fora dos
+    pontos (só alimenta as janelas móveis)."""
+    rows = [
+        (date(2026, 8, 20), 50.0),
+        (date(2026, 10, 15), 70.0),
+    ]
+    model = hrv_model(rows, days=10)
+
+    assert len(model["points"]) == 10
+    assert model["points"][0]["date"] == date(2026, 10, 6)
+    assert model["points"][-1]["date"] == date(2026, 10, 15)
+    assert [p["value"] for p in model["points"] if p["value"] is not None] == [
+        70.0
+    ]  # 08-20 fora da exibição
+    assert model["points"][-1]["avg7"] == 70.0

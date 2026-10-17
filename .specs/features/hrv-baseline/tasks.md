@@ -102,12 +102,12 @@ T6 → T7
 
 **Done when**:
 
-- [ ] Média 7d com lacuna de captura preenchida pela janela disponível (HRV-02) — pinada com valores à mão
-- [ ] Janela 7d vazia (>7 dias sem captura) → `avg7` None (HRV-03)
-- [ ] Banda pinada com média/DP calculados à mão (≥14 valores) e `<14` → None (HRV-04/05)
-- [ ] Status: média igual ao limite → BALANCED; fora → UNBALANCED; sem banda → None (HRV-06/08)
-- [ ] Janela de exibição: `days` dias corridos terminando em `L`; truncamento no início do histórico usa o disponível
-- [ ] Gate passa; contagem da suite sobe (baseline 268, nunca cai)
+- [x] Média 7d com lacuna de captura preenchida pela janela disponível (HRV-02) — pinada com valores à mão
+- [x] Janela 7d vazia (>7 dias sem captura) → `avg7` None (HRV-03)
+- [x] Banda pinada com média/DP calculados à mão (≥14 valores) e `<14` → None (HRV-04/05)
+- [x] Status: média igual ao limite → BALANCED; fora → UNBALANCED; sem banda → None (HRV-06/08)
+- [x] Janela de exibição: `days` dias corridos terminando em `L`; truncamento no início do histórico usa o disponível
+- [x] Gate passa; contagem da suite sobe (baseline 268, nunca cai)
 
 **Tests**: unit (função pura)
 **Gate**: quick

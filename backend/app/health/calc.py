@@ -11,7 +11,9 @@ Buckets do dose-resposta (§4.5): <6h vs ≥6h45 com faixa neutra
 7h e banda REM 21–31% são réguas do backend: a UI não inventa régua.
 """
 
+from bisect import bisect_left, bisect_right
 from datetime import date, datetime, timedelta, timezone
+from statistics import stdev
 from zoneinfo import ZoneInfo
 
 # Réguas do painel (design §Components): piso 7h, banda REM ideal 21–31%,
@@ -20,6 +22,14 @@ SLEEP_FLOOR_S = 25200
 REM_BAND = (21.0, 31.0)
 SHORT_MAX_S = 21600
 ADEQUATE_MIN_S = 24300
+
+# Modelo de HRV (hrv-baseline, design §Components.1): média móvel de 7
+# dias; banda normal = janela de 60 dias, média ± 0,75 × DP amostral
+# (smallest worthwhile change — Altini/Plews); threshold de 14 valores.
+HRV_AVG_DAYS = 7
+HRV_BASELINE_DAYS = 60
+HRV_BASELINE_MIN_VALUES = 14
+HRV_BASELINE_SD_FACTOR = 0.75
 
 _MINUTES_DAY = 1440
 _HALF_DAY = 720
@@ -46,6 +56,65 @@ def _circular_mean(minutes: list[int]) -> float:
 def _avg(values: list[float]) -> float | None:
     """Média com 1 casa — bucket/média vazia -> None (nada inventado)."""
     return round(sum(values) / len(values), 1) if values else None
+
+
+def hrv_model(rows: list[tuple[date, float]], days: int) -> dict:
+    """Modelo científico de HRV (HRV-01..HRV-08): série de dias corridos
+    com média móvel 7d, banda por dia e status local do último dia.
+
+    Entrada: `rows` = [(date, value)] ASC, não vazio (o service decide o
+    estado vazio); `days` = janela de exibição em dias corridos. A
+    janela termina na última data com dado — cada dia corrido dela é um
+    ponto, e a lacuna de captura não quebra a linha: `avg7` é a média
+    dos valores disponíveis na janela de 7 dias terminando no dia (None
+    quando vazia — dia sem ponto na linha). A banda do dia usa a janela
+    de 60 dias: média ± 0,75 × DP amostral, emitida só com ≥14 valores
+    (abaixo disso o dia fica sem banda). O status compara média 7d e
+    banda do último dia com dado SEM arredondar — 1 casa é decisão de
+    exibição, aplicada no payload (design §Decisões.1).
+    """
+    dates = [d for d, _ in rows]
+    values = [v for _, v in rows]
+    by_date = dict(rows)
+
+    def window(start: date, end: date) -> list[float]:
+        """Valores em [start, end] — `rows` é ASC, bisect resolve."""
+        return values[bisect_left(dates, start):bisect_right(dates, end)]
+
+    latest = dates[-1]
+    day = latest - timedelta(days=days - 1)
+    points = []
+    while day <= latest:
+        w7 = window(day - timedelta(days=HRV_AVG_DAYS - 1), day)
+        w60 = window(day - timedelta(days=HRV_BASELINE_DAYS - 1), day)
+        band_low = band_high = None
+        if len(w60) >= HRV_BASELINE_MIN_VALUES:
+            mean = sum(w60) / len(w60)
+            spread = HRV_BASELINE_SD_FACTOR * stdev(w60)
+            band_low, band_high = mean - spread, mean + spread
+        points.append(
+            {
+                "date": day,
+                "value": by_date.get(day),
+                "avg7": sum(w7) / len(w7) if w7 else None,
+                "band_low": band_low,
+                "band_high": band_high,
+            }
+        )
+        day += timedelta(days=1)
+
+    # A janela termina no último dia com dado — `current` é ele (value e
+    # avg7 garantidos; banda/status podem ser None sob o threshold).
+    current = dict(points[-1])
+    status = None
+    if current["band_low"] is not None:
+        status = (
+            "BALANCED"
+            if current["band_low"] <= current["avg7"] <= current["band_high"]
+            else "UNBALANCED"
+        )
+    current["status"] = status
+    return {"points": points, "current": current}
 
 
 def dose_response(nights: list[dict]) -> dict:

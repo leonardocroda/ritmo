@@ -152,14 +152,14 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------- |
-| HRV-01 | P1: Gráfico no modelo científico | Design | Pending |
-| HRV-02 | P1: Gráfico no modelo científico | Design | Pending |
-| HRV-03 | P1: Gráfico no modelo científico | Design | Pending |
-| HRV-04 | P1: Gráfico no modelo científico | Design | Pending |
-| HRV-05 | P1: Gráfico no modelo científico | Design | Pending |
-| HRV-06 | P1: Status local explicável | Design | Pending |
+| HRV-01 | P1: Gráfico no modelo científico | Implementing | Pending |
+| HRV-02 | P1: Gráfico no modelo científico | Implementing | Pending |
+| HRV-03 | P1: Gráfico no modelo científico | Implementing | Pending |
+| HRV-04 | P1: Gráfico no modelo científico | Implementing | Pending |
+| HRV-05 | P1: Gráfico no modelo científico | Implementing | Pending |
+| HRV-06 | P1: Status local explicável | Implementing | Pending |
 | HRV-07 | P1: Status local explicável | Design | Pending |
-| HRV-08 | P1: Status local explicável | Design | Pending |
+| HRV-08 | P1: Status local explicável | Implementing | Pending |
 | HRV-09 | P1: Status local explicável | Design | Pending |
 | HRV-10 | P1: Tabela diária com paginação | Design | Pending |
 | HRV-11 | P1: Tabela diária com paginação | Design | Pending |
