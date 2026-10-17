@@ -332,10 +332,31 @@ export type SleepBlock = {
   points: SleepPoint[];
 };
 
-export type HrvPoint = { date: string; value: number; status: string | null };
+/** Dia corrido da janela de exibição (hrv-baseline): noite individual
+ * (null = sem captura), média móvel 7d e banda do dia (null sob o
+ * threshold de 14 valores na janela de 60 dias). */
+export type HrvPoint = {
+  date: string;
+  value: number | null;
+  avg7: number | null;
+  band_low: number | null;
+  band_high: number | null;
+};
 
-/** HRV — `current` é o último dia com dado (mesma forma do ponto). */
-export type HrvBlock = { points: HrvPoint[]; current: HrvPoint };
+/** Último dia com dado — status local BALANCED/UNBALANCED (média 7d vs
+ * banda, limites inclusos) ou null ("coletando linha de base"); o status
+ * cru da Garmin saiu do contrato do Saúde. */
+export type HrvCurrent = {
+  date: string;
+  value: number;
+  avg7: number;
+  band_low: number | null;
+  band_high: number | null;
+  status: string | null;
+};
+
+/** HRV científico — `points` são dias corridos; `current` é o último com dado. */
+export type HrvBlock = { points: HrvPoint[]; current: HrvCurrent };
 
 export type RhrPoint = { date: string; value: number };
 export type RhrBlock = { points: RhrPoint[]; baseline: number };

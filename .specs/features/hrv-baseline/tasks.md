@@ -193,11 +193,11 @@ T6 → T7
 
 **Done when**:
 
-- [ ] Gráfico renderiza banda por dia (2 Areas empilhadas), linha de média 7d e pontos das noites; dias sem banda não desenham banda
-- [ ] Card exibe status local + média 7d + limites da banda (1 casa, `formatVdot`); "coletando linha de base…" quando `status` null; status Garmin ausente na UI (HRV-09)
-- [ ] Noites fora da banda com cor diferenciada (HRV-13); legenda e tooltip com os 3 elementos
-- [ ] Nenhuma API nova do Next (AGENTS.md) — client components no padrão existente; se tocar rota/suspense, ler `node_modules/next/dist/docs/` antes
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Gráfico renderiza banda por dia (2 Areas empilhadas), linha de média 7d e pontos das noites; dias sem banda não desenham banda
+- [x] Card exibe status local + média 7d + limites da banda (1 casa, `formatVdot`); "coletando linha de base…" quando `status` null; status Garmin ausente na UI (HRV-09)
+- [x] Noites fora da banda com cor diferenciada (HRV-13); legenda e tooltip com os 3 elementos
+- [x] Nenhuma API nova do Next (AGENTS.md) — client components no padrão existente; se tocar rota/suspense, ler `node_modules/next/dist/docs/` antes
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none
 **Gate**: build
