@@ -370,8 +370,8 @@ T11 → T12
 
 **Done when**:
 
-- [ ] `PotentialOut` espelha o payload real (sem `pmc`); `getPotential()` sem param e sem query na URL
-- [ ] `npm run build` + `npm run lint` verdes (nenhuma referência a `pmc` no domínio potencial)
+- [x] `PotentialOut` espelha o payload real (sem `pmc`); `getPotential()` sem param e sem query na URL
+- [x] `npm run build` + `npm run lint` verdes (nenhuma referência a `pmc` no domínio potencial)
 
 **Tests**: none
 **Gate**: build

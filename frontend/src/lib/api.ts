@@ -228,7 +228,7 @@ export async function getActivityDetail(id: number): Promise<ActivityDetailOut> 
   return (await res.json()) as ActivityDetailOut;
 }
 
-// ---- Painel Potencial: contratos do design potential-panel ----
+// ---- Painel Potencial: contratos do design potential-panel + panel-clarity ----
 
 /** Distâncias canônicas (ASCII na API; acento na exibição — design). */
 export type CanonicalEvent = "5K" | "10K" | "HALF_MARATHON" | "MARATHON";
@@ -272,18 +272,21 @@ export type DecayRow = {
   delta_pct: number;
 };
 
-/** Espelho do `PotentialOut` (backend/app/potential/router.py). */
+/** Espelho do `PotentialOut` (backend/app/potential/router.py) — sem
+ * `pmc` e sem janela `days` (CLR-03): a curva de carga é contrato
+ * exclusivo do Painel Saúde (`PmcBlock` abaixo). */
 export type PotentialOut = {
   vdot: VdotBlock;
   predictions: Record<CanonicalEvent, PredictionRow>;
-  pmc: PmcBlock | null;
   vo2max: Vo2maxBlock | null;
   decay: DecayRow[];
 };
 
-/** Painel Potencial inteiro em 1 payload (POT-11). A UI fixa 180 dias (spec). */
-export async function getPotential(days = 180): Promise<PotentialOut> {
-  const res = await fetch(`${API_BASE}/api/potential?days=${days}`, {
+/** Painel Potencial inteiro em 1 payload (POT-11) — sem query params:
+ * o `days` morreu junto com o `pmc` e o cliente limpo não envia nada
+ * (CLR-04: um `?days=` qualquer seria ignorado pelo backend). */
+export async function getPotential(): Promise<PotentialOut> {
+  const res = await fetch(`${API_BASE}/api/potential`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -340,7 +343,8 @@ export type RhrBlock = { points: RhrPoint[]; baseline: number };
 export type StressPoint = { date: string; avg: number };
 export type StressBlock = { points: StressPoint[]; avg_window: number };
 
-/** Ponto da PMC — null espelha a linha do banco (janela 28d incompleta). */
+/** Ponto da PMC (contrato exclusivo do Painel Saúde) — null espelha a
+ * linha do banco (janela 28d incompleta). */
 export type PmcPoint = {
   date: string;
   ctl: number | null;
@@ -349,8 +353,9 @@ export type PmcPoint = {
   acwr: number | null;
 };
 
-/** Bloco Carga de treino (CLR-01): janela `days` única da Saúde; sem
- * linhas em `load` -> null (CLR-02 — estado vazio, não erro). */
+/** Bloco Carga de treino (CLR-01) — contrato EXCLUSIVO do Painel Saúde
+ * (o Potencial perdeu o bloco — CLR-03): janela `days` única da Saúde;
+ * sem linhas em `load` -> null (CLR-02 — estado vazio, não erro). */
 export type PmcBlock = {
   days: number;
   points: PmcPoint[];
