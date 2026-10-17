@@ -9,7 +9,7 @@
 
 ## Veredito
 
-**PASS ✅** — 13/13 ACs com evidência `file:line` na superfície do diff e comportamento conforme a spec (0 spec-precision gaps; confirmação visual/pixel do HWF-13 e dos fluxos interativos pendente do UAT do orquestrador, conforme a matriz do repo). Gate verde: `npm run build` exit 0 (Next 16.4.0/Turbopack, TypeScript 6,5s, 7 rotas incl. `/saude`) + `npm run lint` exit 0 (zero reportes). Backend não executado — intocado por design (justificativa na seção Gate Check). Sensor: **0/4 mutantes comportamentais mortos pelo gate automatizado** (estrutural e esperado — build+lint é gate sintático/tipo; a camada UI do repo não tem suite por convenção) · **4/4 pegos pela inspeção spec-anchored** (cada mutante contradiz uma evidência `file:line` específica) · **controle positivo morto** (erro de tipo → build exit 1) provando que o gate não é no-op. UAT real é a prova comportamental restante.
+**PASS ✅** — 13/13 ACs com evidência `file:line` na superfície do diff e comportamento conforme a spec (0 spec-precision gaps). Gate verde: `npm run build` exit 0 (Next 16.4.0/Turbopack, TypeScript 6,5s, 7 rotas incl. `/saude`) + `npm run lint` exit 0 (zero reportes). Backend não executado — intocado por design (justificativa na seção Gate Check). Sensor: **0/4 mutantes comportamentais mortos pelo gate automatizado** (estrutural e esperado — build+lint é gate sintático/tipo; a camada UI do repo não tem suite por convenção) · **4/4 pegos pela inspeção spec-anchored** (cada mutante contradiz uma evidência `file:line` específica) · **controle positivo morto** (erro de tipo → build exit 1) provando que o gate não é no-op. **UAT real aprovado pelo usuário em 17/10/2026 — a prova comportamental restante está cumprida; feature concluída.**
 
 ---
 
@@ -44,7 +44,7 @@ Sem `tasks.md` nesta feature (pasta contém só `spec.md`; entrega em 1 commit).
 | HWF-10: banda normal de HRV sempre sobre a janela de baseline de 60 dias (AD-010), em qualquer janela exibida | régua científica imóvel | Backend: `calc.py:30` — `HRV_BASELINE_DAYS = 60`; `calc.py:89` — `w60 = window(day - timedelta(days=HRV_BASELINE_DAYS - 1), day)` e `:91-94` banda = média ± 0,75×DP de `w60` — independe de `days`; `service.py:126` — `_hrv_history` busca `start = latest - timedelta(days=days - 1 + HRV_BASELINE_DAYS - 1)` (lookback de 59 dias SEMPRE somado, qualquer janela exibida). UI: `HrvChart.tsx:123-128,177-195` — banda renderizada do payload (`band_low/band_high` → `bandBase/bandSpan`), `:80-83` fora-da-banda compara contra o payload — nenhuma recalculação; `HrvChart.tsx` não aparece no diff | ✅ PASS |
 | HWF-11: bucket do dose-resposta sem noites → "—" nas médias (padrão HLT-22) | nenhum número inventado | `DoseResponse.tsx:16-18` — `avgOrDash` ("—" quando null), aplicado a `avg_hrv`/`avg_score` (:33,37); `HealthPanel.tsx:271` — `<DoseResponse dose={dose_response} />` recebe o bloco da janela nova; backend mantém `calc.py:58` (`_avg` → None sem valores). Componente não aparece no diff — comportamento preservado sob a nova janela | ✅ PASS |
 | HWF-12: histórico < janela pedida → séries exibem tudo que existe (nada inventado) | janela pedida, não inventada | `service.py:52-55` — docstring de `_series`: "Janela maior que o histórico devolve as linhas disponíveis" (`.limit(days)` :61); `calc.py:84-87` — pontos HRV são dias corridos `while day <= latest` (termina no último dado); UI renderiza o payload como veio (gráficos sem lógica de preenchimento — `PmcChart.tsx:117`, `HrvChart.tsx:157`, `SleepChart` etc.). Invariante pré-existente mantida sob as novas janelas 7/30/42/90 | ✅ PASS |
-| HWF-13: em 390px o grupo de botões permanece legível em uma linha, sem scroll horizontal | padrão dos painéis anteriores | `HealthPanel.tsx:66-70` — container `flex flex-wrap items-center gap-2` com `role="group"` `aria-label="Janela de tempo"`; pills `rounded-full px-3 py-1 text-sm` (:81-82) — 5 pills ≈ 233px + 4×8px de gap ≈ 265px dentro dos ~358px disponíveis (390px − `px-4` de `app/saude/page.tsx:7`), uma linha com ~90px de folga; nenhuma largura fixa/`min-w` no seletor; linha única não é forçada (`flex-wrap` permite quebra como robustez) — em 390px o outcome da spec se sustenta por aritmética + padrão dos painéis anteriores (mesma postura do HLT-29 no precedente) | ✅ PASS (per matriz; visual no UAT) |
+| HWF-13: em 390px o grupo de botões permanece legível em uma linha, sem scroll horizontal | padrão dos painéis anteriores | `HealthPanel.tsx:66-70` — container `flex flex-wrap items-center gap-2` com `role="group"` `aria-label="Janela de tempo"`; pills `rounded-full px-3 py-1 text-sm` (:81-82) — 5 pills ≈ 233px + 4×8px de gap ≈ 265px dentro dos ~358px disponíveis (390px − `px-4` de `app/saude/page.tsx:7`), uma linha com ~90px de folga; nenhuma largura fixa/`min-w` no seletor; linha única não é forçada (`flex-wrap` permite quebra como robustez) | ✅ PASS (aritmética + **visual confirmado no UAT 17/10/2026**) |
 
 **Status**: ✅ 13/13 ACs com evidência `file:line` na superfície do diff, cada uma mirando o outcome preciso da spec. 0 spec-precision gaps. Confirmação visual/interativa (pixeis, 390px real, corridas de clique) = UAT do orquestrador, conforme a matriz do repo.
 
@@ -106,11 +106,11 @@ Sem `tasks.md` nesta feature (pasta contém só `spec.md`; entrega em 1 commit).
 
 ## Success Criteria (spec.md:119-127)
 
-- [ ] `/saude` abre com `60d` ativo; botões trocam todas as seções; derivados acompanham — **evidência estática completa (HWF-01/02/03); verificação visual/interativa = UAT do orquestrador**
-- [ ] Troca sem flash, dados antigos + "atualizando…", cliques rápidos nunca deixam janela errada — **evidência estática completa (HWF-04/05); corrida real = UAT**
-- [ ] `7d` honesto ("—"), `42d` curva de fitness, `90d` histórico existente — **invariantes de payload mantidos (HWF-11/12); valores reais = UAT**
+- [x] `/saude` abre com `60d` ativo; botões trocam todas as seções; derivados acompanham — **evidência estática (HWF-01/02/03) + UAT 17/10/2026 aprovado**
+- [x] Troca sem flash, dados antigos + "atualizando…", cliques rápidos nunca deixam janela errada — **evidência estática (HWF-04/05) + UAT aprovado**
+- [x] `7d` honesto ("—"), `42d` curva de fitness, `90d` histórico existente — **invariantes de payload (HWF-11/12) + valores reais conferidos no UAT**
 - [x] `npm run build` + `npm run lint` verdes; suite do backend intocada (zero mudança de servidor — confirmado por `--stat`)
-- [ ] UAT em 390px: seletor em uma linha, sem scroll horizontal (aritmética e estrutura sustentam; pixel real = UAT)
+- [x] UAT em 390px: seletor em uma linha, sem scroll horizontal — **aprovado pelo usuário em 17/10/2026**
 
 ---
 
@@ -131,7 +131,7 @@ Nenhum gap de código. Nenhuma correção pendente no tree real (Verifier read-o
 
 ## Summary
 
-**Overall**: ✅ PASS — Ready (pendente apenas o UAT interativo do orquestrador, etapa prevista pela matriz do repo)
+**Overall**: ✅ PASS — **Concluída** (UAT real aprovado pelo usuário em 17/10/2026, fechando a prova comportamental da camada UI)
 
 **Spec-anchored check**: 13/13 ACs com `file:line` + outcome conforme a spec; 0 spec-precision gaps; 4/4 edge cases verificados
 **Sensor**: gate automatizado 0/4 mutantes comportamentais (estrutural, documentado) · controle positivo 1/1 morto (gate não é no-op) · inspeção spec-anchored 4/4 · worktree descartado, porcelana do tree real idêntica ao baseline antes/depois
@@ -141,4 +141,4 @@ Nenhum gap de código. Nenhuma correção pendente no tree real (Verifier read-o
 
 **Issues found**: nenhum de código. Limitação estrutural registrada: o gate automatizado da camada UI não discrimina comportamento (lição no lessons store).
 
-**Next steps**: UAT interativo do orquestrador — `/saude`: 60d ativo de primeira; trocar 7d → séries curtas + "—" onde vazio; 90d → histórico existente; cliques rápidos encadeados; falha de rede com dados na tela; 390px em uma linha. Valores reais do banco conforme o Independent Test da spec.
+**Next steps**: n/a — feature concluída com UAT aprovado (17/10/2026). Os fluxos validados no UAT: 60d ativo de primeira, troca 7d/42d/90d com séries e derivados acompanhando, cliques rápidos, 390px em uma linha. Próximos passos do roadmap: **Avaliar com IA** (§4.6) ou **Painel Hoje** (§4.2) — o Painel Hoje herda o seletor de janela por consumir o mesmo endpoint.
