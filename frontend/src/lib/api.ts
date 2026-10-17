@@ -419,7 +419,9 @@ export type HealthSummaryOut = {
   lifestyle: Lifestyle;
 };
 
-/** Painel Saúde inteiro em 1 payload (HLT-02). A UI fixa 60 dias (spec). */
+/** Painel Saúde inteiro em 1 payload (HLT-02). Janela: seletor fixo do
+ * painel (7/30/42/60/90d — feature health-window, default 60); o backend
+ * valida `days` em [7, 365]. */
 export async function getHealthSummary(days = 60): Promise<HealthSummaryOut> {
   const res = await fetch(`${API_BASE}/api/health/summary?days=${days}`, {
     cache: "no-store",

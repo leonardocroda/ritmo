@@ -1,15 +1,19 @@
 "use client";
 
 // Painel Saúde (§4.5) — página-composição: busca /api/health/summary em 1
-// round-trip e monta as 5 seções do fio condutor (panel-clarity): Sono →
-// Carga de treino → Recuperação → Dose-resposta → Equilíbrio de vida,
-// cada uma com cabeçalho forte numerado (PanelSection — CLR-12/13) e a
-// linha-guia conectando tudo no topo (CLR-26). Bloco null -> estado
-// vazio próprio do bloco (HLT-19); painel inteiro vazio (sono, HRV,
-// RHR, estresse e PMC ausentes) -> estado vazio apontando o sync
-// (CLR-11) — só com `load`, a seção Carga já renderiza com dados.
+// round-trip POR JANELA (seletor fixo 7/30/42/60/90d — feature
+// health-window, default 60) e monta as 5 seções do fio condutor
+// (panel-clarity): Sono → Carga de treino → Recuperação → Dose-resposta →
+// Equilíbrio de vida, cada uma com cabeçalho forte numerado
+// (PanelSection — CLR-12/13) e a linha-guia conectando tudo no topo
+// (CLR-26). Bloco null -> estado vazio próprio do bloco (HLT-19); painel
+// inteiro vazio (sono, HRV, RHR, estresse e PMC ausentes) -> estado
+// vazio apontando o sync (CLR-11) — só com `load`, a seção Carga já
+// renderiza com dados. A troca de janela refaz a busca mantendo os dados
+// anteriores na tela; o seq descarta a resposta velha quando o usuário
+// troca rápido (padrão WorkoutsList).
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { getHealthSummary, type HealthSummaryOut } from "@/lib/api";
 import PanelSection from "@/components/PanelSection";
@@ -25,10 +29,21 @@ import SleepStagesChart from "@/components/health/SleepStagesChart";
 import StressChart from "@/components/health/StressChart";
 import WeekdayPattern from "@/components/health/WeekdayPattern";
 
+// Janelas fixas do seletor (spec health-window): semana aguda (7d — ATL),
+// mês (30d — WHOOP M), fitness (42d — constante do CTL do TrainingPeaks),
+// banda de HRV (60d — AD-010) e visão longa (90d).
+const WINDOW_OPTIONS = [7, 30, 42, 60, 90] as const;
+type WindowDays = (typeof WINDOW_OPTIONS)[number];
+
 type PanelState =
   | { kind: "loading" }
   | { kind: "error"; message: string }
-  | { kind: "ready"; panel: HealthSummaryOut };
+  | {
+      kind: "ready";
+      panel: HealthSummaryOut;
+      refreshing: boolean;
+      refreshError: string | null;
+    };
 
 /** Estado vazio de um bloco — orienta o primeiro sync, sem erro (HLT-19). */
 function BlockEmpty({ children }: { children: ReactNode }) {
@@ -39,26 +54,85 @@ function BlockEmpty({ children }: { children: ReactNode }) {
   );
 }
 
-export default function HealthPanel() {
-  const [state, setState] = useState<PanelState>({ kind: "loading" });
+/** Seletor fixo de janela (HWF-01) — pill pattern do WorkoutsList. */
+function WindowFilter({
+  days,
+  onSelect,
+}: {
+  days: WindowDays;
+  onSelect: (days: WindowDays) => void;
+}) {
+  return (
+    <div
+      className="flex flex-wrap items-center gap-2"
+      role="group"
+      aria-label="Janela de tempo"
+    >
+      {WINDOW_OPTIONS.map((option) => {
+        const active = option === days;
+        return (
+          <button
+            key={option}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onSelect(option)}
+            className={
+              active
+                ? "rounded-full bg-accent/15 px-3 py-1 text-sm font-medium text-accent"
+                : "rounded-full px-3 py-1 text-sm text-muted hover:text-foreground"
+            }
+          >
+            {option}d
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
+export default function HealthPanel() {
+  const [days, setDays] = useState<WindowDays>(60);
+  const [state, setState] = useState<PanelState>({ kind: "loading" });
+  const requestSeq = useRef(0);
+
+  // Busca (re)feita por janela (HWF-02); o seq descarta a resposta velha
+  // quando o usuário troca rápido (HWF-05 — padrão WorkoutsList). Erro no
+  // refetch mantém os dados anteriores na tela com a mensagem junto ao
+  // filtro (HWF-06); erro na primeira carga segue o fluxo existente.
   useEffect(() => {
-    let cancelled = false;
-    getHealthSummary()
+    const seq = ++requestSeq.current;
+    getHealthSummary(days)
       .then((panel) => {
-        if (!cancelled) setState({ kind: "ready", panel });
+        if (seq !== requestSeq.current) return;
+        setState({
+          kind: "ready",
+          panel,
+          refreshing: false,
+          refreshError: null,
+        });
       })
       .catch((err: unknown) => {
-        if (cancelled) return;
-        setState({
-          kind: "error",
-          message: err instanceof Error ? err.message : "Erro inesperado",
-        });
+        if (seq !== requestSeq.current) return;
+        const message = err instanceof Error ? err.message : "Erro inesperado";
+        setState((prev) =>
+          prev.kind === "ready"
+            ? { ...prev, refreshing: false, refreshError: message }
+            : { kind: "error", message },
+        );
       });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  }, [days]);
+
+  // Troca de janela no handler (regra react-hooks/set-state-in-effect):
+  // mantém os dados atuais visíveis (HWF-04) e o effect busca a nova.
+  function changeWindow(next: WindowDays) {
+    if (next === days) return;
+    setDays(next);
+    setState((prev) =>
+      prev.kind === "ready"
+        ? { ...prev, refreshing: true, refreshError: null }
+        : prev,
+    );
+  }
 
   if (state.kind === "loading") {
     return <p className="mt-6 text-sm text-muted">Carregando saúde…</p>;
@@ -94,8 +168,21 @@ export default function HealthPanel() {
 
   return (
     <div className="mt-4">
+      {/* Seletor de janela (HWF-01): aplica a todas as seções */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <WindowFilter days={days} onSelect={changeWindow} />
+        {state.refreshing && (
+          <span className="text-sm text-muted">atualizando…</span>
+        )}
+      </div>
+      {state.refreshError !== null && (
+        <p className="mt-2 rounded-xl border border-white/10 bg-card px-3 py-2 text-sm text-muted">
+          Não foi possível atualizar a janela: {state.refreshError}
+        </p>
+      )}
+
       {/* Linha-guia (CLR-26): o fio que conecta as 5 seções */}
-      <p className="text-sm text-muted">
+      <p className="mt-3 text-sm text-muted">
         O fio: o sono recupera, o treino impõe carga, o corpo responde,
         dormir mal custa — e a vida fora da corrida sustenta tudo.
       </p>
@@ -130,7 +217,7 @@ export default function HealthPanel() {
       <PanelSection
         index={2}
         title="Carga de treino"
-        subtitle="Quanta carga estou impondo ao corpo? A curva de 60 dias traz fitness (CTL), fadiga (ATL) e forma (TSB) — carga acima da que o corpo absorve compromete recuperação e adaptação."
+        subtitle={`Quanta carga estou impondo ao corpo? A curva de ${days} dias traz fitness (CTL), fadiga (ATL) e forma (TSB) — carga acima da que o corpo absorve compromete recuperação e adaptação.`}
       >
         {pmc !== null ? (
           <div className="rounded-xl border border-white/10 bg-card p-3">
@@ -153,8 +240,9 @@ export default function HealthPanel() {
           {hrv !== null ? (
             <div className="rounded-xl border border-white/10 bg-card p-3">
               <HrvChart hrv={hrv} />
-              {/* Valores diários com paginação (hrv-baseline, HRV-10..12) */}
-              <HrvTable hrv={hrv} />
+              {/* Valores diários com paginação (hrv-baseline, HRV-10..12);
+                  remount por janela reseta a página (HWF-07) */}
+              <HrvTable key={days} hrv={hrv} />
             </div>
           ) : (
             <BlockEmpty>

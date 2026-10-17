@@ -2,8 +2,9 @@
 
 // Tabela diária de HRV (hrv-baseline, HRV-10..12) — noites individuais
 // com a média 7d de cada dia, 7 linhas por página (client-side sobre a
-// janela carregada de 60 dias); controles Anterior/Próxima e indicador
-// "atual/total" só quando há mais de 7 dias com dado.
+// janela carregada, definida pelo filtro de tempo do painel); controles
+// Anterior/Próxima e indicador "atual/total" só quando há mais de 7 dias
+// com dado.
 
 import { useState } from "react";
 
