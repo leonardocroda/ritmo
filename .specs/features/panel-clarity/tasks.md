@@ -315,11 +315,11 @@ T11 → T12
 
 **Done when**:
 
-- [ ] 3 blocos na ordem "Onde estou" → "O que isso prevê" → "O que o relógio estima"; nenhum bloco/seção de carga (CLR-22/25)
-- [ ] Subtítulo do "Onde estou" explica VDOT (régua de Daniels), corrente (teste calibrado), demonstrado (melhor prova máxima) e a lacuna % (CLR-18)
-- [ ] `vo2max === null` → bloco 3 inteiro ausente; `decay` vazio → sub-bloco decaimento fora (CLR-23); bloco 3 mantém selo "estimativa" + nota de hierarquia do `Vo2maxTrend` (CLR-21)
-- [ ] Empty check: `timeline.length <= 1 && vo2max === null && decay.length === 0` → estado vazio orientando sync (CLR-24); uso/import de `PmcChart` removido
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] 3 blocos na ordem "Onde estou" → "O que isso prevê" → "O que o relógio estima"; nenhum bloco/seção de carga (CLR-22/25)
+- [x] Subtítulo do "Onde estou" explica VDOT (régua de Daniels), corrente (teste calibrado), demonstrado (melhor prova máxima) e a lacuna % (CLR-18)
+- [x] `vo2max === null` → bloco 3 inteiro ausente; `decay` vazio → sub-bloco decaimento fora (CLR-23); bloco 3 mantém selo "estimativa" + nota de hierarquia do `Vo2maxTrend` (CLR-21)
+- [x] Empty check: `timeline.length <= 1 && vo2max === null && decay.length === 0` → estado vazio orientando sync (CLR-24); uso/import de `PmcChart` removido
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none
 **Gate**: build

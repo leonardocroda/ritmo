@@ -1,17 +1,21 @@
 "use client";
 
 // Painel Potencial (§4.4) — página-composição: busca /api/potential em 1
-// round-trip e monta as seções condicionalmente (padrão WorkoutDetail):
-// card da lacuna com a narrativa honesta de §9.5 + timeline VDOT com
-// faixa (AD-004), previsões vs PRs, curva PMC, VO2max do relógio (só
-// quando existe — POT-27) e decaimento (só com PRs canônicos).
+// round-trip e monta os 3 blocos narrativos da panel-clarity (CLR-17):
+// Onde estou → O que isso prevê → O que o relógio estima. Card da lacuna
+// com a narrativa honesta de §9.5 + timeline VDOT com faixa (AD-004),
+// previsões vs PRs, decaimento (só com PRs canônicos) e VO2max do relógio
+// (bloco inteiro ausente quando não existe — POT-27/CLR-22). Sem PMC: a
+// curva de carga mora no painel Saúde (CLR-25); a linha-guia do topo
+// carrega a pergunta do painel e a régua provas/testes > estimativas
+// (AD-005, CLR-27).
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 
 import { getPotential, type PotentialOut, type VdotBlock } from "@/lib/api";
 import { formatVdot } from "@/lib/format";
+import PanelSection from "@/components/PanelSection";
 import DecayTable from "@/components/potential/DecayTable";
-import PmcChart from "@/components/health/PmcChart";
 import PredictionsTable from "@/components/potential/PredictionsTable";
 import VdotTimeline from "@/components/potential/VdotTimeline";
 import Vo2maxTrend from "@/components/potential/Vo2maxTrend";
@@ -36,7 +40,9 @@ function GapCard({ vdot }: { vdot: VdotBlock }) {
         <span className="text-3xl font-semibold tracking-tight tabular-nums">
           {gap_pct !== null ? `${formatVdot(gap_pct)}%` : "—"}
         </span>
-        <span className="text-sm text-muted">do potencial já liberado</span>
+        <span className="text-sm text-muted">
+          do potencial demonstrado que o teste atual valida
+        </span>
       </p>
       {demonstrated !== null && (
         <p className="mt-2 text-sm">
@@ -46,15 +52,6 @@ function GapCard({ vdot }: { vdot: VdotBlock }) {
         </p>
       )}
     </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="mt-6">
-      <h2 className="text-sm font-medium text-muted">{title}</h2>
-      <div className="mt-2">{children}</div>
-    </section>
   );
 }
 
@@ -91,13 +88,13 @@ export default function PotentialPanel() {
     );
   }
 
-  const { vdot, predictions, pmc, vo2max, decay } = state.panel;
+  const { vdot, predictions, vo2max, decay } = state.panel;
 
-  // Estado vazio (padrão WorkoutsList): nada de pessoal no banco — só o
-  // teste de calibração do arquivo, sem PMC/VO2max/PRs — aponta o sync.
+  // Estado vazio recalculado sem o pmc (CLR-24, padrão WorkoutsList): nada
+  // de pessoal no banco — só o teste de calibração do arquivo, sem
+  // VO2max/PRs — aponta o sync.
   if (
     vdot.timeline.length <= 1 &&
-    pmc === null &&
     vo2max === null &&
     decay.length === 0
   ) {
@@ -111,45 +108,43 @@ export default function PotentialPanel() {
 
   return (
     <div className="mt-4">
-      <GapCard vdot={vdot} />
+      {/* Linha-guia (CLR-27): a pergunta do painel + a régua de leitura */}
+      <p className="text-sm text-muted">
+        Qual é o meu máximo e a que distância dele estou? A régua: provas e
+        testes de campo medem, estimativas do relógio só aproximam.
+      </p>
 
-      <Section title="Timeline VDOT">
-        <div className="rounded-xl border border-white/10 bg-card p-3">
-          <VdotTimeline vdot={vdot} />
-        </div>
-      </Section>
-
-      <Section title="Previsões vs PRs">
-        <PredictionsTable predictions={predictions} />
-      </Section>
-
-      {pmc !== null ? (
-        <Section title="Carga (PMC)">
+      <PanelSection
+        title="Onde estou"
+        subtitle="VDOT é a régua de equivalência de Daniels — um tempo numa distância vira capacidade aeróbica. O corrente vem do último teste calibrado, o demonstrado da melhor prova máxima; a lacuna % é quanto do demonstrado o teste atual valida."
+      >
+        <div className="space-y-3">
+          <GapCard vdot={vdot} />
           <div className="rounded-xl border border-white/10 bg-card p-3">
-            <PmcChart pmc={pmc} />
+            <VdotTimeline vdot={vdot} />
           </div>
-        </Section>
-      ) : (
-        <Section title="Carga (PMC)">
-          <p className="rounded-xl border border-white/10 bg-card px-4 py-6 text-sm text-muted">
-            Sem curva de carga ainda — ela nasce no primeiro sync, que acumula
-            o treino dos últimos dias.
-          </p>
-        </Section>
-      )}
+        </div>
+      </PanelSection>
+
+      <PanelSection
+        title="O que isso prevê"
+        subtitle="O que cada método prevê para 5K, 10K, meia e maratona contra os seus PRs — e o decaimento por distância: onde o pace real foge do ideal da equivalência."
+      >
+        <div className="space-y-3">
+          <PredictionsTable predictions={predictions} />
+          {decay.length > 0 && <DecayTable rows={decay} />}
+        </div>
+      </PanelSection>
 
       {vo2max !== null && (
-        <Section title="VO2max">
+        <PanelSection
+          title="O que o relógio estima"
+          subtitle="Tendência do VO2max que o algoritmo do relógio estima a partir de ritmo e FC — referência que fica abaixo de provas e testes na hierarquia de métricas."
+        >
           <div className="rounded-xl border border-white/10 bg-card p-3">
             <Vo2maxTrend vo2max={vo2max} />
           </div>
-        </Section>
-      )}
-
-      {decay.length > 0 && (
-        <Section title="Decaimento por distância">
-          <DecayTable rows={decay} />
-        </Section>
+        </PanelSection>
       )}
     </div>
   );

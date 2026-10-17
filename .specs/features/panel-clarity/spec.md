@@ -181,17 +181,17 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | CLR-14 | P1: Cabeçalhos Saúde | Design | Implementing |
 | CLR-15 | P1: Cabeçalhos Saúde | Design | Implementing |
 | CLR-16 | P1: Cabeçalhos Saúde | Design | Implementing |
-| CLR-17 | P1: Potencial narrativo | Design | Pending |
-| CLR-18 | P1: Potencial narrativo | Design | Pending |
+| CLR-17 | P1: Potencial narrativo | Design | Implementing |
+| CLR-18 | P1: Potencial narrativo | Design | Implementing |
 | CLR-19 | P1: Potencial narrativo | Design | Implementing |
 | CLR-20 | P1: Potencial narrativo | Design | Implementing |
-| CLR-21 | P1: Potencial narrativo | Design | Pending |
-| CLR-22 | P1: Potencial narrativo | Design | Pending |
-| CLR-23 | P1: Potencial narrativo | Design | Pending |
-| CLR-24 | P1: Potencial narrativo | Design | Pending |
-| CLR-25 | P1: Potencial narrativo | Design | Pending |
+| CLR-21 | P1: Potencial narrativo | Design | Implementing |
+| CLR-22 | P1: Potencial narrativo | Design | Implementing |
+| CLR-23 | P1: Potencial narrativo | Design | Implementing |
+| CLR-24 | P1: Potencial narrativo | Design | Implementing |
+| CLR-25 | P1: Potencial narrativo | Design | Implementing |
 | CLR-26 | P2: Linha-guia | Design | Implementing |
-| CLR-27 | P2: Linha-guia | Design | Pending |
+| CLR-27 | P2: Linha-guia | Design | Implementing |
 
 **Coverage:** 27 total, 27 mapped to stories, 0 unmapped ✅
 
