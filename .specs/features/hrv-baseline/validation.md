@@ -175,3 +175,18 @@ Nenhum. 14/14 ACs implementados verificados (HRV-01..13 + HRV-15); HRV-14 P3 def
 **Issues found**: nenhum bloqueante. Notas não-gaps: (1) duas cosméticas em testes (docstring `test_sync_config.py:35` desatualizada, typo `test_health_api.py:342`); (2) UAT real 390px e o exemplo-real do usuário seguem após este Verifier (per Handoff — dependem do re-sync 120d para a banda completa nos 60 dias).
 
 **Next steps**: UAT no celular 390px + re-sync completo (limpar `sync_state` dos tipos de saúde) para colher os 60 dias extras de backfill. Lições: nenhum sinal (PASS limpo, 0 mutantes sobreviventes, 0 gaps, 0 ACs falhos) — nada a registrar.
+
+---
+
+## Addendum — Interactive UAT (pós-Verifier, 2026-10-17)
+
+UAT real no celular 390px, dados do usuário, stack local recriada para o teste (`docker compose up -d --build backend frontend` — o código é queimado na imagem, containers antigos serviam a versão anterior; após o rebuild o modelo novo renderizou). Dados no momento do teste: **última noite 69,0 · média 7d 76,5 · banda 66,9–85,2 → BALANCED** — o exemplo canônico da spec (69/76/~70–98) confirmado ao vivo.
+
+| # | Test | Result | Details |
+| - | ---- | ------ | ------- |
+| 1 | Bloco HRV completo com dados reais (banda por dia, linha 7d, noites discretas, card com status local + banda, tabela 7/página) | ✅ Pass | Usuário: "deu certo! sucesso demais!" |
+| 2 | Fix de UAT — hierarquia do card: média 7d no destaque (ela decide o status), última noite na linha de contexto | ✅ Pass (pós-fix) | `fb3dc9b` (`fix(ui): make 7d average the hrv card headline`); decisão registrada em `context.md` §"Hierarquia do card"; usuário: "aprovado!" |
+
+Notas: (1) UAT realizado **sem** o re-sync 120d — a banda cobriu a porção recente da janela e o threshold por dia comunicou a ausência no início (comportamento da spec, HRV-05); o re-sync completo (`DELETE FROM sync_state WHERE data_type IN ('sleep','hrv','rhr','stress','body_battery')` + "Puxar do Garmin") segue como ops opcional para banda de janela cheia nos 60 dias; (2) Success Criterion 4 (tabela 7/página sem quebra em 390px) confirmado pela aprovação; (3) as 2 notas cosméticas do Verifier foram corrigidas em `f973808`.
+
+**UAT**: ✅ **Aprovado pelo usuário (17/10/2026). Feature encerrada.**
