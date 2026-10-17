@@ -129,20 +129,21 @@ export default function HrvChart({ hrv }: { hrv: HrvBlock }) {
 
   return (
     <div>
-      <p className="text-xs text-muted">Último dia</p>
+      <p className="text-xs text-muted">Média 7 dias</p>
       <p className="mt-1 flex items-baseline gap-2">
         <span className="text-3xl font-semibold tracking-tight tabular-nums">
-          {formatVdot(current.value)} ms
+          {formatVdot(current.avg7)} ms
         </span>
         {/* Badge textual: status local do payload (HRV-06/08 — sem
-            tradução inventada; null = coletando linha de base) */}
+            tradução inventada; null = coletando linha de base). O número
+            em destaque é a média 7d — é ela que decide o status (UAT) */}
         <span className="rounded-full border border-white/10 bg-card px-2 py-0.5 text-xs text-muted">
           {current.status ?? "coletando linha de base…"}
         </span>
       </p>
-      {/* Contexto do status (HRV-07): a média 7d e os limites da banda */}
+      {/* Contexto (HRV-07/08): a última noite e os limites da banda */}
       <p className="mt-1 text-xs text-muted">
-        média 7d {formatVdot(current.avg7)} ms
+        última noite {formatVdot(current.value)} ms
         {current.band_low != null && current.band_high != null && (
           <>
             {" · banda "}

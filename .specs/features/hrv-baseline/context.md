@@ -23,6 +23,10 @@ O bloco de HRV do painel Saúde passa a avaliar HRV no modelo científico (Altin
 
 - **Linha 7d + pontos diários + banda** (padrão Altini): pontos discretos das noites individuais, linha de média móvel de 7 dias por cima, faixa normal como banda ao fundo. A relação noite↔baseline fica visível e explica o status.
 
+### Hierarquia do card (decisão de UAT, 17/10/2026)
+
+- **Destaque do card = média 7d** — é ela que decide BALANCED/UNBALANCED. A última noite desce para a linha de contexto, ao lado dos limites da banda. Ajuste pós-UAT solicitado pelo usuário ("o número que diz se tá balanced merece o destaque").
+
 ### Método científico (resultado da pesquisa encomendada pelo usuário)
 
 - Garmin (oficial): status compara média móvel de 7 dias contra uma faixa pessoal (range, ex. 70–98 ms); ~3 semanas para ativar; fórmula não publicada.
