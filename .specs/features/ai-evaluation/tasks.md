@@ -240,12 +240,12 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Avaliação happy path (NIM mockada via monkeypatch) persiste TODOS os campos: `intent_type`, `intent_text`, `payload_json`, `model`, `prompt_version="v1"`, `verdict`, `verdict_json`, `tokens_in/out` do usage — e `activity.evaluated` vira True (EVAL-04/06)
-- [ ] Sanitização: LLM ecoa `pct_zona_alvo` errado → linha gravada com o valor Python (AD-003 sem brecha)
-- [ ] Re-avaliação do mesmo treino → 2 linhas, primeira intacta (EVAL-19 — nunca sobrescreve)
-- [ ] `NimError`/veredito inválido → 0 linhas de `Evaluation` e `evaluated` inalterado (Decisão E)
-- [ ] `activity_id` inexistente → None (404 na T7)
-- [ ] Gate passa; contagem sobe
+- [x] Avaliação happy path (NIM mockada via monkeypatch) persiste TODOS os campos: `intent_type`, `intent_text`, `payload_json`, `model`, `prompt_version="v1"`, `verdict`, `verdict_json`, `tokens_in/out` do usage — e `activity.evaluated` vira True (EVAL-04/06)
+- [x] Sanitização: LLM ecoa `pct_zona_alvo` errado → linha gravada com o valor Python (AD-003 sem brecha); progressivo → null mesmo com eco
+- [x] Re-avaliação do mesmo treino → 2 linhas, primeira intacta (EVAL-19 — nunca sobrescreve)
+- [x] `NimError`/veredito inválido → 0 linhas de `Evaluation` e `evaluated` inalterado (Decisão E — teste faz o rollback do get_db e confere por query fresca)
+- [x] `activity_id` inexistente → None (404 na T7)
+- [x] Gate passa; contagem sobe (331 = 323 + 8)
 
 **Tests**: integration
 **Gate**: quick

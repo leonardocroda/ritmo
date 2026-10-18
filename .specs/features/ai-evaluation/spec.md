@@ -123,7 +123,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | EVAL-03 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-04 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-05 | P1: Avaliar um treino e ver o veredito | Design | Pending |
-| EVAL-06 | P1: Avaliar um treino e ver o veredito | Design | Pending |
+| EVAL-06 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-07 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-08 | P1: Avaliar um treino e ver o veredito | Design | Pending |
 | EVAL-09 | P1: Avaliar um treino e ver o veredito | Design | Pending |
@@ -136,7 +136,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | EVAL-16 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-17 | P2: Histórico e re-avaliação | Design | Pending |
 | EVAL-18 | P2: Histórico e re-avaliação | Design | Pending |
-| EVAL-19 | P2: Histórico e re-avaliação | Design | Pending |
+| EVAL-19 | P2: Histórico e re-avaliação | Execute | Implementing |
 | EVAL-20 | P2: Histórico e re-avaliação | Design | Pending |
 
 **Coverage:** 20 total, 20 mapped to stories, 0 unmapped ✅
