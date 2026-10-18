@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/ai-evaluation/design.md`
-**Status**: In Progress
+**Status**: Done
 
 ---
 
@@ -436,9 +436,9 @@ T12 → T13
 
 **Done when**:
 
-- [ ] README documenta o fluxo de avaliação (intenção → payload → NIM → card), as vars `NVIDIA_TIMEOUT_S`/`LTHR_BPM` e o comportamento de falha (nada gravado)
-- [ ] PLANO: item da Fase 1 marcado como concluído
-- [ ] Nenhuma mudança de código nesta task (docs puras)
+- [x] README documenta o fluxo de avaliação (intenção → payload → NIM → card), as vars `NVIDIA_TIMEOUT_S`/`LTHR_BPM` e o comportamento de falha (nada gravado)
+- [x] PLANO: item da Fase 1 marcado como concluído
+- [x] Nenhuma mudança de código nesta task (docs puras)
 
 **Tests**: none
 **Gate**: build (docs — nenhum comando de código)
