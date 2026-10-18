@@ -380,11 +380,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Card renderiza todos os campos do `VerdictJson` com o selo mapeado por veredito
-- [ ] `pct_zona_alvo` null → linha omitida (nada inventado); confiança com sinal visual discreto
-- [ ] Rodapé: modelo · tokens · data (auditoria visível)
-- [ ] Histórico: cada avaliação anterior como entrada resumida (data, selo, headline)
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Card renderiza todos os campos do `VerdictJson` com o selo mapeado por veredito
+- [x] `pct_zona_alvo` null → linha omitida (nada inventado); confiança com sinal visual discreto
+- [x] Rodapé: modelo · tokens · data (auditoria visível)
+- [x] Histórico: cada avaliação anterior como entrada resumida (data, selo, headline)
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none
 **Gate**: build
