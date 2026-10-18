@@ -297,11 +297,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Detalhe de treino com 2 avaliações → `evaluations` com a mais recente primeiro (ordem pinada)
-- [ ] Detalhe sem avaliações → `evaluations: []` (estado vazio, não erro)
-- [ ] `ActivityOut` traz `activity_type` (não-corrida também — a UI precisa distinguir)
-- [ ] Testes de regressão do detalhe existente seguem verdes (contrato só ganhou campos)
-- [ ] Gate full passa; contagem sobe
+- [x] Detalhe de treino com 2 avaliações → `evaluations` com a mais recente primeiro (ordem pinada)
+- [x] Detalhe sem avaliações → `evaluations: []` (estado vazio, não erro)
+- [x] `ActivityOut` traz `activity_type` (não-corrida também — a UI precisa distinguir)
+- [x] Testes de regressão do detalhe existente seguem verdes (contrato só ganhou campos)
+- [x] Gate full passa; contagem sobe (344 = 341 + 3; `list_evaluations` consumido via import em nível de função — ciclo activities↔evaluation evitado, implementação única)
 
 **Tests**: integration
 **Gate**: full

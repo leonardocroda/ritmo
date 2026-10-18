@@ -16,7 +16,7 @@ from sqlalchemy import select
 from app.activities import router as activities_router
 from app.activities import service
 from app.db.engine import SessionLocal
-from app.db.models import Activity, Hrv, Rhr, Sleep, Split
+from app.db.models import Activity, Evaluation, Hrv, Rhr, Sleep, Split
 from app.main import app
 from app.vdot.zones import ZoneConfigError
 
@@ -511,3 +511,81 @@ def test_detail_context_null_when_no_health_data_for_date(client) -> None:
 
     detail = _get_detail(client, activity_id)
     assert detail["context"] == {"sleep": None, "hrv": None, "rhr": None}
+
+
+# ---------------------------------------------------------------
+# T8 (ai-evaluation) — Detalhe expõe avaliações + activity_type
+# ---------------------------------------------------------------
+
+
+def _seed_evaluation(db, activity_id: int, *, verdict: str, created_at: datetime) -> None:
+    db.add(
+        Evaluation(
+            activity_id=activity_id,
+            intent_type="facil",
+            intent_text=None,
+            payload_json={"intencao": {"tipo": "facil", "texto": None}},
+            model="z-ai/glm-5.3",
+            prompt_version="v1",
+            verdict=verdict,
+            verdict_json={"veredito": verdict},
+            tokens_in=1234,
+            tokens_out=56,
+            created_at=created_at,
+        )
+    )
+
+
+def test_detail_exposes_evaluations_newest_first(client) -> None:
+    """EVAL-17: avaliações do treino no detalhe, mais recente primeiro."""
+    with SessionLocal() as db:
+        activity = _seed_easy_run(db, garmin_id="801", start=datetime(2026, 10, 13, 7, 0))
+        db.flush()
+        _seed_evaluation(
+            db, activity.id, verdict="too_hard", created_at=datetime(2026, 10, 15, 8, 0, 0)
+        )
+        _seed_evaluation(
+            db, activity.id, verdict="on_target", created_at=datetime(2026, 10, 16, 9, 0, 0)
+        )
+        db.commit()
+        activity_id = activity.id
+
+    detail = _get_detail(client, activity_id)
+    evaluations = detail["evaluations"]
+    assert [e["verdict"] for e in evaluations] == ["on_target", "too_hard"]
+    newest = evaluations[0]
+    assert newest["activity_id"] == activity_id
+    assert newest["intent_type"] == "facil"
+    assert newest["model"] == "z-ai/glm-5.3"
+    assert newest["prompt_version"] == "v1"
+    assert newest["tokens_in"] == 1234
+    assert newest["tokens_out"] == 56
+    assert newest["verdict_json"] == {"veredito": "on_target"}
+
+
+def test_detail_without_evaluations_returns_empty_list(client) -> None:
+    """EVAL-17: sem avaliações -> lista vazia (estado vazio, não erro)."""
+    with SessionLocal() as db:
+        activity = _seed_easy_run(db, garmin_id="802", start=datetime(2026, 10, 13, 7, 0))
+        db.commit()
+        activity_id = activity.id
+
+    detail = _get_detail(client, activity_id)
+    assert detail["evaluations"] == []
+
+
+def test_detail_exposes_activity_type(client) -> None:
+    """Contrato aditivo do ai-evaluation: a UI distingue corrida para
+    renderizar o formulário de avaliação (EVAL-10)."""
+    with SessionLocal() as db:
+        run = _seed_easy_run(db, garmin_id="803", start=datetime(2026, 10, 13, 7, 0))
+        yoga = _seed_activity(
+            db, garmin_id="804", start=datetime(2026, 10, 13, 19, 0),
+            activity_type="yoga", name="Ioga", distance_m=0.0, duration_s=2681.0,
+            avg_hr=61,
+        )
+        db.commit()
+        run_id, yoga_id = run.id, yoga.id
+
+    assert _get_detail(client, run_id)["activity"]["activity_type"] == "running"
+    assert _get_detail(client, yoga_id)["activity"]["activity_type"] == "yoga"

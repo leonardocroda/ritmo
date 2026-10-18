@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from app.activities import service
 from app.core.config import get_settings
 from app.db.engine import get_db
+from app.evaluation.schemas import EvaluationOut
 from app.vdot.zones import ZoneConfig, ZoneConfigError, load_zone_config
 
 router = APIRouter(prefix="/api/activities")
@@ -44,6 +45,7 @@ class ActivityListOut(BaseModel):
 class ActivityOut(BaseModel):
     id: int
     start_time: datetime
+    activity_type: str
     name: str | None
     distance_m: float
     duration_s: float
@@ -88,6 +90,7 @@ class ActivityDetailOut(BaseModel):
     hr_color: str
     consistency: dict | None
     context: dict
+    evaluations: list[EvaluationOut]
 
 
 def get_zone_config() -> ZoneConfig:

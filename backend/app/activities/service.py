@@ -216,10 +216,16 @@ def get_activity_detail(
             }
         )
 
+    # Import em nível de função: evaluation.service importa este módulo
+    # (reuso do get_activity_detail no motor de avaliação) — no topo o
+    # import seria circular. Uma única implementação da lista (EVAL-17).
+    from app.evaluation.service import list_evaluations
+
     return {
         "activity": {
             "id": activity.id,
             "start_time": activity.start_time,
+            "activity_type": activity.activity_type,
             "name": activity.name,
             "distance_m": activity.distance_m,
             "duration_s": activity.duration_s,
@@ -240,4 +246,5 @@ def get_activity_detail(
         "hr_color": HR_LINE_COLOR,
         "consistency": consistency_metrics(splits, activity.distance_m),
         "context": _context(db, activity, splits),
+        "evaluations": list_evaluations(db, activity.id),
     }
