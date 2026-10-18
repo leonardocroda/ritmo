@@ -92,11 +92,11 @@
 
 ## Handoff
 
-- **Feature**: none — painel Hoje discutido (17/10/2026) e **adiado por decisão do usuário** (AD-011); nenhuma feature aberta
-- **Phase / Task**: n/a
-- **Completed**: discuss de escopo do painel Hoje (§4.2/§9.1): 4 áreas cinzentas mapeadas (CRUD `races`, % do bloco, "planejado vs executado", seletor de janela) → análise de ganho: v1 marginal (readiness duplica o Saúde; alertas são Fase 2; semana "planejada" sem fonte de dados) → decisão de adiar; anterior: `health-window` concluída e aprovada no UAT (`68857ee`, validação em `.specs/features/health-window/validation.md`)
+- **Feature**: `ai-evaluation` (Avaliar com IA) — **concluída e validada** (PASS, `1046384`); range de código `33a06ac..d1c11d1` (15 commits: spec + T1-T13 + fix do Verifier); 355 testes no Postgres do compose; relatório em `.specs/features/ai-evaluation/validation.md` (20/20 ACs, sensor 6/6, UAT ao vivo pendente)
+- **Phase / Task**: Execute concluído — 13/13 tasks + task de fix (`d1c11d1`, pinos do Verifier); lições L-007..L-013 registradas (candidates→confirmadas pela iteração 0 do Verifier)
+- **Completed**: motor híbrido Python+LLM (payload determinístico → NIM glm-5.3 → JSON §9.2 validado e sanitizado → persistência com model/prompt_version/tokens); `POST /api/activities/{id}/evaluate` com mapa 404/422×3/503/502×2/504/500; detalhe expõe `evaluations` + `activity_type`; UI: EvaluateForm (pré-fill `inferred_type`, "Analisando treino…") + EvaluationCard (selo ✅⚠️❌, rodapé modelo·tokens·data) + histórico; docs (README + PLANO §6 Fase 1 marcado)
 - **In-progress**: none
-- **Next step**: **Avaliar com IA** (§4.6, motor híbrido Python+LLM: payload determinístico → NIM → JSON de veredito) — a meta declarada da Fase 1 e o próximo spec a abrir; painel Hoje volta pós-08/11 com spec novo a partir de evidência de uso (não ressuscitar §9.1 — AD-011); ops opcional do usuário: re-sync completo (`DELETE FROM sync_state WHERE data_type IN ('sleep','hrv','rhr','stress','body_battery')` + "Puxar do Garmin") para a banda HRV cobrir os 60 dias exibidos; pendências menores vivas: sync de passos/NEAT como feature própria, sequência `users_pkey` desincronizada no `init_db` (Fase 2.5), lições L-005/L-006 (candidates)
+- **Next step**: **UAT ao vivo** (o único item aberto do validation.md): com `NVIDIA_API_KEY` real no `backend/.env` e o stack rebuildado (`docker compose up -d --build backend frontend`), avaliar um treino real no celular 390px — roteiros: (1) corrida fácil acima da zona easy nunca ✅ (intenção primeiro), (2) re-avaliação cria linha nova e o card troca, (3) falha honesta com key vazia (503 inline), (4) tokens gravados conferem com o usage; depois, se aprovado, registrar a "Validação real" no README e promover as lições candidates L-005/L-006 se aplicável
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main
