@@ -96,7 +96,7 @@
 - **Phase / Task**: Execute concluído — 20 tasks no total (T1-T13 + T14-T20 da emenda); código `4019ad8..d6fa4bd`
 - **Completed**: avaliação como **job em background** (emenda 18/10, decisão do usuário): POST cria `pending` (201, payload montado, zero NIM no request) → worker BackgroundTasks consome NIM → `done` (veredito sanitizado + tokens + evaluated) ou `error` com o motivo NA LINHA — a tentativa nunca se perde; recovery de órfãs no startup; UI com polling ~2s (card "Analisando treino…" → veredito; card de erro com a causa); modelo A/B testado ao vivo (glm-5.3 thinking e flash — 429 do flash também vira linha error com motivo)
 - **In-progress**: none
-- **Next step**: **UAT ao vivo final** no celular 390px com o stack novo (rebuild já feito): pedir avaliação → card pending → veredito sem recarregar; 429/erro vira card de erro com motivo e a tentativa fica no histórico; restart do backend com avaliação em curso → "interrompida"; decidir NVIDIA_MODEL padrão no `.env` (flash vs full — ambos testados); registrar lição de latência/429 se o padrão se repetir; depois: Fase 2 do plano (revisão semanal IA, histórico agregado, story)
+- **Next step**: **Fase 1 encerrada** (Avaliar com IA aprovada no UAT, 18/10): Fase 2 do plano (§6) — revisão semanal por IA, histórico agregado de avaliações + % no alvo, story com veredito, calibração de zonas no app; pendências menores vivas: sync de passos/NEAT como feature própria, sequência `users_pkey` desincronizada no `init_db` (Fase 2.5); decisão aberta de produto: NVIDIA_MODEL padrão no `.env` (flash no dia a dia vs glm-5.3 para análises profundas — A/B já feito)
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main (commits locais; push só com go-ahead do usuário)

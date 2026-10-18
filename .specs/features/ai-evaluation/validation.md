@@ -153,14 +153,16 @@ Tasks T1-T13: ✅ (validação anterior, nenhuma regressão — arquivos de payl
 
 ## Interactive UAT
 
-Não executado (subagente sem acesso interativo; UAT ao vivo com NIM real é do usuário, que está UAT-ando em paralelo — não é gap deste verificador). Roteiros atualizados para a emenda:
+**APROVADO pelo usuário (18/10/2026 — "ficou muito bom!")** — UAT ao vivo com NIM real (key do build.nvidia.com), acesso pelo celular via LAN (`http://192.168.15.16:3000`, `NEXT_PUBLIC_API_URL` fixado no compose):
 
 | # | Teste | Result |
 | - | ----- | ------ |
-| 1 | Avaliar corrida real → card pending na hora ("Analisando treino…", botão travado) → polling troca para veredito sem recarregar; tokens/modelo/data no rodapé | ⏭️ Pendente (usuário) |
-| 2 | Simular falha (key inválida/NIM fora) → card de erro com o motivo; tentativa preservada no histórico; botão volta | ⏭️ Pendente (usuário) |
-| 3 | Restart do backend com avaliação em curso → linha vira error "interrompida" (recovery visível) | ⏭️ Pendente (usuário) |
-| 4 | Spot-check: treino fácil acima da zona easy nunca sai ✅ | ⏭️ Pendente (usuário) |
+| 1 | Avaliar corrida real (longão, activity 242, intenção rica) → card pending na hora ("Analisando treino…", botão travado) → veredito sem recarregar; tokens/modelo/data no rodapé | ✅ Aprovado — glm-5.3 (thinking) e flash testados; o glm-5.3 passou de 120s (motor dos fixes de timeout/max_tokens) |
+| 2 | Falha ao vivo (HTTP 429 — teto de 40rpm do modelo atingido) → linha `error` com o motivo gravado, tentativa preservada no histórico | ✅ Aprovado — a dor "tomar um erro e perder tudo" virou o motor da emenda job |
+| 3 | Restart do backend com avaliação em curso → linha vira error "interrompida" (recovery visível) | ⏭️ Opcional (roteiro disponível; recovery coberto pelos testes EVAL-24) |
+| 4 | Spot-check: treino fácil acima da zona easy nunca sai ✅ | ✅ Aprovado — veredito do longão condizente com a intenção declarada |
+
+Aprovação do UAT encerra a feature. Roteiro 3 permanece como verificação opcional de ops.
 
 ---
 

@@ -287,8 +287,9 @@ treino…" → card do veredito quando pronto.
   `LTHR_BPM` (default 177 — a recalibração sobrepõe por env).
 
 Validação (18/10/2026): suite com 362 testes no Postgres do compose —
-NIM 100% mockada nos testes, nenhum teste chama a API real; UAT ao vivo
-em andamento (glm-5.3 e flash testados com treino real).
+NIM 100% mockada nos testes, nenhum teste chama a API real. UAT aprovado
+no celular via LAN: glm-5.3 (thinking) e flash testados com treino real;
+HTTP 429 virou linha de erro com motivo — a emenda job nasceu desse UAT.
 
 ## Workflow de desenvolvimento — spec-driven
 
