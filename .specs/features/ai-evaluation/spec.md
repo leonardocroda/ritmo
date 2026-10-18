@@ -126,13 +126,13 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | EVAL-06 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-07 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-08 | P1: Avaliar um treino e ver o veredito | Design | Pending |
-| EVAL-09 | P1: Avaliar um treino e ver o veredito | Design | Pending |
-| EVAL-10 | P1: Avaliar um treino e ver o veredito | Design | Pending |
+| EVAL-09 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
+| EVAL-10 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-11 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
-| EVAL-12 | P1: Avaliar um treino e ver o veredito | Design | Pending |
+| EVAL-12 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-13 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
-| EVAL-14 | P1: Avaliar um treino e ver o veredito | Design | Pending |
-| EVAL-15 | P1: Avaliar um treino e ver o veredito | Design | Pending |
+| EVAL-14 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
+| EVAL-15 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-16 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-17 | P2: Histórico e re-avaliação | Design | Pending |
 | EVAL-18 | P2: Histórico e re-avaliação | Design | Pending |

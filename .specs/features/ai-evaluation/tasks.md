@@ -269,11 +269,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] 200 happy path (NIM mockada) devolve `EvaluationOut` completo via HTTP
-- [ ] 404 id inexistente; 422 atividade não-corrida (yoga semeada); 422 `intent_type` inválido; 422 `intent_text` 501 chars (pydantic automático)
-- [ ] 503 com `NVIDIA_API_KEY` vazia (monkeypatch) — sem chamada à NIM; 502 `NimError`; 502 veredito fora do schema; 504 `NimTimeout`; 500 zonas (arquivo inválido)
-- [ ] Cada erro com mensagem PT-BR clara; nada gravado em nenhum caso de falha (checado no banco)
-- [ ] Gate full passa; contagem sobe
+- [x] 200 happy path (NIM mockada) devolve `EvaluationOut` completo via HTTP
+- [x] 404 id inexistente; 422 atividade não-corrida (yoga semeada); 422 `intent_type` inválido; 422 `intent_text` 501 chars (pydantic automático)
+- [x] 503 com `NVIDIA_API_KEY` vazia (monkeypatch) — sem chamada à NIM; 502 `NimError`; 502 veredito fora do schema; 504 `NimTimeout`; 500 zonas (arquivo inválido)
+- [x] Cada erro com mensagem PT-BR clara; nada gravado em nenhum caso de falha (checado no banco — `_nothing_saved` com query fresca)
+- [x] Gate full passa; contagem sobe (341 = 331 + 10)
 
 **Tests**: integration
 **Gate**: full

@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.activities.router import router as activities_router
 from app.core.config import get_settings
 from app.db.engine import init_db
+from app.evaluation.router import router as evaluation_router
 from app.garmin.router import router as sync_router
 from app.garmin.service import recover_stale_jobs
 from app.health.router import router as health_router
@@ -47,6 +48,7 @@ app.add_middleware(
 
 app.include_router(sync_router)
 app.include_router(activities_router)
+app.include_router(evaluation_router)
 app.include_router(potential_router)
 app.include_router(health_router)
 
