@@ -212,11 +212,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] 200 com JSON limpo → devolve (dict, usage com `prompt_tokens`/`completion_tokens`)
-- [ ] JSON cercado (\`\`\`json) parseia igual; `usage` ausente → `{0, 0}`
-- [ ] HTTP 500 → `NimError`; timeout do httpx → `NimTimeout`; corpo lixo → `NimInvalidJSON`
-- [ ] **Zero chamada à NIM real nos testes** — httpx MockTransport em todos os casos (Success Criteria do spec)
-- [ ] Gate passa; contagem sobe
+- [x] 200 com JSON limpo → devolve (dict, usage com `prompt_tokens`/`completion_tokens`)
+- [x] JSON cercado (\`\`\`json) parseia igual; `usage` ausente → `{0, 0}`
+- [x] HTTP 500 → `NimError`; timeout do httpx → `NimTimeout`; corpo lixo → `NimInvalidJSON`
+- [x] **Zero chamada à NIM real nos testes** — httpx MockTransport em todos os casos (Success Criteria do spec)
+- [x] Gate passa; contagem sobe (323 = 314 + 9)
 
 **Tests**: unit
 **Gate**: quick
