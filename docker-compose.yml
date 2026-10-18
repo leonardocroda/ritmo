@@ -23,6 +23,13 @@ services:
   backend:
     build: ./backend
     container_name: ritmo-backend
+    # `.env` local do backend (NVIDIA_API_KEY da avaliação, overrides de
+    # LTHR/zonas etc.) — OPCIONAL: sem ele o stack sobe igual; presente,
+    # as vars fluem para o container. `environment:` abaixo vence em
+    # conflito (DATABASE_URL do compose aponta para o hostname `postgres`).
+    env_file:
+      - path: backend/.env
+        required: false
     environment:
       DATABASE_URL: postgresql+psycopg://ritmo:ritmo@postgres:5432/ritmo
       # Tokens do host montados dentro do container (SYNC-25) — no Windows
