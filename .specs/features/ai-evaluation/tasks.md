@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/ai-evaluation/design.md`
-**Status**: Done
+**Status**: In Progress (Phase 4 — emenda job)
 
 ---
 
@@ -76,6 +76,14 @@ T9 → T11
 T10 → T12
 T11 → T12
 T12 → T13
+```
+
+### Phase 4: Avaliação como job (emenda 18/10 — padrão SyncJob)
+
+POST cria `pending`, worker em BackgroundTasks consome a NIM, UI polla; a tentativa nunca se perde.
+
+```
+T14 → T15 → T16 → T17 → T18 → T19 → T20
 ```
 
 ---
@@ -447,10 +455,195 @@ T12 → T13
 
 ---
 
+### Phase 4: Avaliação como job (emenda 18/10)
+
+#### T14: Colunas status/error na Evaluation
+
+**What**: `Evaluation` ganha `status: str = "pending"` (pending|done|error) e `error: str | None`; ALTER no banco vivo (psql, `ADD COLUMN IF NOT EXISTS` × 2 + `UPDATE evaluations SET status='done'` para as linhas reais do UAT); docstring cita EVAL-21..23.
+**Where**: `backend/app/db/models.py` (modify)
+**Depends on**: T13
+**Reuses**: padrão de colunas do `SyncJob` (status + error)
+**Requirement**: EVAL-21, EVAL-22, EVAL-23
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] `status` default `pending` e `error` nullable no modelo; suite verde (schema recriado por teste cobre as colunas)
+- [ ] ALTER executado no banco vivo: colunas presentes, linhas do UAT marcadas `done` (verificado por psql)
+- [ ] Gate full passa; contagem mantida (357)
+
+**Tests**: none (entidade — build gate)
+**Gate**: full
+
+**Commit**: `feat(evaluation): add status and error columns to evaluation`
+
+---
+
+#### T15: Status no contrato EvaluationOut
+
+**What**: `EvaluationOut` ganha `status: str` e `error: str | None`; teste de espelho atualizado (status/error presentes; pending com error null válido).
+**Where**: `backend/app/evaluation/schemas.py` (modify)
+**Depends on**: T14
+**Reuses**: convenção pydantic do próprio módulo
+**Requirement**: EVAL-21, EVAL-25
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] `EvaluationOut` espelha as colunas novas
+- [ ] Testes de schema atualizados; gate quick passa; contagem sobe
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `feat(evaluation): expose status in evaluation contract`
+
+---
+
+#### T16: Service vira job (create + worker + recovery)
+
+**What**: `create_evaluation` (valida 404/422, monta payload, cria `status=pending`, commit — **zero NIM no request path**) + `run_evaluation(evaluation_id)` (worker: pending→NIM→§9.2→sanitiza→`done` com veredito/tokens/`evaluated=true`, ou →`error` com o motivo; no-op se não-pending; exceção inesperada → linha error, sem crash) + `recover_stale_evaluations()` (pending órfãs → error "interrompida"); `evaluate()` síncrono removido. Testes de service reescritos para o fluxo de job (create→run direto, padrão run_sync do sync).
+**Where**: `backend/app/evaluation/service.py` (modify)
+**Depends on**: T15
+**Reuses**: padrão job do `garmin/service.py` (entrypoint BackgroundTasks + recover_stale); pipeline payload/prompt/nim/verdict intacto
+**Requirement**: EVAL-21, EVAL-22, EVAL-23, EVAL-24
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] `create_evaluation` cria pending com payload montado e NUNCA chama a NIM (pino por count)
+- [ ] `run_evaluation`: happy path → done com veredito sanitizado + tokens + `evaluated=true`; NimError/ValueError de schema → `error` com motivo na linha; linha não-pending é no-op; exceção inesperada → linha error, sem crash
+- [ ] `recover_stale_evaluations`: pending órfã vira error "interrompida" (EVAL-24)
+- [ ] Gate quick passa; contagem sobe
+
+**Tests**: integration
+**Gate**: quick
+
+**Commit**: `feat(evaluation): run evaluation as background job`
+
+---
+
+#### T17: Endpoint 201 + GET de status + recovery no lifespan
+
+**What**: `POST .../evaluate` → **201 com o registro pending** + `BackgroundTasks.add_task(run_evaluation, id)` (validações síncronas 500/404/422/503 intactas); `GET .../evaluate/{evaluation_id}` (200 EvaluationOut / 404) para o polling; `main.py` lifespan chama `recover_stale_evaluations()`. Testes de API atualizados: 201+pending na resposta, worker conclui ao fim do request (TestClient executa background tasks), erro da NIM → linha error (502/504 HTTP deixam de existir para NIM).
+**Where**: `backend/app/evaluation/router.py` (modify)
+**Depends on**: T16
+**Reuses**: padrão 201+BackgroundTasks do `garmin/router.py`; `recover_stale_jobs` no lifespan
+**Requirement**: EVAL-21, EVAL-23, EVAL-25
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] POST responde 201 com `status=pending`; worker conclui a linha ao fim do request (TestClient)
+- [ ] GET de status: 200 com a avaliação, 404 para id inexistente/de outro treino
+- [ ] Falha da NIM → linha `status=error` com motivo; falhas síncronas (503/404/422/500) iguais e nada criam
+- [ ] Lifespan recupera órfãs no startup
+- [ ] Gate full passa; contagem sobe
+
+**Tests**: integration
+**Gate**: full
+
+**Commit**: `feat(evaluation): async evaluate endpoint with status polling`
+
+---
+
+#### T18: Contrato frontend do job
+
+**What**: `EvaluationOut` ganha `status`/`error` no api.ts; `evaluateActivity` documenta 201/pending; nova `getEvaluation(activityId, evaluationId)` para o polling (~2s, `no-store`).
+**Where**: `frontend/src/lib/api.ts` (modify)
+**Depends on**: T17
+**Reuses**: padrão `parseError`/`no-store` do próprio arquivo
+**Requirement**: EVAL-21, EVAL-25
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] Tipos espelham o contrato novo (status/error); `getEvaluation` pronta para o polling
+- [ ] `npm run build` + `npm run lint` verdes
+
+**Tests**: none
+**Gate**: build
+
+**Commit**: `feat(frontend): evaluation job api contract`
+
+---
+
+#### T19: UI do job — pending card, polling e erro preservado
+
+**What**: `WorkoutDetail` polla (~2s via `getEvaluation`) enquanto existir pending e atualiza a linha no estado local (done → card + `evaluated=true`; error → motivo); `EvaluationCard` renderiza pending ("Analisando treino…") e error (motivo inline) quando a mais recente não está done; `EvaluateForm` recebe `pending` (botão desabilitado enquanto houver avaliação em curso). Confirmar padrões de client component no `node_modules/next/dist/docs/` antes de codar (AGENTS.md).
+**Where**: `frontend/src/components/workouts/WorkoutDetail.tsx` (modify)
+**Depends on**: T18
+**Reuses**: padrão de polling do `SyncButton` (setInterval com cleanup); estados do WorkoutDetail
+**Requirement**: EVAL-08, EVAL-23, EVAL-25
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] Avaliação pedida: card pending aparece na hora; polling troca para veredito quando done — sem recarregar a página
+- [ ] Falha da NIM: card de erro com o motivo gravado; botão volta; tentativa preservada no histórico
+- [ ] Botão desabilitado enquanto existe pending do treino (nenhuma segunda avaliação em fila por clique duplo)
+- [ ] `npm run build` + `npm run lint` verdes
+
+**Tests**: none
+**Gate**: build
+
+**Commit**: `feat(frontend): poll pending evaluation into verdict card`
+
+---
+
+#### T20: Docs — fluxo de job no README
+
+**What**: Seção "Avaliar com IA" do README atualizada para o fluxo de job (201 pending → worker → polling; erro preservado com motivo; recovery no startup); nenhuma mudança de código.
+**Where**: `README.md` (modify)
+**Depends on**: T19
+**Reuses**: seção existente como base
+**Requirement**: EVAL-21..25 (documentação)
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] README documenta o fluxo assíncrono e o comportamento de erro preservado
+- [ ] Nenhuma mudança de código
+
+**Tests**: none
+**Gate**: build (docs — nenhum comando de código)
+
+**Commit**: `docs(evaluation): document async evaluation job flow`
+
+---
+
 ## Phase Execution Map
 
 ```
-Phase 1 → Phase 2 → Phase 3
+Phase 1 → Phase 2 → Phase 3 → Phase 4
 
 Phase 1:  T1 → T4
           T2 e T3 sem dependências (executam em sequência na fase)
@@ -460,6 +653,8 @@ Phase 2:  T5 → T6 → T7
 
 Phase 3:  T9 → T10 → T12 → T13
           T9 → T11
+
+Phase 4:  T14 → T15 → T16 → T17 → T18 → T19 → T20
 ```
 
 Execution is strictly sequential - there is no intra-phase parallelism. A single agent (or batch worker) works one task at a time, in order.

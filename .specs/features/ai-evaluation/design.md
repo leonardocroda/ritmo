@@ -7,29 +7,27 @@
 
 ## Architecture Overview
 
-**Abordagem escolhida (recomendação):** novo domínio `app/evaluation/` seguindo o padrão dos domínios existentes (activities, health, potential) — payload builder que reusa `get_activity_detail` como base, prompt versionado como constante, cliente NIM sobre httpx puro, POST síncrono. Conforma com AD-002 (zero Garmin), AD-003 (híbrido Python+LLM), AD-009 (payload espelha a tela).
+**Abordagem escolhida (recomendação):** novo domínio `app/evaluation/` seguindo o padrão dos domínios existentes (activities, health, potential) — payload builder que reusa `get_activity_detail` como base, prompt versionado como constante, cliente NIM sobre httpx puro, e **avaliação como job** (emenda 18/10: POST cria `pending` + worker em BackgroundTasks + polling na UI — o padrão SyncJob do próprio repo). Conforma com AD-002 (zero Garmin), AD-003 (híbrido Python+LLM), AD-009 (payload espelha a tela).
 
 **Alternativas consideradas:**
 
 | Abordagem | Por que não |
 | --------- | ----------- |
 | SDK `openai` apontando para a NIM | Dependência nova para um endpoint; camada extra de abstração sobre um contrato já simples (Bearer + `/v1/chat/completions` + `usage`) |
-| Job em background (padrão SyncJob) + polling | Usuário único local; a chamada leva segundos, não minutos — job + polling é complexidade sem ganho (assumption do spec trava POST síncrono) |
+| Job em background (padrão SyncJob) + polling | **Escolhido na emenda 18/10** — decisão do usuário no UAT: a tentativa precisa sobreviver a erro/timeout e a latência não pode limitar a escolha de modelo |
 
 ```mermaid
 graph TD
-    UI[EvaluateForm + EvaluationCard<br/>frontend/src/components/workouts/] -->|POST /api/activities/:id/evaluate| R["evaluation/router.py<br/>valida: 404 · 422 · 503 · 500"]
-    R --> P["evaluation/payload.py<br/>base: activities.service.get_activity_detail<br/>+ intent · zona alvo · carga · PRs · padrões · LTHR"]
-    P --> PR["evaluation/prompt.py<br/>SYSTEM_PROMPT_V1 (~2k tokens)"]
-    PR --> N["evaluation/nim.py<br/>1 chamada httpx → NVIDIA NIM"]
-    N --> V["evaluation/verdict.py<br/>VerdictJson (pydantic) + sanitização"]
-    V --> S["evaluation/service.py<br/>persiste Evaluation + evaluated=true"]
-    S -->|EvaluationOut| UI
-    P --> DB[(Postgres)]
-    S --> DB
+    UI[EvaluateForm + EvaluationCard<br/>frontend/src/components/workouts/] -->|POST /api/activities/:id/evaluate| R["evaluation/router.py<br/>valida síncrono: 500 · 404 · 422 · 503"]
+    R --> P["evaluation/service.py create_evaluation<br/>payload determinístico + linha status=pending"]
+    P -->|201 pending + BackgroundTask| UI
+    P -.->|dispatch| W["run_evaluation (worker)<br/>prompt v1 → NIM → §9.2"]
+    W --> DB[(Postgres: done/veredito · error/motivo)]
+    UI -->|GET .../evaluate/:id a cada ~2s| DB
+    DB -->|done → card · error → motivo| UI
 ```
 
-**Fluxo do endpoint** (ordem de validação): `get_zone_config` (500 zonas, dependency) → pydantic 422 automático (enum/≤500) → **503 key ausente** (config antes da consulta — erro de configuração não depende do dado) → 404 inexistente / 422 não-corrida (service) → payload → NIM (502/504) → validação do veredito (502) → persistência (200).
+**Fluxo do endpoint** (emenda job 18/10 — padrão SyncJob): `get_zone_config` (500 zonas, dependency) → pydantic 422 automático → **503 key ausente** (config antes da consulta) → 404 inexistente / 422 não-corrida (service) → **payload montado + linha `status=pending` gravada → 201 com o registro**; o worker em BackgroundTasks faz NIM (502/504 viram `status=error` com o motivo NA LINHA — a tentativa nunca se perde) → validação do veredito → `done` (veredito sanitizado + tokens + `evaluated=true`). UI polla o status; validações rápidas que falham nada criam (síncronas honestas).
 
 **Contrato do detalhe (AD-009):** a tela de detalhe passa a renderizar avaliações — `ActivityDetailOut` ganha `evaluations: list[EvaluationOut]` (mais recente primeiro) e `ActivityOut` ganha `activity_type: str` (a UI precisa distinguir corrida para exibir o formulário).
 
@@ -68,7 +66,7 @@ graph TD
 - **Purpose**: Contratos Pydantic compartilhados (importado por ambos os routers — sem ciclo).
 - **Interfaces**:
   - `EvaluateIn`: `intent_type: Literal["prova","intervalado","limiar","tempo","progressivo","longao","facil"]`, `intent_text: str | None = Field(max_length=500)` — 422 automático fora do contrato
-  - `EvaluationOut`: `id, activity_id, intent_type, intent_text, verdict, verdict_json, model, prompt_version, tokens_in, tokens_out, created_at`
+  - `EvaluationOut`: `id, activity_id, intent_type, intent_text, verdict, verdict_json, model, prompt_version, tokens_in, tokens_out, status, error, created_at`
   - `VerdictJson` (§9.2): `veredito: Literal["on_target","too_hard","too_easy","context_explained","fatigue_signal"]`, `headline: str`, `execucao_vs_intencao: {pct_zona_alvo: float | None, principais_desvios: list[str]}`, `o_que_funcionou/corrigir_prox_vez/contexto_relevante: list[str]`, `confianca: Literal["alta","média","baixa"]`; `model_config = ConfigDict(extra="ignore")` — extras ignorados, obrigatórios ausentes rejeitam (Decisão E)
 - **Dependencies**: pydantic (já no projeto)
 - **Reuses**: convenção de modelos inline dos routers (aqui extraída para evitar ciclo activities↔evaluation)
@@ -104,29 +102,31 @@ graph TD
 - **Reuses**: pydantic (padrão do projeto)
 
 #### `service.py`
-- **Purpose**: Orquestra a avaliação de ponta a ponta e persiste; nada é gravado em falha.
+- **Purpose**: Orquestra a avaliação como job (emenda 18/10): cria o `pending` com payload montado; o worker consome a NIM e conclui a linha — nada de NIM no request path.
 - **Interfaces**:
-  - `evaluate(db, activity_id, intent_type, intent_text, zone_config) -> dict | None` — None = 404; carrega detail (base do payload) → `build_evaluation_payload` → `nim.chat_completion` → `validate_verdict` → sanitiza `pct_zona_alvo` → cria `Evaluation` (com `payload_json`, `model`, `prompt_version`, tokens do usage) + `activity.evaluated = True` → commit → dict no shape de `EvaluationOut`
+  - `create_evaluation(db, activity_id, intent_type, intent_text, zone_config, settings) -> dict | None` — None = 404; `ActivityNotRunning` = 422; monta payload, cria `Evaluation(status="pending", payload_json=…)`, commit — **não chama a NIM**
+  - `run_evaluation(evaluation_id: int) -> None` — entrada do BackgroundTasks: sessão fresca; linha que não é `pending` é no-op; NIM → validação → sanitização → `status=done` (veredito, tokens do usage, `activity.evaluated=True`) ou `status=error` com o motivo na coluna `error` (NimError/NimTimeout/ValueError de schema); nenhuma exceção do worker vira crash — falha vira linha error
+  - `recover_stale_evaluations() -> None` — startup: `pending` órfãs (restart no meio da chamada) viram `status=error` "interrompida" (padrão `recover_stale_jobs` do sync)
   - `list_evaluations(db, activity_id) -> list[dict]` — consumido pelo detail (EVAL-17)
 - **Dependencies**: Session, `activities.service.get_activity_detail`, payload/prompt/nim/verdict, models
-- **Reuses**: todo o pipeline de leitura do activities (uma fonte de verdade)
+- **Reuses**: todo o pipeline de leitura do activities; padrão job do `garmin/service.py` (BackgroundTasks + recover_stale)
 
 #### `router.py`
-- **Purpose**: `POST /api/activities/{activity_id}/evaluate` + mapeamento de erros (EVAL-09..15).
-- **Interfaces**: `POST` com `EvaluateIn` → 200 `EvaluationOut`; mapa: `ZoneConfigError→500` (dependency, padrão activities), não-corrida→422 (mensagem clara), `NVIDIA_API_KEY` vazia→503, `NimError`/`NimInvalidJSON`/`ValueError` de schema→502, `NimTimeout`→504. Montado em `main.py`.
-- **Dependencies**: `get_db`, `get_zone_config` (reutilizada do activities), `get_settings`
-- **Reuses**: padrão de validação do `activities/router.py` (422 antes de qualquer query cara, 404, 500 de zonas)
+- **Purpose**: `POST /api/activities/{activity_id}/evaluate` (cria o job, EVAL-21) + `GET /api/activities/{activity_id}/evaluate/{evaluation_id}` (status p/ polling, EVAL-25) + mapeamento de erros síncronos (EVAL-09..12/15).
+- **Interfaces**: `POST` com `EvaluateIn` → **201 `EvaluationOut` (status=pending)** + `BackgroundTasks.add_task(run_evaluation, id)`; `GET` do status → 200/404; mapa síncrono: `ZoneConfigError→500` (dependency), não-corrida→422, `NVIDIA_API_KEY` vazia→503. Montado em `main.py`; lifespan ganha `recover_stale_evaluations()`.
+- **Dependencies**: `get_db`, `get_zone_config` (reutilizada do activities), `get_settings`, `BackgroundTasks`
+- **Reuses**: padrão de validação do `activities/router.py` (422 antes de qualquer query cara, 404, 500 de zonas); padrão job do `garmin/router.py` (201 + BackgroundTasks)
 
 ### Frontend
 
 #### `frontend/src/lib/api.ts` (extensão)
 - **Purpose**: Espelhar os contratos novos + `evaluateActivity`.
-- **Interfaces**: tipos `EvaluateRequest`, `VerdictJson`, `EvaluationOut`; `ActivityOut.activity_type`; `ActivityDetailOut.evaluations: EvaluationOut[]`; `evaluateActivity(id, body) -> Promise<EvaluationOut>` (POST, mesmo padrão de `parseError`)
+- **Interfaces**: tipos `EvaluateRequest`, `VerdictJson`, `EvaluationOut` (com `status`/`error`); `ActivityOut.activity_type`; `ActivityDetailOut.evaluations: EvaluationOut[]`; `evaluateActivity(id, body) -> Promise<EvaluationOut>` (POST → 201 pending) e `getEvaluation(activity_id, evaluation_id) -> Promise<EvaluationOut>` (polling ~2s, mesmo padrão de `parseError`)
 - **Reuses**: `InferredType` como enum de intenção (chaves 1:1 — zero tipo novo)
 
 #### `frontend/src/components/workouts/EvaluateForm.tsx`
 - **Purpose**: Formulário de intenção + botão + estados (EVAL-01/08/10).
-- **Interfaces**: props `{ activity: ActivityOut, onEvaluated: (evaluation: EvaluationOut) => void }`; select com 7 opções (rótulos PT-BR com acento, valores ASCII), pré-preenchido com `inferred_type`; textarea opcional (≤500, placeholder "era pra ser 30min a 4:15"); botão "Avaliar com IA" desabilitado enquanto a chamada está em curso com "Analisando treino…"; erro inline em PT-BR no lugar do card
+- **Interfaces**: props `{ activity: ActivityOut, pending: boolean, onEvaluated: (evaluation: EvaluationOut) => void }`; select com 7 opções (rótulos PT-BR com acento, valores ASCII), pré-preenchido com `inferred_type`; textarea opcional (≤500, placeholder "era pra ser 30min a 4:15"); botão "Avaliar com IA" desabilitado **enquanto existe pending do treino** com "Analisando treino…" (o POST em si é rápido — o guarda é a fila); erros síncronos (404/422/503/500) inline em PT-BR
 - **Reuses**: vocabulário visual do WorkoutDetail (cards, chips, muted)
 
 #### `frontend/src/components/workouts/EvaluationCard.tsx`
@@ -135,20 +135,24 @@ graph TD
 - **Reuses**: padrão de cabeçalho forte + selo de método dos painéis (AD-009)
 
 #### `frontend/src/components/workouts/WorkoutDetail.tsx` (extensão)
-- **Purpose**: Composição — só corridas (`activity_type`) rendem o formulário; avaliações renderizadas do `detail.evaluations`; após avaliação, prepend no estado local + `evaluated=true` (sem refetch).
+- **Purpose**: Composição — só corridas (`activity_type`) rendem o formulário; avaliações renderizadas do `detail.evaluations` (pending → estado de análise, error → motivo, done → card); após 201, prepend do pending no estado local; **polling de ~2s nas avaliações pending** via `getEvaluation` até done/error; `evaluated=true` quando um `done` chega.
 - **Reuses**: estados existentes (loading/not-found/error/ready)
 
 ---
 
 ## Data Models
 
-**Zero migração de banco** — o schema já tem tudo (Fase 0 antecipou a feature):
+**Migração mínima (emenda job)** — colunas novas na tabela existente (banco vivo tem dados reais do UAT: `ALTER TABLE evaluations ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'pending', ADD COLUMN error TEXT;` executado como ops única, documentada; a suite recria schema por teste e cobre sozinha):
 
 ```python
-# Evaluation (existente, inalterada) — backend/app/db/models.py:193
+# Evaluation (emenda: + status/error) — backend/app/db/models.py
 evaluations(id, user_id, activity_id FK→activities SET NULL,
            intent_type, intent_text, payload_json, model, prompt_version,
-           verdict, verdict_json, tokens_in, tokens_out, created_at)
+           verdict, verdict_json, tokens_in, tokens_out,
+           status,   # pending | done | error  (emenda 18/10)
+           error,    # motivo quando status=error (timeout, HTTP, finish_reason)
+           created_at)
+```
 
 # Activity.evaluated (existente) — setado True pelo motor
 ```
@@ -180,13 +184,13 @@ interface VerdictJson {
 | Atividade não-corrida | 422 antes de montar payload/chamar NIM | Mensagem clara; form nem renderiza (UI) |
 | `intent_type`/`intent_text` inválidos | Pydantic → 422 automático | Mensagem de validação inline |
 | `NVIDIA_API_KEY` vazia | 503 sem chamada à NIM | "IA não configurada (NVIDIA_API_KEY)" |
-| NIM HTTP ≠ 200 | `NimError` → 502 | Mensagem PT-BR; nada gravado |
-| NIM timeout | `NimTimeout` → 504 | "A IA demorou demais"; botão volta |
-| JSON ilegível/fora do schema | `NimInvalidJSON`/`ValueError` → 502 | "Resposta da IA inválida"; nada gravado |
+| NIM HTTP ≠ 200 | worker → `status=error` com o motivo | Card de erro com a mensagem PT-BR; tentativa preservada |
+| NIM timeout | worker → `status=error` "timeout" | Card de erro "demorou demais"; botão volta; tentativa preservada |
+| JSON ilegível/fora do schema | worker → `status=error` com o motivo (ex.: `finish_reason=length`) | Card de erro com a causa; veredito nunca inventado |
 | Zonas sem arquivo | `ZoneConfigError` → 500 (dependency) | "Zonas VDOT não configuradas" (padrão existente) |
 | `usage` ausente na resposta | tokens 0, avaliação persiste | Rodapé do card mostra tokens 0 |
 
-Em toda falha: nenhuma linha de `Evaluation`, `evaluated` inalterado (Decisão E).
+Falhas síncronas (404/422/503/500): nada criado. Falhas do worker (NIM/veredito): a linha existe com `status=error` + motivo — a tentativa nunca se perde (emenda 18/10); `evaluated` só vira true em `done`.
 
 ---
 
@@ -211,7 +215,7 @@ Em toda falha: nenhuma linha de `Evaluation`, `evaluated` inalterado (Decisão E
 | -------- | ------ | --------- |
 | Cliente NIM | httpx direto (sem SDK) | Um endpoint, contrato simples, zero dependência nova além do httpx (que já é usado pelo TestClient); transparência total do request |
 | Parâmetros da chamada | `temperature: 0.2`, `max_tokens: 2000` | Veredito estruturado pede estabilidade; teto de custo de saída |
-| POST síncrono | Sem job/polling | Assumption do spec — usuário único local; a UI espera com feedback |
+| Avaliação como job | POST cria `pending` + BackgroundTasks + polling UI (emenda 18/10) | Decisão do usuário: "tomar um erro e perder tudo é um problema" — tentativa sobrevive com o motivo; latência desacopla da escolha de modelo |
 | Detalhe ganha `evaluations` + `activity_type` | Extensão aditiva do contrato | AD-009: o payload espelha a tela; a tela agora renderiza avaliações |
 | Sanitização do eco numérico | Service sobrescreve `pct_zona_alvo` com o valor Python | AD-003 sem brecha: nem o eco do LLM decide número |
 | Sem `response_format` na chamada | JSON instruído + parse tolerante + validação estrita | Portabilidade entre modelos da NIM (incl. flash da Fase 2) |
