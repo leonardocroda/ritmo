@@ -200,7 +200,7 @@ patterns(id, nome, gatilho, descrição)  -- padrões de falha pessoais ("km1_r�
 - [ ] Painel **Potencial**: timeline VDOT, previsões vs PRs, PMC
 - [ ] Painel **Saúde**: sono (duração vs 7h, REM), HRV, RHR, dose-resposta sono
 - [ ] Botão **Avaliar com IA**: intenção → payload → NIM → card de veredito salvo
-- [ ] Painel Hoje: readiness + countdown da prova + semana
+- [ ] Painel Hoje: readiness + countdown da prova + semana — **adiado** (17/10/2026, AD-011): volta pós-meia redesenhado com uso real; readiness duplica o Saúde, alertas são Fase 2, "planejada vs executada" não tem fonte de dados
 
 ### Fase 2 — Fechando o ciclo (após a meia de 08/11)
 - [ ] **Revisão semanal por IA** (série de treinos: tendências, carga, sono × execução)

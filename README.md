@@ -5,7 +5,7 @@ Plataforma pessoal de corrida: sync do Garmin, painéis que importam
 
 > Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
 >
-> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Potencial ✅ · painel Saúde ✅ · próximos: Avaliar com IA, Hoje.
+> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Potencial ✅ · painel Saúde ✅ · próximo: **Avaliar com IA** · painel Hoje adiado (AD-011 — volta pós-08/11, redesenhado com uso real).
 
 ## Estrutura
 

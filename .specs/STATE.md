@@ -82,13 +82,21 @@
 - **Date**: 2026-10-17
 - **Status**: active
 
+### AD-011
+- **Decision**: O painel Hoje (§4.2/§9.1) sai da Fase 1: só volta pós-meia (08/11/2026), redesenhado a partir de evidência de uso real — não se ressuscita a composição §9.1.
+- **Reason**: Decisão do usuário (17/10/2026) na discussão de escopo: o card de readiness duplica o que o painel Saúde já mostra (HRV status AD-010, sono, RHR, ACWR/TSB); os alertas — o real valor do painel — são Fase 2 por design; a semana "planejada vs executada" não tem fonte de dados de plano; e o countdown vale só até a prova. A meta da Fase 1 ("substituir o pedir análise no OpenCode") é o Avaliar com IA, e o bloco da meia está ativo agora.
+- **Trade-off**: Perde-se o countdown da The Best Açaí durante os 22 dias finais do bloco em troca de não pagar design especulativo sem evidência; após 08/11 o countdown hibernaria até o próximo objetivo de qualquer forma.
+- **Scope**: Roadmap Fase 1 (§6 do plano), `/hoje` (permanece placeholder), qualquer spec futura do painel Hoje — retomar exige spec novo a partir de uso observado.
+- **Date**: 2026-10-17
+- **Status**: active
+
 ## Handoff
 
-- **Feature**: `health-window` — **concluída, validada e aprovada no UAT** (Verifier PASS it.1: 13/13 ACs com evidência `file:line`, 0/4 mutantes comportamentais derrubados pelo gate automatizado da camada UI — limitação estrutural documentada, 4/4 pegos por inspeção spec-anchored + UAT, controle positivo 1/1, `.specs/features/health-window/validation.md`; UAT real 17/10/2026 aprovado pelo usuário — seletor 7/30/42/60/90d, default 60d, troca aplicada a todas as seções)
-- **Phase / Task**: n/a — 1 commit de feature (`68857ee` feat(ui): add time window filter to health panel) + fechamento (`03b1b50` validation PASS, `efb3215` lição L-006, UAT neste commit); execução inline (Small scope); traceability 13/13 ✅ Verified (HWF-01..13)
-- **Completed**: discuss (conjunto 7/30/42/60/90d + default 60d confirmados pelo usuário 17/10/2026; âncoras: ATL/WHOOP 7d, mês 30d, CTL 42d TrainingPeaks, banda HRV 60d AD-010, longa 90d) → spec (13 ACs, `validate_spec` 0 erros) → execute inline (gate `npm run build` + `npm run lint` verdes; backend intocado — contrato `days` 7–365 já validado por HLT-02/03) → Verifier PASS → UAT aprovado
+- **Feature**: none — painel Hoje discutido (17/10/2026) e **adiado por decisão do usuário** (AD-011); nenhuma feature aberta
+- **Phase / Task**: n/a
+- **Completed**: discuss de escopo do painel Hoje (§4.2/§9.1): 4 áreas cinzentas mapeadas (CRUD `races`, % do bloco, "planejado vs executado", seletor de janela) → análise de ganho: v1 marginal (readiness duplica o Saúde; alertas são Fase 2; semana "planejada" sem fonte de dados) → decisão de adiar; anterior: `health-window` concluída e aprovada no UAT (`68857ee`, validação em `.specs/features/health-window/validation.md`)
 - **In-progress**: none
-- **Next step**: **Avaliar com IA** (§4.6, motor híbrido Python+LLM) ou **Painel Hoje** (§4.2, readiness + countdown + CRUD `races` — usará o modelo HRV da AD-010 e herda o seletor de janela por consumir `/api/health/summary`); ops opcional do usuário: re-sync completo (`DELETE FROM sync_state WHERE data_type IN ('sleep','hrv','rhr','stress','body_battery')` + "Puxar do Garmin") para a banda cobrir os 60 dias exibidos com janela cheia; pendências menores vivas: sync de passos/NEAT como feature própria, sequência `users_pkey` desincronizada no `init_db` (Fase 2.5), lições L-005/L-006 (candidates)
+- **Next step**: **Avaliar com IA** (§4.6, motor híbrido Python+LLM: payload determinístico → NIM → JSON de veredito) — a meta declarada da Fase 1 e o próximo spec a abrir; painel Hoje volta pós-08/11 com spec novo a partir de evidência de uso (não ressuscitar §9.1 — AD-011); ops opcional do usuário: re-sync completo (`DELETE FROM sync_state WHERE data_type IN ('sleep','hrv','rhr','stress','body_battery')` + "Puxar do Garmin") para a banda HRV cobrir os 60 dias exibidos; pendências menores vivas: sync de passos/NEAT como feature própria, sequência `users_pkey` desincronizada no `init_db` (Fase 2.5), lições L-005/L-006 (candidates)
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main
