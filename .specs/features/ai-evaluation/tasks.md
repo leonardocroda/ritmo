@@ -498,8 +498,8 @@ T14 → T15 → T16 → T17 → T18 → T19 → T20
 
 **Done when**:
 
-- [ ] `EvaluationOut` espelha as colunas novas
-- [ ] Testes de schema atualizados; gate quick passa; contagem sobe
+- [x] `EvaluationOut` espelha as colunas novas
+- [x] Testes de schema atualizados; gate quick passa; contagem sobe (358 = 357 + 1; produtores transitórios no service emitem os campos — commit coerente)
 
 **Tests**: unit
 **Gate**: quick

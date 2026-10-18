@@ -134,7 +134,8 @@ def test_evaluate_in_rejeita_texto_acima_de_500() -> None:
 
 
 def test_evaluation_out_espelha_campos_persistidos() -> None:
-    """EVAL-04/06: saída espelha exatamente o que a avaliação grava (AD-003)."""
+    """EVAL-04/06: saída espelha exatamente o que a avaliação grava (AD-003)
+    + status/error da emenda job (EVAL-21/25)."""
     out = EvaluationOut(
         id=1,
         activity_id=10,
@@ -146,6 +147,8 @@ def test_evaluation_out_espelha_campos_persistidos() -> None:
         prompt_version="v1",
         tokens_in=1234,
         tokens_out=56,
+        status="done",
+        error=None,
         created_at="2026-10-18T08:00:00Z",
     )
     assert out.model == "z-ai/glm-5.3"
@@ -154,3 +157,28 @@ def test_evaluation_out_espelha_campos_persistidos() -> None:
     assert out.tokens_out == 56
     assert out.verdict_json["veredito"] == "on_target"
     assert out.verdict == "on_target"
+    assert out.status == "done"
+    assert out.error is None
+
+
+def test_evaluation_out_pending_sem_veredito() -> None:
+    """EVAL-21: o registro nasce pending — sem veredito ainda (JSON null),
+    com o erro nullable; é o que o POST devolve no 201."""
+    out = EvaluationOut(
+        id=2,
+        activity_id=10,
+        intent_type="facil",
+        intent_text="era pra ser 30min a 4:15",
+        verdict="",
+        verdict_json=None,
+        model="z-ai/glm-5.3",
+        prompt_version="v1",
+        tokens_in=0,
+        tokens_out=0,
+        status="pending",
+        error=None,
+        created_at="2026-10-18T08:01:00Z",
+    )
+    assert out.status == "pending"
+    assert out.verdict_json is None
+    assert out.intent_text == "era pra ser 30min a 4:15"

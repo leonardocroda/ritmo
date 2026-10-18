@@ -81,16 +81,19 @@ class VerdictJson(BaseModel):
 
 
 class EvaluationOut(BaseModel):
-    """Avaliação persistida — resposta do POST e item da lista no detalhe."""
+    """Avaliação persistida — resposta do POST (pending, EVAL-21), item da
+    lista no detalhe e do GET de status (polling, EVAL-25)."""
 
     id: int
     activity_id: int
     intent_type: str
     intent_text: str | None
     verdict: str
-    verdict_json: dict
+    verdict_json: dict | None
     model: str
     prompt_version: str
     tokens_in: int
     tokens_out: int
+    status: str  # pending | done | error (emenda job 18/10)
+    error: str | None
     created_at: datetime

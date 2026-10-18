@@ -86,6 +86,8 @@ def evaluate(
         verdict_json=verdict_json,
         tokens_in=usage["prompt_tokens"],
         tokens_out=usage["completion_tokens"],
+        # Transitório T15: o fluxo síncrono nasce concluído (a T16 vira job)
+        status="done",
     )
     db.add(evaluation)
     activity.evaluated = True
@@ -103,6 +105,8 @@ def evaluate(
         "prompt_version": evaluation.prompt_version,
         "tokens_in": evaluation.tokens_in,
         "tokens_out": evaluation.tokens_out,
+        "status": evaluation.status,
+        "error": evaluation.error,
         "created_at": evaluation.created_at,
     }
 
@@ -133,6 +137,8 @@ def list_evaluations(db: Session, activity_id: int) -> list[dict]:
             "prompt_version": row.prompt_version,
             "tokens_in": row.tokens_in,
             "tokens_out": row.tokens_out,
+            "status": row.status,
+            "error": row.error,
             "created_at": row.created_at,
         }
         for row in rows
