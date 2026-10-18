@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/ai-evaluation/design.md`
-**Status**: In Progress (Phase 4 — emenda job)
+**Status**: Done (emenda job validada separadamente — ver validation.md)
 
 ---
 
