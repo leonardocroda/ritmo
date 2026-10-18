@@ -142,11 +142,11 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | EVAL-18 | P2: Histórico e re-avaliação | Execute | ✅ Verified |
 | EVAL-19 | P2: Histórico e re-avaliação | Execute | ✅ Verified |
 | EVAL-20 | P2: Histórico e re-avaliação | Execute | ✅ Verified |
-| EVAL-21 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | Implementing |
-| EVAL-22 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | Implementing |
-| EVAL-23 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | Implementing |
-| EVAL-24 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | Implementing |
-| EVAL-25 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | Implementing |
+| EVAL-21 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | ✅ Verified |
+| EVAL-22 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | ✅ Verified |
+| EVAL-23 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | ✅ Verified |
+| EVAL-24 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | ✅ Verified |
+| EVAL-25 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | ✅ Verified |
 
 **Coverage:** 25 total, 25 mapped to stories, 0 unmapped ✅
 
