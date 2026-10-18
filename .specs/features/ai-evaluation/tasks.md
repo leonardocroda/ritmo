@@ -630,8 +630,8 @@ T14 → T15 → T16 → T17 → T18 → T19 → T20
 
 **Done when**:
 
-- [ ] README documenta o fluxo assíncrono e o comportamento de erro preservado
-- [ ] Nenhuma mudança de código
+- [x] README documenta o fluxo assíncrono e o comportamento de erro preservado
+- [x] Nenhuma mudança de código
 
 **Tests**: none
 **Gate**: build (docs — nenhum comando de código)

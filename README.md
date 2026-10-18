@@ -260,30 +260,35 @@ No detalhe de uma corrida: campo de **intenção** (tipo pré-preenchido com
 o inferido — chaves 1:1 — + texto livre opcional) → botão **Avaliar com
 IA**. O backend monta o **payload determinístico em Python** (zonas por
 volta, % por zona e na zona alvo por intenção, consistência, contexto do
-dia, PMC, PRs datados, padrões ativos, VDOT e LTHR — só o que existir) e
-faz **uma chamada à NIM** (`z-ai/glm-5.3`) com o system prompt destilado
-de `analyze-garmin-run`. A resposta é validada contra o JSON de veredito
-do plano §9.2 (veredito, headline, execução vs intenção, listas,
-confiança) e só então persistida — com `model`, `prompt_version`,
-`tokens_in/out` e o payload inteiro (auditoria AD-003).
+dia, PMC, PRs datados, padrões ativos, VDOT e LTHR — só o que existir),
+grava a avaliação como **`pending` e responde 201 na hora** — a NIM é
+consumida por um worker em background (padrão do sync, BackgroundTasks).
+A resposta é validada contra o JSON de veredito do plano §9.2 e a linha
+concluída com `model`, `prompt_version`, `tokens_in/out` e o payload
+inteiro (auditoria AD-003). A UI polla o status (~2s): card "Analisando
+treino…" → card do veredito quando pronto.
 
 - **Zero alucinação de número**: o `pct_zona_alvo` do card é sempre o
   calculado em Python — o eco do LLM é sobrescrito antes de gravar.
-- **Falha é honesta**: NIM fora, timeout, JSON fora do contrato ou key
-  ausente → nada gravado (502/504/503 com mensagem em PT-BR), botão
-  volta ao normal. Sem retry automático — cada pedido custa tokens e é
-  explícito (intenção declarada > números brutos).
+- **A tentativa nunca se perde** (emenda job, 18/10): NIM fora, timeout
+  ou JSON fora do contrato → a linha fica `status=error` com o **motivo
+  no histórico** (ex.: `finish_reason=length`, HTTP 429) e o card de
+  erro mostra a causa; key ausente/404/422 continuam síncronos e nada
+  criam. Sem retry automático — cada pedido custa tokens e é explícito.
+- **Restart seguro**: pending órfãs viram `error` "interrompida" no
+  startup (padrão `recover_stale_jobs`).
 - **Re-avaliação**: linha nova, nunca sobrescreve; a mais recente é o
-  card, as anteriores ficam listadas; badge "Avaliado" na lista de
-  treinos.
+  card, as anteriores ficam listadas (⏳ pendente, ⚠️ falhou); badge
+  "Avaliado" na lista de treinos acende quando o veredito chega.
 - **Config** (`backend/.env`): `NVIDIA_API_KEY` (build.nvidia.com — sem
-  ela o botão responde 503), `NVIDIA_MODEL` (default `z-ai/glm-5.3`),
-  `NVIDIA_TIMEOUT_S` (default 420 — o glm-5.3 raciocina e passa de
-  120s), `LTHR_BPM` (default 177 — a recalibração sobrepõe por env).
+  ela o botão responde 503), `NVIDIA_MODEL` (default `z-ai/glm-5.3`;
+  o flash `z-ai/glm-5.3-flash` é a opção rápida para o dia a dia),
+  `NVIDIA_TIMEOUT_S` (default 420 — o glm-5.3 raciocina além de 120s),
+  `LTHR_BPM` (default 177 — a recalibração sobrepõe por env).
 
-Validação (18/10/2026): suite com 344 testes no Postgres do compose —
+Validação (18/10/2026): suite com 362 testes no Postgres do compose —
 NIM 100% mockada nos testes, nenhum teste chama a API real; UAT ao vivo
-(treino real + key real) na sequência.
+em andamento (glm-5.3 e flash testados com treino real).
 
 ## Workflow de desenvolvimento — spec-driven
 
