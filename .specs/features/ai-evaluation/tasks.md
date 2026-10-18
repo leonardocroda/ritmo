@@ -127,10 +127,10 @@ T12 → T13
 
 **Done when**:
 
-- [ ] `VerdictJson` aceita o JSON §9válido completo; rejeita `veredito` fora do enum de 5; rejeita campo obrigatório ausente; ignora chave extra
-- [ ] `EvaluateIn` rejeita `intent_type` fora dos 7 tipos e `intent_text` com 501 chars (422 automático via FastAPI na T7; teste unitário no pydantic)
-- [ ] `EvaluationOut` espelha exatamente os campos gravados (`model`, `prompt_version`, `tokens_in/out`, `verdict_json`, `created_at`…)
-- [ ] Gate passa; contagem sobe
+- [x] `VerdictJson` aceita o JSON §9.2 válido completo; rejeita `veredito` fora do enum de 5; rejeita campo obrigatório ausente; ignora chave extra
+- [x] `EvaluateIn` rejeita `intent_type` fora dos 7 tipos e `intent_text` com 501 chars (422 automático via FastAPI na T7; teste unitário no pydantic)
+- [x] `EvaluationOut` espelha exatamente os campos gravados (`model`, `prompt_version`, `tokens_in/out`, `verdict_json`, `created_at`…)
+- [x] Gate passa; contagem sobe (300 = 284 + 16; o teste de obrigatório-ausente pegou um default espúrio nas listas §9.2 e a implementação conformou ao spec)
 
 **Tests**: unit
 **Gate**: quick
