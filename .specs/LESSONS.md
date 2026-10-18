@@ -50,6 +50,48 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: mutantes M1-M4: .specs/features/health-window/validation.md (Discrimination Sensor) (frontend/ui)
 - last seen: 2026-10-17T21:33:15Z
 
+### L-007 - Seed and assert every field the spec enumerates in a payload contract; unseeded fields regress silently.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `backend/tests/payload` · harmful: 0
+- features: ai-evaluation
+- evidence: EVAL-02 / backend/tests/test_evaluation_payload.py:139 (backend/tests/payload)
+- last seen: 2026-10-18T14:11:32Z
+
+### L-008 - Assert every entry of a spec-enumerated mapping table, not a sample of it.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `backend/tests/payload` · harmful: 0
+- features: ai-evaluation
+- evidence: EVAL-02 / backend/app/evaluation/payload.py:23 (backend/tests/payload)
+- last seen: 2026-10-18T14:11:32Z
+
+### L-009 - Every rule the spec requires in prompt text needs its own literal marker assertion; a partial marker set is a hole.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `backend/tests/prompt` · harmful: 0
+- features: ai-evaluation
+- evidence: EVAL-03 / backend/tests/test_evaluation_prompt.py:11 (backend/tests/prompt)
+- last seen: 2026-10-18T14:11:33Z
+
+### L-010 - Pin call counts for spec-mandated single calls; a capture that overwrites cannot detect a second call.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `backend/tests/service` · harmful: 0
+- features: ai-evaluation
+- evidence: EVAL-03 / backend/tests/test_evaluation_service.py:115 (backend/tests/service)
+- last seen: 2026-10-18T14:11:33Z
+
+### L-011 - Test the accepted side of every boundary: assert each accepted type passes, not only that the rejected type fails.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `backend/tests/service` · harmful: 0
+- features: ai-evaluation
+- evidence: EVAL-10 / backend/app/evaluation/service.py:27 (backend/tests/service)
+- last seen: 2026-10-18T14:11:34Z
+
+### L-012 - Spec edge cases need an end-to-end assertion at the layer that owns the outcome, not only a unit pin of the producer.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `backend/tests/service` · harmful: 0
+- features: ai-evaluation
+- evidence: Edge / backend/tests/test_evaluation_nim.py:76 (backend/tests/service)
+- last seen: 2026-10-18T14:11:34Z
+
+### L-013 - When the spec is silent on validation precedence, record the chosen order in the design and pin it with a test.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `backend/routes` · harmful: 0
+- features: ai-evaluation
+- evidence: EVAL-09/12 / backend/app/evaluation/router.py:33 (backend/routes)
+- last seen: 2026-10-18T14:11:35Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

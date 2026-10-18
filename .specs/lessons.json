@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 7,
+  "next_id": 14,
   "lessons": [
     {
       "id": "L-001",
@@ -112,6 +112,132 @@
       ],
       "created": "2026-10-17T21:33:15Z",
       "last_seen": "2026-10-17T21:33:15Z"
+    },
+    {
+      "id": "L-007",
+      "key": "ac_gap::seed and assert every field the spec enumerates in a payload contract unseeded fields regress silently",
+      "text": "Seed and assert every field the spec enumerates in a payload contract; unseeded fields regress silently.",
+      "signal": "ac_gap",
+      "scope": "backend/tests/payload",
+      "status": "candidate",
+      "features": [
+        "ai-evaluation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EVAL-02 / backend/tests/test_evaluation_payload.py:139 (backend/tests/payload)"
+      ],
+      "created": "2026-10-18T14:11:32Z",
+      "last_seen": "2026-10-18T14:11:32Z"
+    },
+    {
+      "id": "L-008",
+      "key": "ac_gap::assert every entry of a spec enumerated mapping table not a sample of it",
+      "text": "Assert every entry of a spec-enumerated mapping table, not a sample of it.",
+      "signal": "ac_gap",
+      "scope": "backend/tests/payload",
+      "status": "candidate",
+      "features": [
+        "ai-evaluation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EVAL-02 / backend/app/evaluation/payload.py:23 (backend/tests/payload)"
+      ],
+      "created": "2026-10-18T14:11:32Z",
+      "last_seen": "2026-10-18T14:11:32Z"
+    },
+    {
+      "id": "L-009",
+      "key": "ac_gap::every rule the spec requires in prompt text needs its own literal marker assertion a partial marker set is a hole",
+      "text": "Every rule the spec requires in prompt text needs its own literal marker assertion; a partial marker set is a hole.",
+      "signal": "ac_gap",
+      "scope": "backend/tests/prompt",
+      "status": "candidate",
+      "features": [
+        "ai-evaluation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EVAL-03 / backend/tests/test_evaluation_prompt.py:11 (backend/tests/prompt)"
+      ],
+      "created": "2026-10-18T14:11:33Z",
+      "last_seen": "2026-10-18T14:11:33Z"
+    },
+    {
+      "id": "L-010",
+      "key": "ac_gap::pin call counts for spec mandated single calls a capture that overwrites cannot detect a second call",
+      "text": "Pin call counts for spec-mandated single calls; a capture that overwrites cannot detect a second call.",
+      "signal": "ac_gap",
+      "scope": "backend/tests/service",
+      "status": "candidate",
+      "features": [
+        "ai-evaluation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EVAL-03 / backend/tests/test_evaluation_service.py:115 (backend/tests/service)"
+      ],
+      "created": "2026-10-18T14:11:33Z",
+      "last_seen": "2026-10-18T14:11:33Z"
+    },
+    {
+      "id": "L-011",
+      "key": "ac_gap::test the accepted side of every boundary assert each accepted type passes not only that the rejected type fails",
+      "text": "Test the accepted side of every boundary: assert each accepted type passes, not only that the rejected type fails.",
+      "signal": "ac_gap",
+      "scope": "backend/tests/service",
+      "status": "candidate",
+      "features": [
+        "ai-evaluation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EVAL-10 / backend/app/evaluation/service.py:27 (backend/tests/service)"
+      ],
+      "created": "2026-10-18T14:11:34Z",
+      "last_seen": "2026-10-18T14:11:34Z"
+    },
+    {
+      "id": "L-012",
+      "key": "ac_gap::spec edge cases need an end to end assertion at the layer that owns the outcome not only a unit pin of the producer",
+      "text": "Spec edge cases need an end-to-end assertion at the layer that owns the outcome, not only a unit pin of the producer.",
+      "signal": "ac_gap",
+      "scope": "backend/tests/service",
+      "status": "candidate",
+      "features": [
+        "ai-evaluation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "Edge / backend/tests/test_evaluation_nim.py:76 (backend/tests/service)"
+      ],
+      "created": "2026-10-18T14:11:34Z",
+      "last_seen": "2026-10-18T14:11:34Z"
+    },
+    {
+      "id": "L-013",
+      "key": "spec_precision_gap::when the spec is silent on validation precedence record the chosen order in the design and pin it with a test",
+      "text": "When the spec is silent on validation precedence, record the chosen order in the design and pin it with a test.",
+      "signal": "spec_precision_gap",
+      "scope": "backend/routes",
+      "status": "candidate",
+      "features": [
+        "ai-evaluation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EVAL-09/12 / backend/app/evaluation/router.py:33 (backend/routes)"
+      ],
+      "created": "2026-10-18T14:11:35Z",
+      "last_seen": "2026-10-18T14:11:35Z"
     }
   ]
 }
