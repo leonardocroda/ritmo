@@ -76,3 +76,16 @@ def test_prompt_cobre_payload_sem_voltas() -> None:
     """EVAL-16: sem voltas o julgamento é pelos agregados, com confiança baixa."""
     assert "não tem voltas" in SYSTEM_PROMPT_V1
     assert '"baixa"' in SYSTEM_PROMPT_V1
+
+
+def test_prompt_pina_regras_centrais_do_spec() -> None:
+    """EVAL-03 (gap do Verifier, Fix 3): a Regra 1 (intenção primeiro —
+    a regra central da feature), o papel do contexto e a leitura de
+    elevação por volta — deletar qualquer uma falha aqui."""
+    # Regra 1: a intenção vem antes dos números (fácil rápido demais é falha)
+    assert "A intenção vem antes dos números" in SYSTEM_PROMPT_V1
+    assert "FALHA de execução" in SYSTEM_PROMPT_V1
+    # Regra 3: contexto muda ou confirma, nunca é decoração
+    assert "Contexto muda o veredito ou o confirma; nunca é decoração" in SYSTEM_PROMPT_V1
+    # Regra 3: elevação por volta explica desvio
+    assert "voltas com muito ganho de elevação explicam pace mais lento" in SYSTEM_PROMPT_V1

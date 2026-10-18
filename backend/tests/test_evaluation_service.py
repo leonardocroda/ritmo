@@ -60,18 +60,19 @@ def zone_config(settings: Settings):
 
 
 def _seed_run(db, *, activity_type: str = "running", laps: int = 5) -> Activity:
+    is_run = activity_type in ("running", "trail_running")
     activity = Activity(
         garmin_id=f"svc-{activity_type}-{laps}-{datetime.now().timestamp()}",
         start_time=START,
         activity_type=activity_type,
-        name="Easy Run",
-        distance_m=5000.0 if activity_type == "running" else 0.0,
-        duration_s=1420.0 if activity_type == "running" else 1800.0,
-        avg_hr=145 if activity_type == "running" else 61,
+        name="Easy Run" if is_run else "Ioga",
+        distance_m=5000.0 if is_run else 0.0,
+        duration_s=1420.0 if is_run else 1800.0,
+        avg_hr=145 if is_run else 61,
     )
     db.add(activity)
     db.flush()
-    if activity_type == "running":
+    if is_run:
         for idx in range(1, laps + 1):
             duration = 300.0 if idx <= laps - 1 else REPETITION_PACE_S
             db.add(
@@ -92,11 +93,15 @@ def _seed_yoga(db) -> Activity:
 
 
 def _mock_nim(monkeypatch, verdict: dict | None = VERDICT, usage: dict | None = None,
-              error: Exception | None = None, capture: dict | None = None):
-    """Troca a chamada NIM por um duble; capture registra (system, user)."""
+              error: Exception | None = None, capture: dict | None = None,
+              calls: list | None = None):
+    """Troca a chamada NIM por um duble; capture registra (system, user),
+    calls conta cada chamada (Fix 3 do Verifier: pin da chamada única)."""
     usage = usage or {"prompt_tokens": 1234, "completion_tokens": 56}
 
     def fake(system: str, user: str, settings, transport=None):
+        if calls is not None:
+            calls.append(system)
         if capture is not None:
             capture["system"] = system
             capture["user"] = user
@@ -112,10 +117,15 @@ def test_happy_path_persiste_todos_campos(db, settings, zone_config, monkeypatch
     payload, veredito) e marca evaluated — o retorno espelha a linha."""
     activity = _seed_run(db)
     capture: dict = {}
-    _mock_nim(monkeypatch, capture=capture)
+    calls: list = []
+    _mock_nim(monkeypatch, capture=capture, calls=calls)
 
     result = service.evaluate(db, activity.id, "facil", "era pra ser 30min a 4:15",
                               zone_config, settings)
+
+    # EVAL-03: exatamente UMA chamada à NIM por avaliação (Fix 3 —
+    # duplicar a chamada no service falha aqui)
+    assert len(calls) == 1
 
     assert result["model"] == "z-ai/glm-5.3"
     assert result["prompt_version"] == PROMPT_VERSION == "v1"
@@ -241,3 +251,36 @@ def test_list_evaluations_vazio_sem_avaliacoes(db, settings) -> None:
     """EVAL-17: sem avaliações → lista vazia (estado vazio, não erro)."""
     activity = _seed_run(db)
     assert service.list_evaluations(db, activity.id) == []
+
+
+def test_trail_running_aceita_avaliacao(db, settings, zone_config, monkeypatch) -> None:
+    """EVAL-10 (Fix 4 do Verifier): trail_running É corrida — avalia
+    normalmente; remover "trail_running" de RUNNING_TYPES falha aqui."""
+    trail = _seed_run(db, activity_type="trail_running")
+    _mock_nim(monkeypatch)
+
+    result = service.evaluate(db, trail.id, "facil", None, zone_config, settings)
+
+    assert result is not None
+    assert result["activity_id"] == trail.id
+    assert result["verdict"] == "on_target"
+    row = db.execute(select(Evaluation)).scalar_one()
+    assert row.activity_id == trail.id
+    db.expire_all()
+    fresh = db.execute(select(Activity).where(Activity.id == trail.id)).scalar_one()
+    assert fresh.evaluated is True
+
+
+def test_usage_zeros_persiste_tokens_zero(db, settings, zone_config, monkeypatch) -> None:
+    """Edge do spec (Fix 5 do Verifier): usage sem tokens → a avaliação
+    persiste com tokens 0 (custo desconhecido, não avaliação perdida)."""
+    activity = _seed_run(db)
+    _mock_nim(monkeypatch, usage={"prompt_tokens": 0, "completion_tokens": 0})
+
+    result = service.evaluate(db, activity.id, "facil", None, zone_config, settings)
+
+    assert result["tokens_in"] == 0
+    assert result["tokens_out"] == 0
+    row = db.execute(select(Evaluation)).scalar_one()
+    assert row.tokens_in == 0
+    assert row.tokens_out == 0

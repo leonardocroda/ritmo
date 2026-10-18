@@ -29,7 +29,7 @@ graph TD
     S --> DB
 ```
 
-**Fluxo do endpoint** (ordem de validação): `get_zone_config` (500 zonas, dependency) → 404 inexistente → 422 não-corrida (intent via pydantic: enum + ≤500 chars, 422 automático) → 503 key ausente → payload → NIM (502/504) → validação do veredito (502) → persistência (200).
+**Fluxo do endpoint** (ordem de validação): `get_zone_config` (500 zonas, dependency) → pydantic 422 automático (enum/≤500) → **503 key ausente** (config antes da consulta — erro de configuração não depende do dado) → 404 inexistente / 422 não-corrida (service) → payload → NIM (502/504) → validação do veredito (502) → persistência (200).
 
 **Contrato do detalhe (AD-009):** a tela de detalhe passa a renderizar avaliações — `ActivityDetailOut` ganha `evaluations: list[EvaluationOut]` (mais recente primeiro) e `ActivityOut` ganha `activity_type: str` (a UI precisa distinguir corrida para exibir o formulário).
 

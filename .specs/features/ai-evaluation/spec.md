@@ -50,6 +50,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | Selo do veredito na UI | ✅ on_target e context_explained; ⚠️ too_easy e fatigue_signal; ❌ too_hard | §9.2 pede ✅⚠️❌; context_explained é "ajuste adequado" (positivo); fatigue_signal é alerta, não erro de execução | n |
 | Limite do texto livre | ≤500 caracteres (422 acima) | Contexto além disso raramente ajuda; dá teto natural ao payload | n |
 | Códigos HTTP das falhas | 404 inexistente; 422 non-running/intenção inválida; 503 sem API key; 502 erro NIM/JSON inválido; 504 timeout; 500 zonas | Espelha o vocabulário dos endpoints existentes (422 antes da query, 404, 500 de config) | n |
+| Precedência 503 vs 404/422 | Key ausente responde 503 antes de qualquer consulta ao banco — erro de config não depende do dado | Fix 6 do Verifier (spec-precision): os ACs exigem 503 sem chamada à NIM e nada gravado, sem ordenar contra 404; a checagem é barata e vem primeiro | n |
 
 **Open questions:** none — as cinco áreas cinzentas (A–E) foram confirmadas com o usuário (17/10/2026); os demais defaults são de agente, marcados `n`.
 

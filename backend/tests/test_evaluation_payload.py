@@ -55,7 +55,10 @@ def zone_config(settings: Settings):
 
 def _seed_activity(db, *, name: str = "Easy Run", distance_m: float = 5000.0,
                    duration_s: float = 1420.0, feel: int | None = 3,
-                   rpe: int | None = 4) -> Activity:
+                   rpe: int | None = 4, avg_cadence: float | None = 170.0,
+                   elevation_gain_m: float | None = 55.0,
+                   aerobic_te: float | None = 2.8, anaerobic_te: float | None = 0.4,
+                   training_load: float | None = 120.0) -> Activity:
     activity = Activity(
         garmin_id=f"payload-{name}-{distance_m}-{duration_s}",
         start_time=START,
@@ -65,6 +68,11 @@ def _seed_activity(db, *, name: str = "Easy Run", distance_m: float = 5000.0,
         duration_s=duration_s,
         avg_hr=145,
         max_hr=165,
+        avg_cadence=avg_cadence,
+        elevation_gain_m=elevation_gain_m,
+        aerobic_te=aerobic_te,
+        anaerobic_te=anaerobic_te,
+        training_load=training_load,
         feel=feel,
         rpe=rpe,
     )
@@ -75,7 +83,9 @@ def _seed_activity(db, *, name: str = "Easy Run", distance_m: float = 5000.0,
 
 def _seed_split(db, activity_id: int, idx: int, *, dist_m: float = 1000.0,
                 duration_s: float = 300.0, avg_hr: int = 142,
-                avg_temperature: float | None = 22.0) -> None:
+                avg_temperature: float | None = 22.0,
+                avg_cadence: float | None = 165.0,
+                elevation_m: float | None = 12.5) -> None:
     db.add(
         Split(
             activity_id=activity_id,
@@ -84,7 +94,9 @@ def _seed_split(db, activity_id: int, idx: int, *, dist_m: float = 1000.0,
             duration_s=duration_s,
             pace_s=duration_s * 1000 / dist_m,
             avg_hr=avg_hr,
+            avg_cadence=avg_cadence,
             avg_temperature=avg_temperature,
+            elevation_m=elevation_m,
         )
     )
 
@@ -135,14 +147,24 @@ def test_payload_completo_blocos_e_matematica_exata(db, settings, zone_config) -
 
     assert payload["intencao"] == {"tipo": "facil", "texto": "era pra ser 30min a 4:15"}
 
-    # Resumo: feel/rpe vêm do ORM (fora do detail) + números formatados
-    assert payload["resumo"]["fc_media"] == 145
-    assert payload["resumo"]["fc_max"] == 165
-    assert payload["resumo"]["feel"] == 3
-    assert payload["resumo"]["rpe"] == 4
-    assert payload["resumo"]["distancia_km"] == 5.0
-    assert payload["resumo"]["duracao"] == "23:40"
-    assert payload["resumo"]["pace_medio"] == "4:44/km"
+    # Resumo completo — TODOS os campos, por valor literal (EVAL-02:
+    # deletar qualquer um do payload.py tem que falhar aqui)
+    assert payload["resumo"] == {
+        "nome": "Easy Run",
+        "data": "2024-01-15",
+        "distancia_km": 5.0,
+        "duracao": "23:40",
+        "pace_medio": "4:44/km",
+        "fc_media": 145,
+        "fc_max": 165,
+        "cadencia_media": 170.0,
+        "elevacao_gain_m": 55.0,
+        "te_aerobico": 2.8,
+        "te_anaerobico": 0.4,
+        "carga_treino": 120.0,
+        "feel": 3,
+        "rpe": 4,
+    }
 
     # Aritmética exata: denominador 1420s, easy 1200s, repetition 220s
     assert payload["tempo_por_zona_pct"] == {
@@ -152,11 +174,19 @@ def test_payload_completo_blocos_e_matematica_exata(db, settings, zone_config) -
     assert sum(payload["tempo_por_zona_pct"].values()) == 100.0
     assert payload["zona_alvo"] == {"zonas": ["easy"], "pct_zona_alvo": 84.5}
 
-    # Voltas classificadas (1ª easy, última repetition)
+    # Voltas classificadas — TODOS os campos da 1ª volta, por valor (EVAL-02)
     voltas = payload["voltas"]
     assert len(voltas) == 5
-    assert voltas[0]["km"] == "1,0" and voltas[0]["zona"] == "easy"
-    assert voltas[0]["pace"] == "5:00/km"
+    assert voltas[0] == {
+        "km": "1,0",
+        "duracao_s": 300.0,
+        "pace": "5:00/km",
+        "zona": "easy",
+        "fc": 142,
+        "cadencia": 165.0,
+        "temperatura_c": 22.0,
+        "elevacao_m": 12.5,
+    }
     assert voltas[4]["km"] == "5,0" and voltas[4]["zona"] == "repetition"
     assert voltas[4]["pace"] == "3:40/km"
 
@@ -203,6 +233,34 @@ def test_progressivo_e_prova_sem_zona_alvo(db, settings, zone_config) -> None:
         assert "zona_alvo" not in payload
         # a distribuição por zona continua no payload p/ o LLM julgar
         assert payload["tempo_por_zona_pct"]["easy"] == 100.0
+
+
+@pytest.mark.parametrize(
+    ("intent_type", "expected_zones"),
+    [
+        ("facil", ["easy"]),
+        ("tempo", ["threshold"]),
+        ("limiar", ["threshold"]),
+        ("intervalado", ["interval"]),
+        ("longao", ["easy", "marathon"]),
+        ("progressivo", None),
+        ("prova", None),
+    ],
+)
+def test_zona_alvo_por_intencao_mapa_completo(
+    db, settings, zone_config, intent_type, expected_zones
+) -> None:
+    """EVAL-02 (gap do Verifier, Fix 2): o mapa de zonas alvo cobre as
+    7 intenções — mutar qualquer entrada (ex.: tempo→easy) falha aqui."""
+    activity = _seed_activity(db)
+    for idx in range(1, 5):
+        _seed_split(db, activity.id, idx)
+    db.commit()
+    payload = _payload(db, activity, settings, zone_config, intent_type=intent_type)
+    if expected_zones is None:
+        assert "zona_alvo" not in payload
+    else:
+        assert payload["zona_alvo"]["zonas"] == expected_zones
 
 
 def test_sem_voltas_payload_honesto(db, settings, zone_config) -> None:

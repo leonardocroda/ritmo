@@ -253,3 +253,16 @@ def test_500_zonas_nao_configuradas(client, monkeypatch) -> None:
     response = client.post("/api/activities/1/evaluate", json={"intent_type": "facil"})
     assert response.status_code == 500
     assert response.json()["detail"] == "zonas VDOT não configuradas"
+
+
+def test_503_precede_404_com_key_vazia(client, monkeypatch) -> None:
+    """Fix 6 do Verifier (spec-precision): key ausente responde 503 ANTES
+    da consulta — erro de configuração não depende do dado. Pin da
+    precedência escolhida (assumption do spec)."""
+    monkeypatch.setattr(
+        "app.evaluation.router.get_settings",
+        lambda: Settings(_env_file=None, nvidia_api_key=""),
+    )
+    response = client.post("/api/activities/999/evaluate", json={"intent_type": "facil"})
+    assert response.status_code == 503
+    assert "NVIDIA_API_KEY" in response.json()["detail"]
