@@ -96,6 +96,44 @@ export type InferredType =
   | "longao"
   | "facil";
 
+// ---- Avaliar com IA: contratos do design ai-evaluation ----
+
+/** Vereditos do plano §9.2 — validados no backend antes de persistir. */
+export type Verdict = "on_target" | "too_hard" | "too_easy" | "context_explained" | "fatigue_signal";
+
+/** JSON de veredito §9.2 — o que a NIM devolve, já sanitizado pelo backend
+ * (`pct_zona_alvo` é sempre o número calculado em Python — AD-003). */
+export type VerdictJson = {
+  veredito: Verdict;
+  headline: string;
+  execucao_vs_intencao: { pct_zona_alvo: number | null; principais_desvios: string[] };
+  o_que_funcionou: string[];
+  corrigir_prox_vez: string[];
+  contexto_relevante: string[];
+  confianca: "alta" | "média" | "baixa";
+};
+
+/** Espelho do `EvaluationOut` (backend/app/evaluation/schemas.py). */
+export type EvaluationOut = {
+  id: number;
+  activity_id: number;
+  intent_type: InferredType;
+  intent_text: string | null;
+  verdict: Verdict;
+  verdict_json: VerdictJson;
+  model: string;
+  prompt_version: string;
+  tokens_in: number;
+  tokens_out: number;
+  created_at: string;
+};
+
+/** Corpo do POST de avaliação (EVAL-01/11): os 7 tipos 1:1 com InferredType. */
+export type EvaluateRequest = {
+  intent_type: InferredType;
+  intent_text?: string;
+};
+
 /** Filtro da lista: corridas (default) ou todas as atividades. */
 export type ActivityTypeFilter = "running" | "all";
 
@@ -125,6 +163,7 @@ export type ActivityListOut = {
 export type ActivityOut = {
   id: number;
   start_time: string;
+  activity_type: string;
   name: string | null;
   distance_m: number;
   duration_s: number;
@@ -193,7 +232,7 @@ export type ContextOut = {
   temperature_c?: number;
 };
 
-/** Espelho do `ActivityDetailOut` do detalhe (TRN-13/19/26/27). */
+/** Espelho do `ActivityDetailOut` do detalhe (TRN-13/19/26/27 + EVAL-17). */
 export type ActivityDetailOut = {
   activity: ActivityOut;
   splits: SplitOut[];
@@ -201,6 +240,7 @@ export type ActivityDetailOut = {
   hr_color: string;
   consistency: Consistency | null;
   context: ContextOut;
+  evaluations: EvaluationOut[];
 };
 
 /** Lista paginada de atividades (TRN-04/05/06). 422 para limit/offset inválidos. */
@@ -226,6 +266,23 @@ export async function getActivityDetail(id: number): Promise<ActivityDetailOut> 
   });
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as ActivityDetailOut;
+}
+
+/** Avalia o treino sob a intenção declarada (EVAL-04). Erros chegam como
+ * `ApiError` com o status preservado: 404/422 (intenção), 503 (sem
+ * NVIDIA_API_KEY), 502 (NIM/veredito inválido), 504 (timeout). */
+export async function evaluateActivity(
+  id: number,
+  body: EvaluateRequest,
+): Promise<EvaluationOut> {
+  const res = await fetch(`${API_BASE}/api/activities/${id}/evaluate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as EvaluationOut;
 }
 
 // ---- Painel Potencial: contratos do design potential-panel + panel-clarity ----

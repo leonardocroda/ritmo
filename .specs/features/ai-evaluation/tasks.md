@@ -327,9 +327,9 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Tipos espelham exatamente os contratos novos do backend (§9.2 + EvaluationOut)
-- [ ] `evaluateActivity` faz POST com body `EvaluateRequest` e devolve `EvaluationOut`; erros via `ApiError` (status preservado)
-- [ ] `npm run build` + `npm run lint` verdes (gate frontend — matrix: none)
+- [x] Tipos espelham exatamente os contratos novos do backend (§9.2 + EvaluationOut)
+- [x] `evaluateActivity` faz POST com body `EvaluateRequest` e devolve `EvaluationOut`; erros via `ApiError` (status preservado)
+- [x] `npm run build` + `npm run lint` verdes (gate frontend — matrix: none)
 
 **Tests**: none
 **Gate**: build

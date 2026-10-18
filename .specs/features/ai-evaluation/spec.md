@@ -118,7 +118,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| EVAL-01 | P1: Avaliar um treino e ver o veredito | Design | Pending |
+| EVAL-01 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-02 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-03 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
 | EVAL-04 | P1: Avaliar um treino e ver o veredito | Execute | Implementing |
