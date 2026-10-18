@@ -92,11 +92,11 @@
 
 ## Handoff
 
-- **Feature**: `ai-evaluation` (Avaliar com IA) — **concluída e validada** (PASS, `1046384`); range de código `33a06ac..d1c11d1` (15 commits: spec + T1-T13 + fix do Verifier); 355 testes no Postgres do compose; relatório em `.specs/features/ai-evaluation/validation.md` (20/20 ACs, sensor 6/6, UAT ao vivo pendente)
-- **Phase / Task**: Execute concluído — 13/13 tasks + task de fix (`d1c11d1`, pinos do Verifier); lições L-007..L-013 registradas (candidates→confirmadas pela iteração 0 do Verifier)
-- **Completed**: motor híbrido Python+LLM (payload determinístico → NIM glm-5.3 → JSON §9.2 validado e sanitizado → persistência com model/prompt_version/tokens); `POST /api/activities/{id}/evaluate` com mapa 404/422×3/503/502×2/504/500; detalhe expõe `evaluations` + `activity_type`; UI: EvaluateForm (pré-fill `inferred_type`, "Analisando treino…") + EvaluationCard (selo ✅⚠️❌, rodapé modelo·tokens·data) + histórico; docs (README + PLANO §6 Fase 1 marcado)
+- **Feature**: `ai-evaluation` — **concluída com a emenda job validada** (PASS, `c9509a5`): 25/25 ACs, gate 362, sensor 9/9 cumulativo; relatório em `.specs/features/ai-evaluation/validation.md` (histórico: PASS original → UAT pediu job → emenda → PASS)
+- **Phase / Task**: Execute concluído — 20 tasks no total (T1-T13 + T14-T20 da emenda); código `4019ad8..d6fa4bd`
+- **Completed**: avaliação como **job em background** (emenda 18/10, decisão do usuário): POST cria `pending` (201, payload montado, zero NIM no request) → worker BackgroundTasks consome NIM → `done` (veredito sanitizado + tokens + evaluated) ou `error` com o motivo NA LINHA — a tentativa nunca se perde; recovery de órfãs no startup; UI com polling ~2s (card "Analisando treino…" → veredito; card de erro com a causa); modelo A/B testado ao vivo (glm-5.3 thinking e flash — 429 do flash também vira linha error com motivo)
 - **In-progress**: none
-- **Next step**: **UAT ao vivo** (o único item aberto do validation.md): com `NVIDIA_API_KEY` real no `backend/.env` e o stack rebuildado (`docker compose up -d --build backend frontend`), avaliar um treino real no celular 390px — roteiros: (1) corrida fácil acima da zona easy nunca ✅ (intenção primeiro), (2) re-avaliação cria linha nova e o card troca, (3) falha honesta com key vazia (503 inline), (4) tokens gravados conferem com o usage; depois, se aprovado, registrar a "Validação real" no README e promover as lições candidates L-005/L-006 se aplicável
+- **Next step**: **UAT ao vivo final** no celular 390px com o stack novo (rebuild já feito): pedir avaliação → card pending → veredito sem recarregar; 429/erro vira card de erro com motivo e a tentativa fica no histórico; restart do backend com avaliação em curso → "interrompida"; decidir NVIDIA_MODEL padrão no `.env` (flash vs full — ambos testados); registrar lição de latência/429 se o padrão se repetir; depois: Fase 2 do plano (revisão semanal IA, histórico agregado, story)
 - **Blockers**: none
 - **Uncommitted files**: none
-- **Branch**: main
+- **Branch**: main (commits locais; push só com go-ahead do usuário)
