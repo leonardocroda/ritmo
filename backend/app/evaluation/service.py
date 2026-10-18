@@ -1,12 +1,15 @@
-"""Orquestração da avaliação: payload → prompt → NIM → veredito → banco.
+"""Orquestração da avaliação como job (emenda 18/10 — padrão SyncJob).
 
-Nada é gravado em falha (Decisão E): o commit único acontece no fim,
-depois de toda validação — uma exceção em qualquer etapa não deixa
-linha de `Evaluation` nem altera `activity.evaluated`.
+`create_evaluation` é o request path: valida o que é rápido (404/422),
+monta o payload determinístico e grava a linha ``status=pending`` —
+**nenhuma chamada à NIM aqui**. O POST responde 201 e o worker
+(``run_evaluation``, via BackgroundTasks) consome a NIM e conclui a
+linha: ``done`` com o veredito sanitizado + tokens + ``evaluated=true``,
+ou ``error`` com o motivo na própria linha — a tentativa nunca se
+perde (decisão do usuário no UAT: perder a espera é o problema).
 
-Escala de erro (o router mapeia): `ActivityNotRunning` → 422;
-`NimTimeout` → 504; `NimError`/`ValueError` de veredito → 502;
-None → 404.
+Escala de erro síncrona (o router mapeia): ``ActivityNotRunning`` → 422;
+None → 404. Falhas da NIM/veredito não são HTTP — viram linha ``error``.
 """
 
 import json
@@ -26,12 +29,38 @@ from app.vdot.zones import ZoneConfig
 # Vocabulário de corrida do domínio (mesmo conjunto do activities/service)
 RUNNING_TYPES = ("running", "trail_running")
 
+# Estados da linha (emenda job): pending (criada) → done | error (worker)
+STATUS_PENDING = "pending"
+STATUS_DONE = "done"
+STATUS_ERROR = "error"
+
+INTERRUPTED_MESSAGE = "interrompida por restart do backend"
+
 
 class ActivityNotRunning(Exception):
     """Avaliação é de corrida: não-corrida → 422 no router (EVAL-10)."""
 
 
-def evaluate(
+def _evaluation_dict(evaluation: Evaluation) -> dict:
+    """Linha -> dict no shape de EvaluationOut (contrato único)."""
+    return {
+        "id": evaluation.id,
+        "activity_id": evaluation.activity_id,
+        "intent_type": evaluation.intent_type,
+        "intent_text": evaluation.intent_text,
+        "verdict": evaluation.verdict,
+        "verdict_json": evaluation.verdict_json,
+        "model": evaluation.model,
+        "prompt_version": evaluation.prompt_version,
+        "tokens_in": evaluation.tokens_in,
+        "tokens_out": evaluation.tokens_out,
+        "status": evaluation.status,
+        "error": evaluation.error,
+        "created_at": evaluation.created_at,
+    }
+
+
+def create_evaluation(
     db: Session,
     activity_id: int,
     intent_type: str,
@@ -39,10 +68,11 @@ def evaluate(
     zone_config: ZoneConfig,
     settings: Settings | None = None,
 ) -> dict | None:
-    """Avalia uma corrida de ponta a ponta; None = atividade inexistente.
+    """Cria a avaliação ``pending`` com o payload montado (EVAL-21).
 
-    Fluxo (EVAL-02/03/04): detail → payload determinístico → uma chamada
-    NIM → veredito validado e sanitizado → Evaluation + evaluated=true.
+    Request path: valida 404/422, monta o payload determinístico, grava
+    a linha — NENHUMA chamada à NIM aqui (o worker é quem consome).
+    None = atividade inexistente (404 no router).
     """
     settings = settings or get_settings()
 
@@ -63,18 +93,6 @@ def evaluate(
         db, activity, detail, intent_type, intent_text, settings
     )
 
-    # LLM interpreta; números já vieram prontos no payload (AD-003)
-    verdict_data, usage = nim.chat_completion(
-        SYSTEM_PROMPT_V1, json.dumps(payload, ensure_ascii=False), settings
-    )
-
-    verdict = validate_verdict(verdict_data)
-
-    # Eco sanitizado: pct_zona_alvo sempre do Python (nunca do LLM)
-    zona_alvo = payload.get("zona_alvo")
-    python_pct = zona_alvo["pct_zona_alvo"] if zona_alvo else None
-    verdict_json = sanitize_echo(verdict, python_pct)
-
     evaluation = Evaluation(
         activity_id=activity.id,
         intent_type=intent_type,
@@ -82,33 +100,90 @@ def evaluate(
         payload_json=payload,
         model=settings.nvidia_model,
         prompt_version=PROMPT_VERSION,
-        verdict=verdict.veredito,
-        verdict_json=verdict_json,
-        tokens_in=usage["prompt_tokens"],
-        tokens_out=usage["completion_tokens"],
-        # Transitório T15: o fluxo síncrono nasce concluído (a T16 vira job)
-        status="done",
+        verdict="",
+        verdict_json=None,
+        status=STATUS_PENDING,
     )
     db.add(evaluation)
-    activity.evaluated = True
     db.commit()
     db.refresh(evaluation)
+    return _evaluation_dict(evaluation)
 
-    return {
-        "id": evaluation.id,
-        "activity_id": evaluation.activity_id,
-        "intent_type": evaluation.intent_type,
-        "intent_text": evaluation.intent_text,
-        "verdict": evaluation.verdict,
-        "verdict_json": evaluation.verdict_json,
-        "model": evaluation.model,
-        "prompt_version": evaluation.prompt_version,
-        "tokens_in": evaluation.tokens_in,
-        "tokens_out": evaluation.tokens_out,
-        "status": evaluation.status,
-        "error": evaluation.error,
-        "created_at": evaluation.created_at,
-    }
+
+def _mark_error(db: Session, evaluation_id: int, message: str) -> None:
+    """Linha pending → error com o motivo (EVAL-23) — em sessão limpa."""
+    db.rollback()
+    evaluation = db.get(Evaluation, evaluation_id)
+    if evaluation is None:
+        return
+    evaluation.status = STATUS_ERROR
+    evaluation.error = message
+    db.commit()
+
+
+def run_evaluation(evaluation_id: int) -> None:
+    """Worker (BackgroundTasks): pending → NIM → §9.2 → done | error.
+
+    Sessão fresca (o request já morreu). Linha que não é pending é
+    no-op (já processada ou recuperada no startup). Nenhuma exceção
+    vira crash: falha da NIM/veredito vira linha ``error`` com o
+    motivo (EVAL-22/23).
+    """
+    from app.db.engine import SessionLocal
+
+    settings = get_settings()
+    with SessionLocal() as db:
+        evaluation = db.get(Evaluation, evaluation_id)
+        if evaluation is None or evaluation.status != STATUS_PENDING:
+            return
+
+        try:
+            payload = evaluation.payload_json or {}
+            verdict_data, usage = nim.chat_completion(
+                SYSTEM_PROMPT_V1,
+                json.dumps(payload, ensure_ascii=False),
+                settings,
+            )
+            verdict = validate_verdict(verdict_data)
+
+            # Eco sanitizado: pct_zona_alvo sempre do Python (AD-003)
+            zona_alvo = payload.get("zona_alvo")
+            python_pct = zona_alvo["pct_zona_alvo"] if zona_alvo else None
+            verdict_json = sanitize_echo(verdict, python_pct)
+
+            evaluation.verdict = verdict.veredito
+            evaluation.verdict_json = verdict_json
+            evaluation.tokens_in = usage["prompt_tokens"]
+            evaluation.tokens_out = usage["completion_tokens"]
+            evaluation.status = STATUS_DONE
+            activity = db.get(Activity, evaluation.activity_id)
+            if activity is not None:
+                activity.evaluated = True
+        except (nim.NimError, ValueError) as exc:
+            _mark_error(db, evaluation_id, str(exc))
+        except Exception as exc:  # worker isolado: nada derruba o container
+            _mark_error(db, evaluation_id, f"erro inesperado: {exc}")
+        else:
+            db.commit()
+
+
+def recover_stale_evaluations() -> None:
+    """Startup: pending órfãs (restart no meio da chamada) viram error
+    "interrompida" (EVAL-24 — padrão recover_stale_jobs do sync)."""
+    from app.db.engine import SessionLocal
+
+    with SessionLocal() as db:
+        stale = (
+            db.execute(
+                select(Evaluation).where(Evaluation.status == STATUS_PENDING)
+            )
+            .scalars()
+            .all()
+        )
+        for evaluation in stale:
+            evaluation.status = STATUS_ERROR
+            evaluation.error = INTERRUPTED_MESSAGE
+        db.commit()
 
 
 def list_evaluations(db: Session, activity_id: int) -> list[dict]:
@@ -125,21 +200,4 @@ def list_evaluations(db: Session, activity_id: int) -> list[dict]:
         .scalars()
         .all()
     )
-    return [
-        {
-            "id": row.id,
-            "activity_id": row.activity_id,
-            "intent_type": row.intent_type,
-            "intent_text": row.intent_text,
-            "verdict": row.verdict,
-            "verdict_json": row.verdict_json,
-            "model": row.model,
-            "prompt_version": row.prompt_version,
-            "tokens_in": row.tokens_in,
-            "tokens_out": row.tokens_out,
-            "status": row.status,
-            "error": row.error,
-            "created_at": row.created_at,
-        }
-        for row in rows
-    ]
+    return [_evaluation_dict(row) for row in rows]

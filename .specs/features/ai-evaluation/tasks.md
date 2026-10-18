@@ -523,10 +523,10 @@ T14 → T15 → T16 → T17 → T18 → T19 → T20
 
 **Done when**:
 
-- [ ] `create_evaluation` cria pending com payload montado e NUNCA chama a NIM (pino por count)
-- [ ] `run_evaluation`: happy path → done com veredito sanitizado + tokens + `evaluated=true`; NimError/ValueError de schema → `error` com motivo na linha; linha não-pending é no-op; exceção inesperada → linha error, sem crash
-- [ ] `recover_stale_evaluations`: pending órfã vira error "interrompida" (EVAL-24)
-- [ ] Gate quick passa; contagem sobe
+- [x] `create_evaluation` cria pending com payload montado e NUNCA chama a NIM (pino por count — `calls == []` no POST)
+- [x] `run_evaluation`: happy path → done com veredito sanitizado + tokens + `evaluated=true`; NimError/ValueError de schema → `error` com motivo na linha; linha não-pending é no-op; exceção inesperada → linha error, sem crash (guard `except Exception`)
+- [x] `recover_stale_evaluations`: pending órfã vira error "interrompida" (EVAL-24)
+- [x] Gate quick passa; contagem sobe (359 — testes de service reescritos para o fluxo de job; API transitória: POST cria pending sem NIM; adaptação mínima do router absorvida pela task p/ ser auto-testável)
 
 **Tests**: integration
 **Gate**: quick

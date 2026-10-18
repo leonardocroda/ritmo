@@ -1,10 +1,12 @@
-"""API de avaliação — POST /api/activities/{id}/evaluate (EVAL-09..15).
+"""API de avaliação — POST cria o job pending (EVAL-21, T16).
 
-TestClient + Postgres real; NIM sempre mockada (monkeypatch do módulo
-`nim` — nenhum teste chama a API real). Falhas não gravam nada: cada
-teste de erro confere no banco 0 linhas de `Evaluation` e `evaluated`
-inalterado (Decisão E). `get_settings` do router é fixado por teste
-porque o `lru_cache` da app atravessa testes.
+TestClient + Postgres real; NIM sempre mockada (nenhum teste chama a
+API real). Na T16 o POST é transitório: cria o pending e responde 200
+— o dispatch do worker, o 201 e o GET de status entram na T17.
+Validações síncronas (404/422×3/503/500) continuam HTTP e nada criam;
+falhas da NIM/veredito são do worker (linhas error, testadas no
+service). `get_settings` do router é fixado por teste porque o
+`lru_cache` da app atravessa testes.
 """
 
 from datetime import datetime
@@ -17,19 +19,8 @@ from app.core.config import Settings
 from app.db.engine import SessionLocal, init_db
 from app.db.models import Activity, Evaluation, Split
 from app.evaluation import nim
-from app.evaluation.nim import NimError, NimTimeout
 from app.main import app
 from app.vdot.zones import ZoneConfigError
-
-VERDICT = {
-    "veredito": "on_target",
-    "headline": "Rodagem fácil bem controlada",
-    "execucao_vs_intencao": {"pct_zona_alvo": 84.5, "principais_desvios": []},
-    "o_que_funcionou": ["pacing estável"],
-    "corrigir_prox_vez": [],
-    "contexto_relevante": [],
-    "confianca": "alta",
-}
 
 
 @pytest.fixture(autouse=True)
@@ -89,30 +80,23 @@ def _seed_run(db, *, activity_type: str = "running") -> Activity:
     return activity
 
 
-def _mock_nim(monkeypatch, verdict: dict | None = VERDICT,
-              error: Exception | None = None, calls: list | None = None):
+def _mock_nim(monkeypatch, calls: list | None = None):
+    """NIM dublê que conta chamadas — o POST da T16 não pode chamar."""
+
     def fake(system: str, user: str, settings, transport=None):
         if calls is not None:
             calls.append(system)
-        if error is not None:
-            raise error
-        return verdict, {"prompt_tokens": 1234, "completion_tokens": 56}
+        raise AssertionError("NIM não deve ser chamada no request path")
 
     monkeypatch.setattr(nim, "chat_completion", fake)
 
 
-def _nothing_saved(db, activity_id: int) -> None:
-    """Decisão E: falha não deixa linha nem muda evaluated (query fresca)."""
-    db.expire_all()
-    assert db.execute(select(Evaluation)).scalars().all() == []
-    fresh = db.execute(select(Activity).where(Activity.id == activity_id)).scalar_one()
-    assert fresh.evaluated is False
-
-
-def test_200_happy_path_devolve_avaliacao(db, client, monkeypatch) -> None:
-    """EVAL-04: 200 com EvaluationOut completo; linha gravada e evaluated true."""
+def test_post_cria_pending_sem_chamar_nim(db, client, monkeypatch) -> None:
+    """EVAL-21: POST cria pending com payload, responde o registro e
+    NUNCA chama a NIM no request path (pino por count)."""
     activity = _seed_run(db)
-    _mock_nim(monkeypatch)
+    calls: list = []
+    _mock_nim(monkeypatch, calls=calls)
 
     response = client.post(
         f"/api/activities/{activity.id}/evaluate",
@@ -122,19 +106,19 @@ def test_200_happy_path_devolve_avaliacao(db, client, monkeypatch) -> None:
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["activity_id"] == activity.id
-    assert body["verdict"] == "on_target"
+    assert body["status"] == "pending"
+    assert body["verdict"] == ""
+    assert body["verdict_json"] is None
     assert body["model"] == "z-ai/glm-5.3"
-    assert body["prompt_version"] == "v1"
-    assert body["tokens_in"] == 1234
-    assert body["tokens_out"] == 56
-    assert body["verdict_json"]["headline"] == "Rodagem fácil bem controlada"
-    assert body["verdict_json"]["execucao_vs_intencao"]["pct_zona_alvo"] == 84.5
-    assert body["created_at"] is not None
+    assert body["intent_text"] == "era pra ser 30min a 4:15"
+    assert calls == []
 
     db.expire_all()
-    assert len(db.execute(select(Evaluation)).scalars().all()) == 1
+    row = db.execute(select(Evaluation)).scalar_one()
+    assert row.status == "pending"
+    assert row.payload_json["intencao"]["tipo"] == "facil"
     fresh = db.execute(select(Activity).where(Activity.id == activity.id)).scalar_one()
-    assert fresh.evaluated is True
+    assert fresh.evaluated is False
 
 
 def test_404_atividade_inexistente(client, monkeypatch) -> None:
@@ -148,7 +132,7 @@ def test_404_atividade_inexistente(client, monkeypatch) -> None:
 
 
 def test_422_atividade_nao_corrida(db, client, monkeypatch) -> None:
-    """EVAL-10: yoga → 422, sem chamar a NIM."""
+    """EVAL-10: yoga → 422, sem NIM e sem linha criada."""
     yoga = _seed_run(db, activity_type="yoga")
     calls: list = []
     _mock_nim(monkeypatch, calls=calls)
@@ -160,7 +144,8 @@ def test_422_atividade_nao_corrida(db, client, monkeypatch) -> None:
     assert response.status_code == 422
     assert "corridas" in response.json()["detail"]
     assert calls == []
-    _nothing_saved(db, yoga.id)
+    db.expire_all()
+    assert db.execute(select(Evaluation)).scalars().all() == []
 
 
 def test_422_intent_type_fora_dos_sete(client) -> None:
@@ -181,7 +166,7 @@ def test_422_intent_text_acima_de_500(client) -> None:
 
 
 def test_503_sem_api_key(db, client, monkeypatch) -> None:
-    """EVAL-12: key vazia → 503, sem chamada à NIM e nada gravado."""
+    """EVAL-12: key vazia → 503, sem NIM e nada criado."""
     activity = _seed_run(db)
     calls: list = []
     _mock_nim(monkeypatch, calls=calls)
@@ -197,49 +182,20 @@ def test_503_sem_api_key(db, client, monkeypatch) -> None:
     assert response.status_code == 503
     assert "NVIDIA_API_KEY" in response.json()["detail"]
     assert calls == []
-    _nothing_saved(db, activity.id)
+    db.expire_all()
+    assert db.execute(select(Evaluation)).scalars().all() == []
 
 
-def test_502_nim_error(db, client, monkeypatch) -> None:
-    """EVAL-13: NIM com HTTP != 200 → 502, nada gravado."""
-    activity = _seed_run(db)
-    _mock_nim(monkeypatch, error=NimError("NIM HTTP 503"))
-
-    response = client.post(
-        f"/api/activities/{activity.id}/evaluate", json={"intent_type": "facil"}
+def test_503_precede_404_com_key_vazia(client, monkeypatch) -> None:
+    """Precedência da assumption do spec: key ausente responde 503 ANTES
+    da consulta — erro de configuração não depende do dado."""
+    monkeypatch.setattr(
+        "app.evaluation.router.get_settings",
+        lambda: Settings(_env_file=None, nvidia_api_key=""),
     )
-
-    assert response.status_code == 502
-    assert "Falha na IA" in response.json()["detail"]
-    _nothing_saved(db, activity.id)
-
-
-def test_502_veredito_fora_do_schema(db, client, monkeypatch) -> None:
-    """EVAL-14: JSON fora do contrato → 502, veredito nunca inventado."""
-    activity = _seed_run(db)
-    _mock_nim(monkeypatch, verdict={"veredito": "excellent"})
-
-    response = client.post(
-        f"/api/activities/{activity.id}/evaluate", json={"intent_type": "facil"}
-    )
-
-    assert response.status_code == 502
-    assert "fora do contrato" in response.json()["detail"]
-    _nothing_saved(db, activity.id)
-
-
-def test_504_timeout_da_nim(db, client, monkeypatch) -> None:
-    """EVAL-13: NIM não responde → 504, nada gravado."""
-    activity = _seed_run(db)
-    _mock_nim(monkeypatch, error=NimTimeout("read timed out"))
-
-    response = client.post(
-        f"/api/activities/{activity.id}/evaluate", json={"intent_type": "facil"}
-    )
-
-    assert response.status_code == 504
-    assert "demorou demais" in response.json()["detail"]
-    _nothing_saved(db, activity.id)
+    response = client.post("/api/activities/999/evaluate", json={"intent_type": "facil"})
+    assert response.status_code == 503
+    assert "NVIDIA_API_KEY" in response.json()["detail"]
 
 
 def test_500_zonas_nao_configuradas(client, monkeypatch) -> None:
@@ -253,16 +209,3 @@ def test_500_zonas_nao_configuradas(client, monkeypatch) -> None:
     response = client.post("/api/activities/1/evaluate", json={"intent_type": "facil"})
     assert response.status_code == 500
     assert response.json()["detail"] == "zonas VDOT não configuradas"
-
-
-def test_503_precede_404_com_key_vazia(client, monkeypatch) -> None:
-    """Fix 6 do Verifier (spec-precision): key ausente responde 503 ANTES
-    da consulta — erro de configuração não depende do dado. Pin da
-    precedência escolhida (assumption do spec)."""
-    monkeypatch.setattr(
-        "app.evaluation.router.get_settings",
-        lambda: Settings(_env_file=None, nvidia_api_key=""),
-    )
-    response = client.post("/api/activities/999/evaluate", json={"intent_type": "facil"})
-    assert response.status_code == 503
-    assert "NVIDIA_API_KEY" in response.json()["detail"]
