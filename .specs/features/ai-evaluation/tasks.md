@@ -353,10 +353,10 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Formulário renderiza com o select pré-preenchido (quando `inferred_type` existe) e o botão "Avaliar com IA"
-- [ ] Durante a chamada: botão desabilitado + "Analisando treino…" — nenhum clique duplo dispara segunda chamada (EVAL-08)
-- [ ] Erro (404/422/502/503/504): mensagem inline em PT-BR, botão volta ao normal
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Formulário renderiza com o select pré-preenchido (quando `inferred_type` existe) e o botão "Avaliar com IA"
+- [x] Durante a chamada: botão desabilitado + "Analisando treino…" — nenhum clique duplo dispara segunda chamada (EVAL-08)
+- [x] Erro (404/422/502/503/504): mensagem inline em PT-BR, botão volta ao normal
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none
 **Gate**: build
