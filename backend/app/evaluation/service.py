@@ -186,6 +186,18 @@ def recover_stale_evaluations() -> None:
         db.commit()
 
 
+def get_evaluation(db: Session, activity_id: int, evaluation_id: int) -> dict | None:
+    """Uma avaliação do treino por id (GET de status, EVAL-25); None → 404."""
+    evaluation = db.execute(
+        select(Evaluation).where(
+            Evaluation.id == evaluation_id,
+            Evaluation.activity_id == activity_id,
+            Evaluation.user_id == DEFAULT_USER_ID,
+        )
+    ).scalar_one_or_none()
+    return None if evaluation is None else _evaluation_dict(evaluation)
+
+
 def list_evaluations(db: Session, activity_id: int) -> list[dict]:
     """Avaliações do treino, mais recente primeiro (EVAL-17/18/19)."""
     rows = (

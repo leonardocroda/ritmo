@@ -1,12 +1,11 @@
-"""API de avaliação — POST cria o job pending (EVAL-21, T16).
+"""API de avaliação como job — 201 pending + worker + GET de status (EVAL-21..25).
 
 TestClient + Postgres real; NIM sempre mockada (nenhum teste chama a
-API real). Na T16 o POST é transitório: cria o pending e responde 200
-— o dispatch do worker, o 201 e o GET de status entram na T17.
-Validações síncronas (404/422×3/503/500) continuam HTTP e nada criam;
-falhas da NIM/veredito são do worker (linhas error, testadas no
-service). `get_settings` do router é fixado por teste porque o
-`lru_cache` da app atravessa testes.
+API real). O TestClient executa o BackgroundTask dentro do ciclo do
+request: a RESPOSTA é o pending (capturada antes do worker) e, quando
+`post()` retorna, a linha já foi concluída pelo worker — os dois
+estados são afirmados na mesma chamada. Falha da NIM vira linha
+`error` com o motivo (não existe mais 502/504 HTTP para NIM — EVAL-23).
 """
 
 from datetime import datetime
@@ -18,9 +17,20 @@ from sqlalchemy import select
 from app.core.config import Settings
 from app.db.engine import SessionLocal, init_db
 from app.db.models import Activity, Evaluation, Split
-from app.evaluation import nim
+from app.evaluation import service
+from app.evaluation.nim import NimError
 from app.main import app
-from app.vdot.zones import ZoneConfigError
+from app.vdot.zones import ZoneConfigError, load_zone_config
+
+VERDICT = {
+    "veredito": "on_target",
+    "headline": "Rodagem fácil bem controlada",
+    "execucao_vs_intencao": {"pct_zona_alvo": 84.5, "principais_desvios": []},
+    "o_que_funcionou": ["pacing estável"],
+    "corrigir_prox_vez": [],
+    "contexto_relevante": [],
+    "confianca": "alta",
+}
 
 
 @pytest.fixture(autouse=True)
@@ -80,20 +90,23 @@ def _seed_run(db, *, activity_type: str = "running") -> Activity:
     return activity
 
 
-def _mock_nim(monkeypatch, calls: list | None = None):
-    """NIM dublê que conta chamadas — o POST da T16 não pode chamar."""
+def _mock_nim(monkeypatch, *, verdict: dict | None = VERDICT,
+              error: Exception | None = None, calls: list | None = None):
+    """NIM dublê: devolve veredito/usage, ou levanta; `calls` conta chamadas."""
 
     def fake(system: str, user: str, settings, transport=None):
         if calls is not None:
             calls.append(system)
-        raise AssertionError("NIM não deve ser chamada no request path")
+        if error is not None:
+            raise error
+        return verdict, {"prompt_tokens": 1234, "completion_tokens": 56}
 
-    monkeypatch.setattr(nim, "chat_completion", fake)
+    monkeypatch.setattr("app.evaluation.nim.chat_completion", fake)
 
 
-def test_post_cria_pending_sem_chamar_nim(db, client, monkeypatch) -> None:
-    """EVAL-21: POST cria pending com payload, responde o registro e
-    NUNCA chama a NIM no request path (pino por count)."""
+def test_post_201_pending_e_worker_conclui(db, client, monkeypatch) -> None:
+    """EVAL-21/22: a resposta é o pending (201); ao fim do request o
+    worker já concluiu — linha done com veredito, tokens e evaluated."""
     activity = _seed_run(db)
     calls: list = []
     _mock_nim(monkeypatch, calls=calls)
@@ -103,22 +116,93 @@ def test_post_cria_pending_sem_chamar_nim(db, client, monkeypatch) -> None:
         json={"intent_type": "facil", "intent_text": "era pra ser 30min a 4:15"},
     )
 
-    assert response.status_code == 200, response.text
+    assert response.status_code == 201, response.text
     body = response.json()
-    assert body["activity_id"] == activity.id
     assert body["status"] == "pending"
     assert body["verdict"] == ""
     assert body["verdict_json"] is None
     assert body["model"] == "z-ai/glm-5.3"
     assert body["intent_text"] == "era pra ser 30min a 4:15"
-    assert calls == []
 
     db.expire_all()
     row = db.execute(select(Evaluation)).scalar_one()
-    assert row.status == "pending"
-    assert row.payload_json["intencao"]["tipo"] == "facil"
+    assert row.status == "done"
+    assert row.verdict == "on_target"
+    assert row.tokens_in == 1234 and row.tokens_out == 56
+    assert len(calls) == 1  # worker: exatamente uma chamada à NIM
+    fresh = db.execute(select(Activity).where(Activity.id == activity.id)).scalar_one()
+    assert fresh.evaluated is True
+
+
+def test_post_erro_nim_vira_linha_error(db, client, monkeypatch) -> None:
+    """EVAL-23: NIM fora → 201 pending na resposta + linha error com o
+    motivo ao fim do request — a tentativa nunca se perde (sem 502/504)."""
+    activity = _seed_run(db)
+    _mock_nim(monkeypatch, error=NimError("NIM HTTP 503"))
+
+    response = client.post(
+        f"/api/activities/{activity.id}/evaluate",
+        json={"intent_type": "facil", "intent_text": "tento 1"},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["status"] == "pending"
+
+    db.expire_all()
+    row = db.execute(select(Evaluation)).scalar_one()
+    assert row.status == "error"
+    assert "NIM HTTP 503" in row.error
+    assert row.intent_text == "tento 1"  # a tentativa sobrevive com o motivo
     fresh = db.execute(select(Activity).where(Activity.id == activity.id)).scalar_one()
     assert fresh.evaluated is False
+
+
+def test_get_status_do_polling(db, client, monkeypatch) -> None:
+    """EVAL-25: GET leve por id — done com veredito; 404 para id de outro
+    treino ou inexistente."""
+    activity = _seed_run(db)
+    _mock_nim(monkeypatch)
+
+    created = client.post(
+        f"/api/activities/{activity.id}/evaluate", json={"intent_type": "facil"}
+    ).json()
+
+    status = client.get(
+        f"/api/activities/{activity.id}/evaluate/{created['id']}"
+    )
+    assert status.status_code == 200
+    body = status.json()
+    assert body["status"] == "done"
+    assert body["verdict"] == "on_target"
+    assert body["verdict_json"]["headline"] == "Rodagem fácil bem controlada"
+
+    assert (
+        client.get(f"/api/activities/{activity.id}/evaluate/999").status_code == 404
+    )
+    assert (
+        client.get(f"/api/activities/999/evaluate/{created['id']}").status_code == 404
+    )
+
+
+def test_lifespan_recupera_pending_orfa(db, monkeypatch) -> None:
+    """EVAL-24: pending criada antes do startup vira error "interrompida"
+    quando o lifespan do backend roda (padrão recover_stale_jobs)."""
+    settings = Settings(_env_file=None)
+    zone_config = load_zone_config(settings.vdot_zones_path)
+    activity = _seed_run(db)
+    _mock_nim(monkeypatch)
+    created = service.create_evaluation(
+        db, activity.id, "facil", None, zone_config, settings
+    )
+    assert created["status"] == "pending"
+
+    with TestClient(app):  # lifespan roda recover_stale_evaluations()
+        pass
+
+    db.expire_all()
+    row = db.execute(select(Evaluation)).scalar_one()
+    assert row.status == "error"
+    assert "interrompida" in row.error
 
 
 def test_404_atividade_inexistente(client, monkeypatch) -> None:

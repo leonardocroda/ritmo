@@ -550,11 +550,11 @@ T14 → T15 → T16 → T17 → T18 → T19 → T20
 
 **Done when**:
 
-- [ ] POST responde 201 com `status=pending`; worker conclui a linha ao fim do request (TestClient)
-- [ ] GET de status: 200 com a avaliação, 404 para id inexistente/de outro treino
-- [ ] Falha da NIM → linha `status=error` com motivo; falhas síncronas (503/404/422/500) iguais e nada criam
-- [ ] Lifespan recupera órfãs no startup
-- [ ] Gate full passa; contagem sobe
+- [x] POST responde 201 com `status=pending`; worker conclui a linha ao fim do request (TestClient)
+- [x] GET de status: 200 com a avaliação, 404 para id inexistente/de outro treino
+- [x] Falha da NIM → linha `status=error` com motivo; falhas síncronas (503/404/422/500) iguais e nada criam
+- [x] Lifespan recupera órfãs no startup (pending pré-startup vira error "interrompida")
+- [x] Gate full passa; contagem sobe (362)
 
 **Tests**: integration
 **Gate**: full

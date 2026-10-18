@@ -146,7 +146,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | EVAL-22 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | Implementing |
 | EVAL-23 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | Implementing |
 | EVAL-24 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | Implementing |
-| EVAL-25 | P1: Avaliar um treino e ver o veredito (emenda job) | Design | Pending |
+| EVAL-25 | P1: Avaliar um treino e ver o veredito (emenda job) | Execute | Implementing |
 
 **Coverage:** 25 total, 25 mapped to stories, 0 unmapped ✅
 

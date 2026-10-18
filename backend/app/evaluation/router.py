@@ -7,7 +7,7 @@ Falhas da NIM não são HTTP: viram ``status=error`` com o motivo na
 própria linha (a tentativa nunca se perde — EVAL-23).
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.activities.router import get_zone_config
@@ -20,14 +20,19 @@ from app.vdot.zones import ZoneConfig
 router = APIRouter(prefix="/api/activities")
 
 
-@router.post("/{activity_id}/evaluate")
+@router.post("/{activity_id}/evaluate", status_code=201)
 def evaluate_activity(
     activity_id: int,
     request: EvaluateIn,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     zone_config: ZoneConfig = Depends(get_zone_config),
 ) -> EvaluationOut:
-    """Cria a avaliação pending com o payload montado (EVAL-21)."""
+    """Cria a avaliação pending (EVAL-21) e despacha o worker (EVAL-22/23).
+
+    O request nunca espera a NIM: responde 201 com o registro pending;
+    a UI polla o GET de status até done/error.
+    """
     settings = get_settings()
     if not settings.nvidia_api_key:
         raise HTTPException(
@@ -50,4 +55,18 @@ def evaluate_activity(
         ) from exc
     if result is None:
         raise HTTPException(status_code=404, detail="atividade não encontrada")
+    background_tasks.add_task(service.run_evaluation, result["id"])
+    return result
+
+
+@router.get("/{activity_id}/evaluate/{evaluation_id}")
+def get_evaluation_status(
+    activity_id: int,
+    evaluation_id: int,
+    db: Session = Depends(get_db),
+) -> EvaluationOut:
+    """Status de uma avaliação para o polling da UI (EVAL-25)."""
+    result = service.get_evaluation(db, activity_id, evaluation_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="avaliação não encontrada")
     return result
