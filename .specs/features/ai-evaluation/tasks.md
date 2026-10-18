@@ -181,12 +181,12 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Corrida completa semeada → payload com todos os blocos; `pct_zona_alvo` com aritmética exata pinada (valores literais derivados das fixtures — padrão L-001/L-002)
-- [ ] `tempo_por_zona_pct` soma 100,0 quando todas as voltas têm zona válida
-- [ ] Progressivo e prova → sem bloco `zona_alvo`; corrida sem voltas → blocos de voltas/zona omitidos, resumo e contexto seguem (EVAL-16)
-- [ ] Blocos honestos: sem linha de PMC → `carga_do_dia` omitida; padrões vazios → omitidos; PR canônico sem data → fora da lista (EVAL-02 "só o que existir")
-- [ ] Nenhum import do gateway Garmin (EVAL-07 — payload 100% banco)
-- [ ] Gate passa; contagem sobe
+- [x] Corrida completa semeada → payload com todos os blocos; `pct_zona_alvo` com aritmética exata pinada (valores literais derivados das fixtures — padrão L-001/L-002)
+- [x] `tempo_por_zona_pct` soma 100,0 quando todas as voltas têm zona válida
+- [x] Progressivo e prova → sem bloco `zona_alvo`; corrida sem voltas → blocos de voltas/zona omitidos, resumo e contexto seguem (EVAL-16)
+- [x] Blocos honestos: sem linha de PMC → `carga_do_dia` omitida; padrões vazios → omitidos; PR canônico sem data → fora da lista (EVAL-02 "só o que existir")
+- [x] Nenhum import do gateway Garmin (EVAL-07 — payload 100% banco; teste lê a fonte e nega o import)
+- [x] Gate passa; contagem sobe (314 = 308 + 6)
 
 **Tests**: integration
 **Gate**: quick
