@@ -31,9 +31,12 @@ const MAX_INTENT_TEXT = 500;
 
 export default function EvaluateForm({
   activity,
+  pending,
   onEvaluated,
 }: {
   activity: ActivityOut;
+  /** Existe avaliação em curso (EVAL-08) — botão guarda a fila */
+  pending: boolean;
   onEvaluated: (evaluation: EvaluationOut) => void;
 }) {
   const [intentType, setIntentType] = useState<InferredType>(
@@ -47,6 +50,8 @@ export default function EvaluateForm({
     setBusy(true);
     setFailure(null);
     try {
+      // Job (EVAL-21): o POST só cria o pending — a resposta é rápida;
+      // o guarda real contra fila dupla é a prop `pending`.
       const evaluation = await evaluateActivity(activity.id, {
         intent_type: intentType,
         intent_text: intentText.trim() === "" ? undefined : intentText.trim(),
@@ -59,6 +64,8 @@ export default function EvaluateForm({
     }
   }
 
+  const blocked = busy || pending;
+
   return (
     <section className="mt-6">
       <h2 className="text-sm font-medium text-muted">Avaliar com IA</h2>
@@ -70,7 +77,7 @@ export default function EvaluateForm({
           id="intent-type"
           value={intentType}
           onChange={(event) => setIntentType(event.target.value as InferredType)}
-          disabled={busy}
+          disabled={blocked}
           className="mt-1 w-full rounded-lg border border-white/10 bg-background px-3 py-2 text-sm"
         >
           {INTENT_OPTIONS.map((option) => (
@@ -90,21 +97,21 @@ export default function EvaluateForm({
           placeholder="era pra ser 30min a 4:15"
           rows={2}
           maxLength={MAX_INTENT_TEXT}
-          disabled={busy}
+          disabled={blocked}
           className="mt-1 w-full resize-none rounded-lg border border-white/10 bg-background px-3 py-2 text-sm placeholder:text-muted/60"
         />
 
         <button
           type="button"
           onClick={handleEvaluate}
-          disabled={busy}
+          disabled={blocked}
           className={
-            busy
+            blocked
               ? "mt-3 w-full rounded-full border border-white/10 bg-card px-4 py-1.5 text-sm font-medium text-muted"
               : "mt-3 w-full rounded-full border border-accent/30 px-4 py-1.5 text-sm font-medium text-accent hover:bg-accent/10"
           }
         >
-          {busy ? "Analisando treino…" : "Avaliar com IA"}
+          {blocked ? "Analisando treino…" : "Avaliar com IA"}
         </button>
 
         {failure !== null && (

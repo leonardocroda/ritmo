@@ -10,7 +10,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { getActivityDetail, ApiError, type ActivityDetailOut, type EvaluationOut } from "@/lib/api";
+import {
+  getActivityDetail,
+  getEvaluation,
+  ApiError,
+  type ActivityDetailOut,
+  type EvaluationOut,
+} from "@/lib/api";
 import {
   formatCadence,
   formatDateTime,
@@ -69,6 +75,44 @@ export default function WorkoutDetail({ id }: { id: number }) {
   // inicial "loading" já cobre cada id novo (sem setState síncrono em effect).
   const [state, setState] = useState<DetailState>({ kind: "loading" });
 
+  // Polling (~2s) enquanto existe avaliação pending (EVAL-25) — o worker
+  // conclui em background; cada tick busca o status das pendentes e
+  // mescla no estado local (done → card; error → motivo preservado).
+  useEffect(() => {
+    if (state.kind !== "ready") return;
+    const pending = state.detail.evaluations.filter((e) => e.status === "pending");
+    if (pending.length === 0) return;
+    const activityId = state.detail.activity.id;
+    const timer = setInterval(() => {
+      pending.forEach((item) => {
+        getEvaluation(activityId, item.id)
+          .then((fresh) => {
+            setState((prev) => {
+              if (prev.kind !== "ready") return prev;
+              return {
+                ...prev,
+                detail: {
+                  ...prev.detail,
+                  evaluations: prev.detail.evaluations.map((e) =>
+                    e.id === fresh.id ? fresh : e,
+                  ),
+                  // Badge "Avaliado" acende quando o worker conclui (EVAL-20)
+                  activity:
+                    fresh.status === "done"
+                      ? { ...prev.detail.activity, evaluated: true }
+                      : prev.detail.activity,
+                },
+              };
+            });
+          })
+          .catch(() => {
+            // oscilação de rede: o próximo tick tenta de novo
+          });
+      });
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [state]);
+
   useEffect(() => {
     let cancelled = false;
     getActivityDetail(id)
@@ -91,8 +135,9 @@ export default function WorkoutDetail({ id }: { id: number }) {
     };
   }, [id]);
 
-  // Avaliação concluída: prepend na mais recente + badge "Avaliado"
-  // acende no header — sem refetch, o banco já persistiu (EVAL-18/20)
+  // Avaliação pedida: prepend do pending no estado local (o badge
+  // "Avaliado" acende quando o worker conclui — done — no polling;
+  // EVAL-18/20)
   function handleEvaluated(evaluation: EvaluationOut) {
     setState((prev) =>
       prev.kind === "ready"
@@ -101,7 +146,6 @@ export default function WorkoutDetail({ id }: { id: number }) {
             detail: {
               ...prev.detail,
               evaluations: [evaluation, ...prev.detail.evaluations],
-              activity: { ...prev.detail.activity, evaluated: true },
             },
           }
         : prev,
@@ -288,11 +332,16 @@ export default function WorkoutDetail({ id }: { id: number }) {
       )}
 
       {/* Avaliar com IA (EVAL-01/10): só corridas têm formulário; a
-          avaliação mais recente como card, anteriores no histórico,
-          re-avaliação sempre por clique explícito (custo de tokens) */}
+          avaliação mais recente como card (pending → análise, error →
+          motivo), anteriores no histórico; re-avaliação sempre por
+          clique explícito (custo de tokens) */}
       {isRunning && (
         <>
-          <EvaluateForm activity={activity} onEvaluated={handleEvaluated} />
+          <EvaluateForm
+            activity={activity}
+            pending={evaluations.some((e) => e.status === "pending")}
+            onEvaluated={handleEvaluated}
+          />
           {evaluations.length > 0 && (
             <>
               <EvaluationCard evaluation={evaluations[0]} />

@@ -603,9 +603,9 @@ T14 → T15 → T16 → T17 → T18 → T19 → T20
 
 **Done when**:
 
-- [ ] Avaliação pedida: card pending aparece na hora; polling troca para veredito quando done — sem recarregar a página
-- [ ] Falha da NIM: card de erro com o motivo gravado; botão volta; tentativa preservada no histórico
-- [ ] Botão desabilitado enquanto existe pending do treino (nenhuma segunda avaliação em fila por clique duplo)
+- [x] Avaliação pedida: card pending aparece na hora; polling troca para veredito quando done — sem recarregar a página
+- [x] Falha da NIM: card de erro com o motivo gravado; botão volta; tentativa preservada no histórico (histórico mostra ⏳/⚠️ para pending/error)
+- [x] Botão desabilitado enquanto existe pending do treino (nenhuma segunda avaliação em fila por clique duplo); badge "Avaliado" só acende em done (EVAL-20 honesto)
 - [ ] `npm run build` + `npm run lint` verdes
 
 **Tests**: none

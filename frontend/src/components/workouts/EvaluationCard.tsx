@@ -40,13 +40,46 @@ export default function EvaluationCard({
 }: {
   evaluation: EvaluationOut;
 }) {
+  const tokens = evaluation.tokens_in + evaluation.tokens_out;
+
+  // Pending: o worker está com a NIM — o card nasce como estado de
+  // análise (EVAL-08/21); error: a tentativa sobrevive com o motivo
+  // (EVAL-23 — nunca se perde).
+  if (evaluation.status === "pending") {
+    return (
+      <section className="mt-6">
+        <h2 className="text-sm font-medium text-muted">Avaliação</h2>
+        <div className="mt-2 flex items-center gap-2 rounded-xl border border-white/10 bg-card px-4 py-3">
+          <span
+            className="inline-block size-2 animate-pulse rounded-full bg-accent"
+            aria-hidden
+          />
+          <p className="text-sm text-muted">
+            Analisando treino… — a IA pode levar alguns minutos
+          </p>
+        </div>
+      </section>
+    );
+  }
+  if (evaluation.status === "error") {
+    return (
+      <section className="mt-6">
+        <h2 className="text-sm font-medium text-muted">Avaliação</h2>
+        <div className="mt-2 rounded-xl border border-white/10 bg-card p-4">
+          <p className="text-sm font-medium">A avaliação falhou</p>
+          <p className="mt-1 text-sm text-muted">{evaluation.error}</p>
+          <p className="mt-2 text-xs text-muted">
+            A tentativa fica no histórico — peça uma nova avaliação quando quiser.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   const verdict = evaluation.verdict_json;
-  // Pending/error ainda sem veredito — a T19 renderiza os estados
-  // completos de análise/erro; a guarda mínima mantém o build honesto.
   if (verdict === null) return null;
   const seal = VERDICT_SEAL[evaluation.verdict];
   const pct = verdict.execucao_vs_intencao.pct_zona_alvo;
-  const tokens = evaluation.tokens_in + evaluation.tokens_out;
 
   return (
     <section className="mt-6">
@@ -84,6 +117,14 @@ export default function EvaluationCard({
   );
 }
 
+/** Ícone de status da entrada do histórico: veredito quando done,
+ * ⏳ quando pending, ⚠️ quando error (EVAL-17 com a emenda job). */
+function statusIcon(item: EvaluationOut): string {
+  if (item.status === "pending") return "⏳";
+  if (item.status === "error") return "⚠️";
+  return VERDICT_SEAL[item.verdict].icon;
+}
+
 /** Entradas resumidas das avaliações anteriores (EVAL-17): data, selo, headline. */
 export function EvaluationHistory({
   evaluations,
@@ -95,22 +136,22 @@ export function EvaluationHistory({
     <section className="mt-4">
       <h3 className="text-sm font-medium text-muted">Avaliações anteriores</h3>
       <ul className="mt-2 space-y-2">
-        {evaluations.map((item) => {
-          const seal = VERDICT_SEAL[item.verdict];
-          return (
-            <li
-              key={item.id}
-              className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-card px-3 py-2 text-sm"
-            >
-              <span className="leading-snug">
-                {item.verdict_json?.headline ?? "—"}
-              </span>
-              <span className="shrink-0 text-xs text-muted">
-                {seal.icon} {formatDateTime(item.created_at)}
-              </span>
-            </li>
-          );
-        })}
+        {evaluations.map((item) => (
+          <li
+            key={item.id}
+            className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-card px-3 py-2 text-sm"
+          >
+            <span className="leading-snug">
+              {item.verdict_json?.headline ??
+                (item.status === "error"
+                  ? `Falhou: ${item.error}`
+                  : "Analisando treino…")}
+            </span>
+            <span className="shrink-0 text-xs text-muted">
+              {statusIcon(item)} {formatDateTime(item.created_at)}
+            </span>
+          </li>
+        ))}
       </ul>
     </section>
   );
