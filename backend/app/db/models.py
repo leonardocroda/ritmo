@@ -194,6 +194,9 @@ class Evaluation(Base):
     """Avaliação de IA — um treino (ou série) sob a intenção declarada.
 
     Requisito travado: grava model, prompt_version e tokens de toda chamada.
+    Emenda job (18/10, EVAL-21..23): ``status`` pending|done|error +
+    ``error`` com o motivo — a tentativa sobrevive à falha da NIM; o
+    worker conclui a linha, o POST só a cria.
     """
 
     __tablename__ = "evaluations"
@@ -212,6 +215,9 @@ class Evaluation(Base):
     verdict_json: Mapped[dict | None] = mapped_column(JSON)
     tokens_in: Mapped[int] = mapped_column(Integer, default=0)
     tokens_out: Mapped[int] = mapped_column(Integer, default=0)
+    # Emenda job: pending -> done (worker) | error (motivo em `error`)
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    error: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
 

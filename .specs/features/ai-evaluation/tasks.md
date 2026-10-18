@@ -472,9 +472,9 @@ T14 → T15 → T16 → T17 → T18 → T19 → T20
 
 **Done when**:
 
-- [ ] `status` default `pending` e `error` nullable no modelo; suite verde (schema recriado por teste cobre as colunas)
-- [ ] ALTER executado no banco vivo: colunas presentes, linhas do UAT marcadas `done` (verificado por psql)
-- [ ] Gate full passa; contagem mantida (357)
+- [x] `status` default `pending` e `error` nullable no modelo; suite verde (schema recriado por teste cobre as colunas)
+- [x] ALTER executado no banco vivo: colunas presentes, linhas do UAT marcadas `done` (verificado por psql — 1 avaliação real, verdict on_target)
+- [x] Gate full passa; contagem mantida (357)
 
 **Tests**: none (entidade — build gate)
 **Gate**: full
