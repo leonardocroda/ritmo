@@ -121,10 +121,10 @@ backfill.
 
 ### Acessando pela LAN
 
-O frontend chama a API pela URL de `NEXT_PUBLIC_API_URL` (default
-`http://localhost:8000`), inlada no build do Next — mudar o valor exige
-rebuild do frontend, não basta restart. Para usar o Ritmo de outro aparelho
-da rede (ex.: celular), aponte para o IP do host:
+O frontend chama a API pela URL de `NEXT_PUBLIC_API_URL`, inlada no build
+do Next — o **default do compose é o IP da LAN** (`http://192.168.15.16:8000`),
+para o celular acessar de qualquer ponto da rede sem ajuste. Mudou o IP do
+PC (DHCP)? Sobrescreva na subida — o valor novo exige rebuild do frontend:
 
 ```bash
 NEXT_PUBLIC_API_URL=http://192.168.0.10:8000 docker compose up -d --build frontend
