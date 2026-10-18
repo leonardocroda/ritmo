@@ -120,15 +120,15 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
 | EVAL-01 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
-| EVAL-02 | P1: Avaliar um treino e ver o veredito | Execute | ❌ Needs Fix (pinos de campo/mapa — validation.md Fix 1-2) |
-| EVAL-03 | P1: Avaliar um treino e ver o veredito | Execute | ❌ Needs Fix (marcadores do prompt + chamada única — Fix 3) |
+| EVAL-02 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
+| EVAL-03 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
 | EVAL-04 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
 | EVAL-05 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
 | EVAL-06 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
 | EVAL-07 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
 | EVAL-08 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
 | EVAL-09 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
-| EVAL-10 | P1: Avaliar um treino e ver o veredito | Execute | ❌ Needs Fix (aceitação trail_running — Fix 4) |
+| EVAL-10 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
 | EVAL-11 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
 | EVAL-12 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
 | EVAL-13 | P1: Avaliar um treino e ver o veredito | Execute | ✅ Verified |
