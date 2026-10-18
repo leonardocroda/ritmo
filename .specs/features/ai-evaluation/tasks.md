@@ -154,10 +154,10 @@ T12 → T13
 
 **Done when**:
 
-- [ ] `PROMPT_VERSION == "v1"` casado com `SYSTEM_PROMPT_V1` (toda avaliação rastreia o prompt — AD-003)
-- [ ] Prompt contém os marcadores contratuais: os 5 vereditos, as 7 chaves do JSON de saída (§9.2), instrução de não recalcular, hierarquia pace>FC, regra do calor, PT-BR
-- [ ] Testes unitários de marcadores estruturais (asserts de conteúdo — qualidade do texto é UAT, os asserts pegam o contrato)
-- [ ] Gate passa; contagem sobe
+- [x] `PROMPT_VERSION == "v1"` casado com `SYSTEM_PROMPT_V1` (toda avaliação rastreia o prompt — AD-003)
+- [x] Prompt contém os marcadores contratuais: os 5 vereditos, as 7 chaves do JSON de saída (§9.2), instrução de não recalcular, hierarquia pace>FC, regra do calor, PT-BR
+- [x] Testes unitários de marcadores estruturais (asserts de conteúdo — qualidade do texto é UAT, os asserts pegam o contrato)
+- [x] Gate passa; contagem sobe (308 = 300 + 8)
 
 **Tests**: unit
 **Gate**: quick
