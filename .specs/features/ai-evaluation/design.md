@@ -197,7 +197,7 @@ Em toda falha: nenhuma linha de `Evaluation`, `evaluated` inalterado (Decisão E
 | Reuso do `get_activity_detail` carrega campos de UI (ex.: `hr_color`) no payload | `backend/app/activities/service.py:219` | Ruído cosmético no `payload_json` (artefato de auditoria) | Aceito: a meta das zonas é contexto desejado do prompt; alternativa (extrair helpers privados) custa refactor sem ganho |
 | Suporte a `response_format: json_object` varia por modelo na NIM | — | Depender disso quebraria em modelos flash (Fase 2) | Não dependemos: JSON instruído no prompt + strip de cercas de código + validação pydantic estrita — portável |
 | LLM pode ecoar `pct_zona_alvo` errado | — | Número exibido no card trairia o AD-003 | Service sanitiza o eco antes de persistir: `pct_zona_alvo` ← valor Python (ou null) |
-| Latência de modelo raciocinador (glm-5.3) pode passar de 60s | — | Timeout falso-negativo na UX | `NVIDIA_TIMEOUT_S` default **120s**; UI com "Analisando treino…" explícito |
+| Latência de modelo raciocinador (glm-5.3) pode passar de 60s | — | Timeout falso-negativo na UX | `NVIDIA_TIMEOUT_S` default **420s** (UAT 18/10: geração real passou de 120s); UI com "Analisando treino…" explícito |
 | httpx está apenas no dev-group | `backend/pyproject.toml:31` | Import quebra em runtime | Mover para `dependencies` (task de config) |
 | `ActivityOut` não expõe `activity_type` | `backend/app/activities/router.py:44` | UI não consegue decidir se rende o formulário | Campo aditivo no contrato (task do detail) |
 | Qualidade do prompt não é testável por unidade | `prompt.py` | Veredito fraco não pega no gate de teste | Prompt versionado + UAT com spot-check do success criteria (fácil rápido demais nunca ✅) |
@@ -215,7 +215,7 @@ Em toda falha: nenhuma linha de `Evaluation`, `evaluated` inalterado (Decisão E
 | Detalhe ganha `evaluations` + `activity_type` | Extensão aditiva do contrato | AD-009: o payload espelha a tela; a tela agora renderiza avaliações |
 | Sanitização do eco numérico | Service sobrescreve `pct_zona_alvo` com o valor Python | AD-003 sem brecha: nem o eco do LLM decide número |
 | Sem `response_format` na chamada | JSON instruído + parse tolerante + validação estrita | Portabilidade entre modelos da NIM (incl. flash da Fase 2) |
-| Config nova | `NVIDIA_TIMEOUT_S=120`, `LTHR_BPM=177` por env | "Config 100% env vars" (plano §10); LTHR default é o calibrado do perfil, env sobrepõe |
+| Config nova | `NVIDIA_TIMEOUT_S=420`, `LTHR_BPM=177` por env | "Config 100% env vars" (plano §10); LTHR default é o calibrado do perfil, env sobrepõe |
 | `prompt_version` | Constante `PROMPT_VERSION` casada com `SYSTEM_PROMPT_V1` | Toda avaliação rastreia o prompt que produziu o veredito (AD-003) |
 
 Nenhuma decisão aqui cria convenção cross-feature — todas são locais ao domínio evaluation. Não há novo AD-NNN.

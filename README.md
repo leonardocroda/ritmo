@@ -278,8 +278,8 @@ confiança) e só então persistida — com `model`, `prompt_version`,
   treinos.
 - **Config** (`backend/.env`): `NVIDIA_API_KEY` (build.nvidia.com — sem
   ela o botão responde 503), `NVIDIA_MODEL` (default `z-ai/glm-5.3`),
-  `NVIDIA_TIMEOUT_S` (default 120), `LTHR_BPM` (default 177 — a
-  recalibração sobrepõe por env).
+  `NVIDIA_TIMEOUT_S` (default 420 — o glm-5.3 raciocina e passa de
+  120s), `LTHR_BPM` (default 177 — a recalibração sobrepõe por env).
 
 Validação (18/10/2026): suite com 344 testes no Postgres do compose —
 NIM 100% mockada nos testes, nenhum teste chama a API real; UAT ao vivo

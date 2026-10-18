@@ -17,10 +17,13 @@ import httpx
 
 from app.core.config import Settings
 
-# Veredito estruturado: estabilidade acima de criatividade; teto de
-# custo de saída (design — o JSON §9.2 é pequeno)
+# Veredito estruturado: estabilidade acima de criatividade. O teto de
+# saída precisa cobrir o RACIOCÍNIO do glm-5.3 (tokens de "pensamento"
+# contam no max_tokens e podem consumir milhares antes do JSON §9.2 —
+# UAT 18/10: com 2000 a resposta vinha content:null, finish_reason
+# length); 16000 dá folga sem abrir custo ilimitado.
 TEMPERATURE = 0.2
-MAX_TOKENS = 2000
+MAX_TOKENS = 16000
 
 
 class NimError(Exception):
@@ -83,8 +86,19 @@ def chat_completion(
 
     try:
         envelope = response.json()
-        content = envelope["choices"][0]["message"]["content"]
+        message = envelope["choices"][0]["message"]
+        content = message["content"]
+        # Modelo raciocinador pode esgotar max_tokens no pensamento e
+        # devolver content null (UAT 18/10) — erro de contrato com o
+        # finish_reason visível, nunca crash 500.
+        if not isinstance(content, str) or not content.strip():
+            finish_reason = envelope["choices"][0].get("finish_reason")
+            raise NimInvalidJSON(
+                f"resposta da NIM sem conteúdo (finish_reason={finish_reason})"
+            )
         verdict = json.loads(_extract_json(content))
+    except NimInvalidJSON:
+        raise
     except (json.JSONDecodeError, KeyError, IndexError, TypeError, ValueError) as exc:
         raise NimInvalidJSON(f"resposta da NIM fora do contrato: {exc}") from exc
     if not isinstance(verdict, dict):

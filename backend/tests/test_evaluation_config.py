@@ -26,9 +26,9 @@ def _clean_eval_env(monkeypatch):
 
 
 def test_default_nvidia_timeout() -> None:
-    """EVAL-13: timeout de 120s — modelo raciocinador pode demorar."""
+    """EVAL-13: timeout de 420s — modelo raciocinador passa de 120s (UAT 18/10)."""
     settings = Settings(_env_file=None)
-    assert settings.nvidia_timeout_s == 120.0
+    assert settings.nvidia_timeout_s == 420.0
 
 
 def test_default_lthr() -> None:

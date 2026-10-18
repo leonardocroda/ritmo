@@ -82,6 +82,30 @@ def test_usage_ausente_devolve_zeros(settings) -> None:
     assert usage == {"prompt_tokens": 0, "completion_tokens": 0}
 
 
+def test_content_nulo_levanta_nim_invalid_json(settings) -> None:
+    """UAT 18/10: raciocínio esgota max_tokens e a NIM devolve content
+    null (finish_reason length) → NimInvalidJSON com o finish_reason na
+    mensagem — 502 honesto no lugar de crash 500."""
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(
+            200,
+            json={"choices": [{"message": {"content": None}, "finish_reason": "length"}]},
+        )
+    )
+    with pytest.raises(NimInvalidJSON) as exc_info:
+        chat_completion("system", "user", settings, transport=transport)
+    assert "finish_reason=length" in str(exc_info.value)
+
+
+def test_content_vazio_levanta_nim_invalid_json(settings) -> None:
+    """String vazia de conteúdo também é contrato quebrado (sem crash)."""
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(200, json=_envelope("   "))
+    )
+    with pytest.raises(NimInvalidJSON):
+        chat_completion("system", "user", settings, transport=transport)
+
+
 def test_http_500_levanta_nim_error(settings) -> None:
     """EVAL-13: HTTP != 200 → NimError (o router mapeia 502)."""
     transport = httpx.MockTransport(
@@ -148,7 +172,7 @@ def test_requisicao_tem_corpo_do_design(settings) -> None:
     body = json.loads(request.content.decode("utf-8"))
     assert body["model"] == "z-ai/glm-5.3"
     assert body["temperature"] == TEMPERATURE == 0.2
-    assert body["max_tokens"] == MAX_TOKENS == 2000
+    assert body["max_tokens"] == MAX_TOKENS == 16000
     assert body["messages"] == [
         {"role": "system", "content": "system prompt"},
         {"role": "user", "content": "payload do usuário"},
