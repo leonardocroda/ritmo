@@ -408,11 +408,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Detalhe de corrida: formulário + card da mais recente + histórico das anteriores
-- [ ] Detalhe de não-corrida (yoga/força): sem formulário (EVAL-10)
-- [ ] Avaliação concluída: nova avaliação vira a mais recente na hora (prepend local), `evaluated` true, badge "Avaliado" visível (EVAL-18/20)
-- [ ] Re-avaliação: lista cresce, card troca para a nova, anteriores continuam no histórico
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Detalhe de corrida: formulário + card da mais recente + histórico das anteriores
+- [x] Detalhe de não-corrida (yoga/força): sem formulário (EVAL-10)
+- [x] Avaliação concluída: nova avaliação vira a mais recente na hora (prepend local), `evaluated` true, badge "Avaliado" visível (EVAL-18/20)
+- [x] Re-avaliação: lista cresce, card troca para a nova, anteriores continuam no histórico
+- [x] `npm run build` + `npm run lint` verdes
 
 **Tests**: none
 **Gate**: build

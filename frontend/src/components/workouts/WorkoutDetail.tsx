@@ -10,7 +10,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { getActivityDetail, ApiError, type ActivityDetailOut } from "@/lib/api";
+import { getActivityDetail, ApiError, type ActivityDetailOut, type EvaluationOut } from "@/lib/api";
 import {
   formatCadence,
   formatDateTime,
@@ -21,6 +21,8 @@ import {
   formatTemp,
 } from "@/lib/format";
 import SplitsChart from "@/components/workouts/SplitsChart";
+import EvaluateForm from "@/components/workouts/EvaluateForm";
+import EvaluationCard, { EvaluationHistory } from "@/components/workouts/EvaluationCard";
 
 type DetailState =
   | { kind: "loading" }
@@ -89,6 +91,23 @@ export default function WorkoutDetail({ id }: { id: number }) {
     };
   }, [id]);
 
+  // Avaliação concluída: prepend na mais recente + badge "Avaliado"
+  // acende no header — sem refetch, o banco já persistiu (EVAL-18/20)
+  function handleEvaluated(evaluation: EvaluationOut) {
+    setState((prev) =>
+      prev.kind === "ready"
+        ? {
+            ...prev,
+            detail: {
+              ...prev.detail,
+              evaluations: [evaluation, ...prev.detail.evaluations],
+              activity: { ...prev.detail.activity, evaluated: true },
+            },
+          }
+        : prev,
+    );
+  }
+
   if (state.kind === "loading") {
     return (
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
@@ -126,7 +145,10 @@ export default function WorkoutDetail({ id }: { id: number }) {
     );
   }
 
-  const { activity, splits, consistency, context } = state.detail;
+  const { activity, splits, consistency, context, evaluations } = state.detail;
+  // Avaliação existe para corrida (EVAL-10): mesmo vocabulário do backend
+  const isRunning =
+    activity.activity_type === "running" || activity.activity_type === "trail_running";
   const hasContext =
     context.sleep !== null ||
     context.hrv !== null ||
@@ -263,6 +285,21 @@ export default function WorkoutDetail({ id }: { id: number }) {
             </table>
           </div>
         </section>
+      )}
+
+      {/* Avaliar com IA (EVAL-01/10): só corridas têm formulário; a
+          avaliação mais recente como card, anteriores no histórico,
+          re-avaliação sempre por clique explícito (custo de tokens) */}
+      {isRunning && (
+        <>
+          <EvaluateForm activity={activity} onEvaluated={handleEvaluated} />
+          {evaluations.length > 0 && (
+            <>
+              <EvaluationCard evaluation={evaluations[0]} />
+              <EvaluationHistory evaluations={evaluations.slice(1)} />
+            </>
+          )}
+        </>
       )}
 
       {/* Voltas: sem splits → nota (sem gráfico); com splits → gráfico
