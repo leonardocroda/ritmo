@@ -19,6 +19,8 @@ dependencies = [
     # Lição travada: chamadas sequenciais, nunca paralelas (rate limit).
     "garminconnect==0.3.2",
     "psycopg[binary]>=3.3.6",
+    # Cliente HTTP da NIM (avaliação IA) e do TestClient
+    "httpx>=0.28",
 ]
 
 [tool.hatch.build.targets.wheel]

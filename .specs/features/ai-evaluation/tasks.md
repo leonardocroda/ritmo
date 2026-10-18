@@ -15,7 +15,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 ## Test Coverage Matrix
 
-> Generated from codebase, project guidelines, and spec - confirm before Execute. Guidelines found: `README.md` §Testes/§Rodando (`uv run pytest` no Postgres do compose, a partir do host); `frontend/AGENTS.md` (Next.js com breaking changes — ler `node_modules/next/dist/docs/` antes de codar frontend); AD-003/AD-005/AD-009 no `STATE.md`. Sem CONTRIBUTING/CI — fortes defaults onde não há padrão. Base atual: **268 testes** (suite pós panel-clarity) — a contagem nunca cai dentro de uma task.
+> Generated from codebase, project guidelines, and spec - confirm before Execute. Guidelines found: `README.md` §Testes/§Rodando (`uv run pytest` no Postgres do compose, a partir do host); `frontend/AGENTS.md` (Next.js com breaking changes — ler `node_modules/next/dist/docs/` antes de codar frontend); AD-003/AD-005/AD-009 no `STATE.md`. Sem CONTRIBUTING/CI — fortes defaults onde não há padrão. Base atual: **280 testes** no HEAD (verificado na T1 — o "268" do README estava defasado; 284 com os testes novos da T1) — a contagem nunca cai dentro de uma task.
 
 | Code Layer | Required Test Type | Coverage Expectation | Location Pattern | Run Command |
 | ---------- | ------------------ | -------------------- | ---------------- | ----------- |
@@ -99,11 +99,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] `Settings.nvidia_timeout_s == 120.0` e `Settings.lthr_bpm == 177` por default; env `NVIDIA_TIMEOUT_S`/`LTHR_BPM` sobrepõem
-- [ ] `httpx` em `dependencies` (runtime) do pyproject — `uv sync` verde com o import usado na T5
-- [ ] `.env.example` documenta as duas vars novas junto ao bloco NVIDIA
-- [ ] Testes de config no padrão do `test_sync_config.py`: defaults + override por env
-- [ ] Gate passa; contagem da suite sobe (baseline 268, nunca cai)
+- [x] `Settings.nvidia_timeout_s == 120.0` e `Settings.lthr_bpm == 177` por default; env `NVIDIA_TIMEOUT_S`/`LTHR_BPM` sobrepõem
+- [x] `httpx` em `dependencies` (runtime) do pyproject — `uv sync` verde com o import usado na T5
+- [x] `.env.example` documenta as duas vars novas junto ao bloco NVIDIA
+- [x] Testes de config no padrão do `test_sync_config.py`: defaults + override por env
+- [x] Gate passa; contagem da suite sobe (baseline real 280 — o "268" do README estava defasado; 284 = 280 + 4 novos; nunca cai)
 
 **Tests**: unit
 **Gate**: quick

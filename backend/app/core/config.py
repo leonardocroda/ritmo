@@ -36,6 +36,13 @@ class Settings(BaseSettings):
     nvidia_api_key: str = ""
     nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
     nvidia_model: str = "z-ai/glm-5.3"
+    # Timeout da chamada de avaliação (EVAL-13) — modelo raciocinador
+    # pode passar de 60s em payloads grandes; a UI espera com feedback
+    nvidia_timeout_s: float = 120.0  # NVIDIA_TIMEOUT_S
+    # LTHR de referência para o LLM interpretar FC (EVAL-02 — decisões
+    # A/C do ai-evaluation: sem zonas Z1–Z5 formais na v1; 177 = perfil
+    # calibrado, recalibração futura sobrepõe por env)
+    lthr_bpm: int = 177  # LTHR_BPM
 
     # Garmin — nomes de env var idênticos aos do garmin_mcp/token_utils
     # (o pydantic-settings casa `garmintokens` com `GARMINTOKENS`)
