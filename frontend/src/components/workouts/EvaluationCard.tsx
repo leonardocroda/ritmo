@@ -41,6 +41,9 @@ export default function EvaluationCard({
   evaluation: EvaluationOut;
 }) {
   const verdict = evaluation.verdict_json;
+  // Pending/error ainda sem veredito — a T19 renderiza os estados
+  // completos de análise/erro; a guarda mínima mantém o build honesto.
+  if (verdict === null) return null;
   const seal = VERDICT_SEAL[evaluation.verdict];
   const pct = verdict.execucao_vs_intencao.pct_zona_alvo;
   const tokens = evaluation.tokens_in + evaluation.tokens_out;
@@ -99,7 +102,9 @@ export function EvaluationHistory({
               key={item.id}
               className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-card px-3 py-2 text-sm"
             >
-              <span className="leading-snug">{item.verdict_json.headline}</span>
+              <span className="leading-snug">
+                {item.verdict_json?.headline ?? "—"}
+              </span>
               <span className="shrink-0 text-xs text-muted">
                 {seal.icon} {formatDateTime(item.created_at)}
               </span>

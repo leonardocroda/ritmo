@@ -578,8 +578,8 @@ T14 → T15 → T16 → T17 → T18 → T19 → T20
 
 **Done when**:
 
-- [ ] Tipos espelham o contrato novo (status/error); `getEvaluation` pronta para o polling
-- [ ] `npm run build` + `npm run lint` verdes
+- [x] Tipos espelham o contrato novo (status/error); `getEvaluation` pronta para o polling
+- [x] `npm run build` + `npm run lint` verdes (guardas mínimas de `verdict_json` null absorvidas — T19 renderiza os estados completos)
 
 **Tests**: none
 **Gate**: build

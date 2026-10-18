@@ -113,18 +113,22 @@ export type VerdictJson = {
   confianca: "alta" | "média" | "baixa";
 };
 
-/** Espelho do `EvaluationOut` (backend/app/evaluation/schemas.py). */
+/** Espelho do `EvaluationOut` (backend/app/evaluation/schemas.py).
+ * status: pending → done | error (emenda job 18/10) — o POST devolve
+ * pending e a UI polla até o worker concluir. */
 export type EvaluationOut = {
   id: number;
   activity_id: number;
   intent_type: InferredType;
   intent_text: string | null;
   verdict: Verdict;
-  verdict_json: VerdictJson;
+  verdict_json: VerdictJson | null;
   model: string;
   prompt_version: string;
   tokens_in: number;
   tokens_out: number;
+  status: "pending" | "done" | "error";
+  error: string | null;
   created_at: string;
 };
 
@@ -268,9 +272,10 @@ export async function getActivityDetail(id: number): Promise<ActivityDetailOut> 
   return (await res.json()) as ActivityDetailOut;
 }
 
-/** Avalia o treino sob a intenção declarada (EVAL-04). Erros chegam como
- * `ApiError` com o status preservado: 404/422 (intenção), 503 (sem
- * NVIDIA_API_KEY), 502 (NIM/veredito inválido), 504 (timeout). */
+/** Pede a avaliação do treino sob a intenção declarada (EVAL-21).
+ * Job (emenda 18/10): responde 201 com o registro `pending` — a NIM
+ * roda no worker; poll `getEvaluation` até done/error. Erros do
+ * request: 404/422 (intenção), 503 (sem NVIDIA_API_KEY), 500 (zonas). */
 export async function evaluateActivity(
   id: number,
   body: EvaluateRequest,
@@ -281,6 +286,20 @@ export async function evaluateActivity(
     body: JSON.stringify(body),
     cache: "no-store",
   });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as EvaluationOut;
+}
+
+/** Status de uma avaliação para o polling da UI (EVAL-25). 404 = id
+ * inexistente ou de outro treino. */
+export async function getEvaluation(
+  activityId: number,
+  evaluationId: number,
+): Promise<EvaluationOut> {
+  const res = await fetch(
+    `${API_BASE}/api/activities/${activityId}/evaluate/${evaluationId}`,
+    { cache: "no-store" },
+  );
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as EvaluationOut;
 }
