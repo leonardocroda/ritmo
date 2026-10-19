@@ -313,11 +313,11 @@ T15 → T16
 
 **Done when**:
 
-- [ ] Os 3 caminhos funcionam: vincula seed / cria nova / reseta existente (display_name preservado)
-- [ ] `uv run python -m app.auth.set_password` roda interativo no compose (`docker compose exec backend ...` documentado na T16)
-- [ ] Testes com monkeypatch de input/getpass cobrem os 3 caminhos
-- [ ] Gate check passes: `uv run pytest tests/test_auth_cli.py` + Full suite verde
-- [ ] Test count: ~5 novos + 362 existentes
+- [x] Os 3 caminhos funcionam: vincula seed / cria nova / reseta existente (display_name preservado)
+- [x] `uv run python -m app.auth.set_password` roda interativo no compose (`docker compose exec backend ...` documentado na T16)
+- [x] Testes com monkeypatch de input/getpass cobrem os 3 caminhos
+- [x] Gate check passes: `uv run pytest tests/test_auth_cli.py` + Full suite verde
+- [x] Test count: 4 novos + 407 existentes (411 no total)
 
 **Tests**: unit
 **Gate**: full
