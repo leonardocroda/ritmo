@@ -504,10 +504,10 @@ T15 → T16
 
 **Done when**:
 
-- [ ] Header autenticado exibe display_name + "Sair"; não exibe nada sem sessão
-- [ ] Sair revoga no servidor e aterrissa em `/login` (voltar não reabre painel — UAT final)
-- [ ] Gate check passes: `npm run lint && npm run build`
-- [ ] Test count: sem test runner (matrix "none") — build gate
+- [x] Header autenticado exibe display_name + "Sair"; não exibe nada sem sessão
+- [x] Sair revoga no servidor e aterrissa em `/login` (voltar não reabre painel — UAT final)
+- [x] Gate check passes: `npm run lint && npm run build`
+- [x] Test count: sem test runner (matrix "none") — build gate
 
 **Tests**: none
 **Gate**: build

@@ -1,10 +1,12 @@
-// Header global — nome do app + nav dos painéis + botão "Puxar do
-// Garmin" visível de qualquer painel, desktop e mobile (nav do spec
-// workouts-list: TRN-01). Server component: só Nav/SyncButton são client.
+// Header global — nome do app + nav dos painéis + conta (nome + Sair,
+// UserMenu) + botão "Puxar do Garmin" visível de qualquer painel,
+// desktop e mobile (nav do spec workouts-list: TRN-01). Server
+// component: só Nav/UserMenu/SyncButton são client.
 // A nav vira linha rolável em 390px (overflow dentro do próprio Nav).
 
 import Nav from "@/components/Nav";
 import SyncButton from "@/components/SyncButton";
+import UserMenu from "@/components/UserMenu";
 
 export default function Header() {
   return (
@@ -14,7 +16,10 @@ export default function Header() {
           Ritmo<span className="text-accent">.</span>
         </span>
         <Nav />
-        <SyncButton />
+        <div className="flex shrink-0 items-center gap-2">
+          <UserMenu />
+          <SyncButton />
+        </div>
       </div>
     </header>
   );
