@@ -341,10 +341,10 @@ T15 → T16
 
 **Done when**:
 
-- [ ] `apiFetch` com `credentials: "include"` em todo request; redirect 401 com `next` correto e guardas anti-loop
-- [ ] Helpers de auth tipados espelhando os contratos da T7
-- [ ] Gate check passes: `npm run lint && npm run build`
-- [ ] Test count: sem test runner no frontend (matrix "none") — build gate
+- [x] `apiFetch` com `credentials: "include"` em todo request; redirect 401 com `next` correto e guardas anti-loop
+- [x] Helpers de auth tipados espelhando os contratos da T7
+- [x] Gate check passes: `npm run lint && npm run build`
+- [x] Test count: sem test runner no frontend (matrix "none") — build gate
 
 **Tests**: none
 **Gate**: build

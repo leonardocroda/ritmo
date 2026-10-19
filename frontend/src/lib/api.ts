@@ -507,3 +507,124 @@ export async function getHealthSummary(days = 60): Promise<HealthSummaryOut> {
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as HealthSummaryOut;
 }
+
+// ---- Auth: contratos do design auth (feature auth) ----
+
+/** Espelho do `MeOut` (backend/app/auth/schemas.py) — corpo de
+ * register/login/me; nunca expõe password_hash. */
+export type MeOut = {
+  id: number;
+  email: string | null;
+  display_name: string;
+};
+
+/** Corpo do `POST /api/auth/register` — espelho do `RegisterIn`. */
+export type RegisterInput = {
+  display_name: string;
+  email: string;
+  password: string;
+  invite_code: string;
+};
+
+/** Erro de auth: `ApiError` + erros por campo quando o backend responde
+ * 422 (detail do FastAPI é a lista {loc, msg}) — a tela de registro
+ * exibe cada mensagem junto do input correspondente. */
+export class AuthError extends ApiError {
+  fieldErrors: Record<string, string>;
+
+  constructor(status: number, message: string, fieldErrors: Record<string, string> = {}) {
+    super(status, message);
+    this.fieldErrors = fieldErrors;
+  }
+}
+
+/** Wrapper central de fetch (design auth): todo request sai com
+ * `credentials: "include"` (cookie host-only da API) e 401 fora do fluxo
+ * de auth redireciona para `/login?next=<rota corrente>` (AUTH-21) —
+ * sessão expirou em uso. Guardas anti-loop: helpers de auth
+ * (`/api/auth/*`) tratam o 401 como erro inline, e fetches feitos já
+ * dentro de /login não redirecionam de novo. */
+export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const res = await fetch(`${API_BASE}${path}`, { credentials: "include", ...init });
+  if (
+    res.status === 401 &&
+    !path.startsWith("/api/auth/") &&
+    !window.location.pathname.startsWith("/login")
+  ) {
+    window.location.replace(
+      `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`,
+    );
+  }
+  return res;
+}
+
+/** Erro de auth a partir do corpo da API. String → mensagem única (401/403/
+ * 409/429 em PT-BR); lista do 422 → mapeada por campo (`loc[1]`), com o
+ * prefixo "Value error," do Pydantic removido. */
+async function parseAuthError(res: Response): Promise<AuthError> {
+  let message = `Erro HTTP ${res.status}`;
+  const fieldErrors: Record<string, string> = {};
+  try {
+    const body: unknown = await res.json();
+    const raw = (body as { detail?: unknown }).detail;
+    if (typeof raw === "string") {
+      message = raw;
+    } else if (Array.isArray(raw)) {
+      for (const item of raw) {
+        const loc = (item as { loc?: unknown[] }).loc;
+        const msg = (item as { msg?: unknown }).msg;
+        if (typeof msg !== "string") continue;
+        const field = loc?.length === 2 && typeof loc[1] === "string" ? loc[1] : "";
+        if (field !== "" && !(field in fieldErrors)) {
+          fieldErrors[field] = msg.replace(/^Value error,\s*/i, "");
+        }
+      }
+      const first = Object.values(fieldErrors)[0];
+      if (first !== undefined) message = first;
+    } else if (raw != null) {
+      message = JSON.stringify(raw);
+    }
+  } catch {
+    // resposta sem corpo JSON — o status já é a mensagem
+  }
+  return new AuthError(res.status, message, fieldErrors);
+}
+
+/** Cadastro por convite + auto-login (AUTH-01). 201 = conta criada com
+ * cookie de sessão; 403 registro desabilitado/código inválido, 409 email
+ * já cadastrado, 422 por campo (AuthError.fieldErrors). */
+export async function register(payload: RegisterInput): Promise<MeOut> {
+  const res = await apiFetch("/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw await parseAuthError(res);
+  return (await res.json()) as MeOut;
+}
+
+/** Login email+senha (AUTH-06/07/08). 200 + cookie; 401 genérica única;
+ * 429 no lockout de 5 falhas/15min — mensagem acionável do backend. */
+export async function login(email: string, password: string): Promise<MeOut> {
+  const res = await apiFetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) throw await parseAuthError(res);
+  return (await res.json()) as MeOut;
+}
+
+/** Logout (AUTH-09): revoga a sessão corrente e limpa o cookie (204). */
+export async function logout(): Promise<void> {
+  const res = await apiFetch("/api/auth/logout", { method: "POST" });
+  if (!res.ok) throw await parseAuthError(res);
+}
+
+/** Quem está logado (AUTH-10). 200 {id, email, display_name}; 401 = sem
+ * sessão (UserMenu simplesmente não renderiza — AUTH-23). */
+export async function me(): Promise<MeOut> {
+  const res = await apiFetch("/api/auth/me");
+  if (!res.ok) throw await parseAuthError(res);
+  return (await res.json()) as MeOut;
+}
