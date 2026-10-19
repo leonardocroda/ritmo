@@ -280,16 +280,16 @@ T15 → T16
 
 **Done when**:
 
-- [ ] Register: 201 + cookie + auto-login; 403 "registro desabilitado" com env vazio; 403 código inválido; 409 email duplicado (case-variant pega); 422 por campo (senha <8, email malformado, nome vazio/>120)
-- [ ] Login: 200 + cookie com flags corretos; 401 genérico único; 429 no lockout
-- [ ] Logout: 204 + sessão revogada no banco + cookie limpo; sem sessão → 401
-- [ ] Me: 200 `{id, email, display_name}` com sessão; 401 sem
-- [ ] Proteção: `GET /api/activities` (e demais routers existentes) → 401 sem cookie, 200 com; `GET /api/health` → 200 público; OPTIONS preflight → isento de sessão
-- [ ] Sliding: request com sessão no limiar → `expires_at` renovado no banco + header Set-Cookie presente
-- [ ] CORS: origem listada → `Access-Control-Allow-Origin` exata + allow-credentials; origem fora → sem headers
-- [ ] Sequência: 2 registros seguidos → ids > 1, sem colisão (dependência do T2)
-- [ ] Gate check passes: `uv run pytest tests/test_auth_api.py tests/test_auth_service.py` + Full suite verde
-- [ ] Test count: ~14 novos + 362 existentes
+- [x] Register: 201 + cookie + auto-login; 403 "registro desabilitado" com env vazio; 403 código inválido; 409 email duplicado (case-variant pega); 422 por campo (senha <8, email malformado, nome vazio/>120)
+- [x] Login: 200 + cookie com flags corretos; 401 genérico único; 429 no lockout
+- [x] Logout: 204 + sessão revogada no banco + cookie limpo; sem sessão → 401
+- [x] Me: 200 `{id, email, display_name}` com sessão; 401 sem
+- [x] Proteção: `GET /api/activities` (e demais routers existentes) → 401 sem cookie, 200 com; `GET /api/health` → 200 público; OPTIONS preflight → isento de sessão
+- [x] Sliding: request com sessão no limiar → `expires_at` renovado no banco + header Set-Cookie presente
+- [x] CORS: origem listada → `Access-Control-Allow-Origin` exata + allow-credentials; origem fora → sem headers
+- [x] Sequência: 2 registros seguidos → ids > 1, sem colisão (dependência do T2)
+- [x] Gate check passes: `uv run pytest tests/test_auth_api.py tests/test_auth_service.py` + Full suite verde
+- [x] Test count: 15 novos + 392 existentes (407 no total)
 
 **Tests**: integration
 **Gate**: full

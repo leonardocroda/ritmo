@@ -9,10 +9,12 @@ um spec validado, tasks atômicas, commits atômicos.
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.activities.router import router as activities_router
+from app.auth.deps import require_session
+from app.auth.router import router as auth_router
 from app.core.config import get_settings
 from app.db.engine import init_db
 from app.evaluation.router import router as evaluation_router
@@ -48,11 +50,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(sync_router)
-app.include_router(activities_router)
-app.include_router(evaluation_router)
-app.include_router(potential_router)
-app.include_router(health_router)
+# Auth (feature auth): os endpoints de auth são públicos; os routers de
+# dado exigem sessão (AUTH-11) — explícito por include, o mapa do que é
+# público vive neste arquivo (design). /api/health (liveness, definida
+# mais abaixo) fica fora da proteção.
+app.include_router(auth_router)
+app.include_router(sync_router, dependencies=[Depends(require_session)])
+app.include_router(activities_router, dependencies=[Depends(require_session)])
+app.include_router(evaluation_router, dependencies=[Depends(require_session)])
+app.include_router(potential_router, dependencies=[Depends(require_session)])
+app.include_router(health_router, dependencies=[Depends(require_session)])
 
 
 @app.get("/api/health")

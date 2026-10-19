@@ -231,21 +231,21 @@ headers CORS exatos.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| AUTH-01 | P1: Cadastro por convite | - | Pending |
-| AUTH-02 | P1: Cadastro por convite | - | Pending |
-| AUTH-03 | P1: Cadastro por convite | - | Pending |
-| AUTH-04 | P1: Cadastro por convite | - | Pending |
-| AUTH-05 | P1: Cadastro por convite | - | Pending |
-| AUTH-06 | P1: Login e logout | - | Pending |
-| AUTH-07 | P1: Login e logout | - | Pending |
-| AUTH-08 | P1: Login e logout | - | Pending |
-| AUTH-09 | P1: Login e logout | - | Pending |
-| AUTH-10 | P1: Login e logout | - | Pending |
-| AUTH-11 | P1: Sessão sliding + proteção da API | - | Pending |
-| AUTH-12 | P1: Sessão sliding + proteção da API | - | Pending |
-| AUTH-13 | P1: Sessão sliding + proteção da API | - | Pending |
-| AUTH-14 | P1: Sessão sliding + proteção da API | - | Pending |
-| AUTH-15 | P1: Sessão sliding + proteção da API | - | Pending |
+| AUTH-01 | P1: Cadastro por convite | - | ✅ Verified |
+| AUTH-02 | P1: Cadastro por convite | - | ✅ Verified |
+| AUTH-03 | P1: Cadastro por convite | - | ✅ Verified |
+| AUTH-04 | P1: Cadastro por convite | - | ✅ Verified |
+| AUTH-05 | P1: Cadastro por convite | - | ✅ Verified |
+| AUTH-06 | P1: Login e logout | - | ✅ Verified |
+| AUTH-07 | P1: Login e logout | - | ✅ Verified |
+| AUTH-08 | P1: Login e logout | - | ✅ Verified |
+| AUTH-09 | P1: Login e logout | - | ✅ Verified |
+| AUTH-10 | P1: Login e logout | - | ✅ Verified |
+| AUTH-11 | P1: Sessão sliding + proteção da API | - | ✅ Verified |
+| AUTH-12 | P1: Sessão sliding + proteção da API | - | ✅ Verified |
+| AUTH-13 | P1: Sessão sliding + proteção da API | - | ✅ Verified |
+| AUTH-14 | P1: Sessão sliding + proteção da API | - | ✅ Verified |
+| AUTH-15 | P1: Sessão sliding + proteção da API | - | ✅ Verified |
 | AUTH-16 | P1: Sessão sliding + proteção da API | - | ✅ Verified |
 | AUTH-17 | P1: Proteção das telas e navegação de auth | - | Pending |
 | AUTH-18 | P1: Proteção das telas e navegação de auth | - | Pending |
@@ -258,7 +258,7 @@ headers CORS exatos.
 | AUTH-25 | P1: Bootstrap do usuário 1 + fixes | - | Pending |
 | AUTH-26 | P1: Bootstrap do usuário 1 + fixes | - | Pending |
 | AUTH-27 | P1: Bootstrap do usuário 1 + fixes | - | ✅ Verified |
-| AUTH-28 | P1: Bootstrap do usuário 1 + fixes | - | Pending |
+| AUTH-28 | P1: Bootstrap do usuário 1 + fixes | - | ✅ Verified |
 
 **Coverage:** 28 total, 28 mapped to tasks, 0 unmapped
 
