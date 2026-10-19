@@ -395,10 +395,10 @@ T15 → T16
 
 **Done when**:
 
-- [ ] Painéis em `(app)` com header; `/login`/`/registrar` futuras herdarão layout mínimo
-- [ ] Rotas e comportamento atuais preservados (home → /treinos)
-- [ ] Gate check passes: `npm run lint && npm run build`
-- [ ] Test count: sem test runner (matrix "none") — build gate
+- [x] Painéis em `(app)` com header; `/login`/`/registrar` futuras herdarão layout mínimo
+- [x] Rotas e comportamento atuais preservados (home → /treinos)
+- [x] Gate check passes: `npm run lint && npm run build`
+- [x] Test count: sem test runner (matrix "none") — build gate
 
 **Tests**: none
 **Gate**: build

@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import Header from "@/components/Header";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,6 +25,9 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// Root layout: só o shell do documento (html/body, fontes, tema).
+// O Header dos painéis migrou para o route group (app) e as telas de
+// auth usam o layout mínimo do grupo (auth) — feature auth, AUTH-22.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -33,7 +35,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <Header />
         {children}
       </body>
     </html>
