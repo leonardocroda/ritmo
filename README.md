@@ -1,11 +1,11 @@
 # Ritmo
 
 Plataforma pessoal de corrida: sync do Garmin, painéis que importam
-(**Hoje · Treinos · Potencial · Saúde**) e avaliação de treino com IA sob demanda.
+(**Treinos · Potencial · Saúde**) e avaliação de treino com IA sob demanda.
 
 > Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
 >
-> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Potencial ✅ · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado (AD-011 — volta pós-08/11, redesenhado com uso real).
+> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Potencial ✅ · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-012 — volta pós-08/11, redesenhado com uso real).
 
 ## Estrutura
 
@@ -132,9 +132,8 @@ NEXT_PUBLIC_API_URL=http://192.168.0.10:8000 docker compose up -d --build fronte
 
 ## Painel Treinos
 
-A lista de corridas em `/treinos` (navegação no header: **Hoje · Treinos ·
-Potencial · Saúde** — os outros painéis entram nas próximas features da
-Fase 1). Tudo lido do banco próprio: **nenhuma chamada à API do Garmin**
+A lista de corridas em `/treinos` (navegação no header: **Treinos ·
+Potencial · Saúde**). Tudo lido do banco próprio: **nenhuma chamada à API do Garmin**
 ao navegar (AD-002).
 
 - **Lista**: corridas ordenadas da mais recente, com tipo inferido

@@ -1,4 +1,4 @@
-// Header global — nome do app + nav dos 4 painéis + botão "Puxar do
+// Header global — nome do app + nav dos painéis + botão "Puxar do
 // Garmin" visível de qualquer painel, desktop e mobile (nav do spec
 // workouts-list: TRN-01). Server component: só Nav/SyncButton são client.
 // A nav vira linha rolável em 390px (overflow dentro do próprio Nav).
