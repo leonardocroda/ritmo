@@ -1,4 +1,4 @@
-"""Router do painel Potencial — leitura do banco, zero Garmin (AD-002).
+"""Router do painel Performance (ex-Potencial) — leitura do banco, zero Garmin (AD-002).
 
 Padrão do activities/router.py (modelos de saída inline + HTTPException),
 mas um payload único: uma página, um round-trip (design §Abordagens).

@@ -1,4 +1,4 @@
-"""Service do painel Potencial — leitura pura do banco (AD-002).
+"""Service do painel Performance (ex-Potencial) — leitura pura do banco (AD-002).
 
 Nenhuma importação do gateway Garmin: todo número vem do banco próprio
 (PRs, predições, atividades) e da calibração vigente — o painel

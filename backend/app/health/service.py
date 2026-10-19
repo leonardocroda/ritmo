@@ -51,7 +51,7 @@ def _today(tz: ZoneInfo) -> date:
 
 def _series(db: Session, model, days: int) -> list:
     """Janela da série: últimas `days` linhas, mais antiga primeiro
-    (padrão do painel Potencial). Janela maior que o histórico devolve
+    (padrão do painel Performance). Janela maior que o histórico devolve
     as linhas disponíveis (edge do spec — a pedida, não uma inventada)."""
     rows = (
         db.execute(

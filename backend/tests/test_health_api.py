@@ -230,7 +230,7 @@ def test_get_health_full_payload_from_seeds(db, fixed_today) -> None:
 
 def test_sleep_window_limits_series_and_keeps_asc(db) -> None:
     """Done-when T3: janela pedida corta as noites mais antigas e devolve
-    ASC (mais antiga primeiro — padrão do painel Potencial)."""
+    ASC (mais antiga primeiro — padrão do painel Performance)."""
     for day, duration_s, *_ in NIGHTS:
         _seed_sleep(db, day, duration_s)
     db.commit()

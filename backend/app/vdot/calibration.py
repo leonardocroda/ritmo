@@ -1,6 +1,6 @@
 """Calibração vigente — os campos raiz do `vdot_zones.json` (design).
 
-O painel Potencial lê o VDOT corrente do mesmo arquivo que o
+O painel Performance (ex-Potencial) lê o VDOT corrente do mesmo arquivo que o
 workouts-list usa para as zonas (fonte única): `load_calibration`
 expõe os campos raiz do teste que gerou o VDOT. Arquivo ausente ou
 inválido -> `ZoneConfigError` — a mesma exceção de `zones.py`, que se

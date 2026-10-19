@@ -304,7 +304,7 @@ export async function getEvaluation(
   return (await res.json()) as EvaluationOut;
 }
 
-// ---- Painel Potencial: contratos do design potential-panel + panel-clarity ----
+// ---- Painel Performance (ex-Potencial): contratos do design potential-panel + panel-clarity ----
 
 /** Distâncias canônicas (ASCII na API; acento na exibição — design). */
 export type CanonicalEvent = "5K" | "10K" | "HALF_MARATHON" | "MARATHON";
@@ -358,7 +358,7 @@ export type PotentialOut = {
   decay: DecayRow[];
 };
 
-/** Painel Potencial inteiro em 1 payload (POT-11) — sem query params:
+/** Painel Performance inteiro em 1 payload (POT-11) — sem query params:
  * o `days` morreu junto com o `pmc` e o cliente limpo não envia nada
  * (CLR-04: um `?days=` qualquer seria ignorado pelo backend). */
 export async function getPotential(): Promise<PotentialOut> {

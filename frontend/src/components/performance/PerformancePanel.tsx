@@ -1,6 +1,7 @@
 "use client";
 
-// Painel Potencial (§4.4) — página-composição: busca /api/potential em 1
+// Painel Performance (ex-Potencial, §4.4 — AD-013) — página-composição:
+// busca /api/potential em 1
 // round-trip e monta os 3 blocos narrativos da panel-clarity (CLR-17):
 // Onde estou → O que isso prevê → O que o relógio estima. Card da lacuna
 // com a narrativa honesta de §9.5 + timeline VDOT com faixa (AD-004),
@@ -15,10 +16,10 @@ import { useEffect, useState } from "react";
 import { getPotential, type PotentialOut, type VdotBlock } from "@/lib/api";
 import { formatVdot } from "@/lib/format";
 import PanelSection from "@/components/PanelSection";
-import DecayTable from "@/components/potential/DecayTable";
-import PredictionsTable from "@/components/potential/PredictionsTable";
-import VdotTimeline from "@/components/potential/VdotTimeline";
-import Vo2maxTrend from "@/components/potential/Vo2maxTrend";
+import DecayTable from "@/components/performance/DecayTable";
+import PredictionsTable from "@/components/performance/PredictionsTable";
+import VdotTimeline from "@/components/performance/VdotTimeline";
+import Vo2maxTrend from "@/components/performance/Vo2maxTrend";
 
 type PanelState =
   | { kind: "loading" }
@@ -55,7 +56,7 @@ function GapCard({ vdot }: { vdot: VdotBlock }) {
   );
 }
 
-export default function PotentialPanel() {
+export default function PerformancePanel() {
   const [state, setState] = useState<PanelState>({ kind: "loading" });
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-"""Painel Potencial (T8/T9 + panel-clarity T10) — service direto + HTTP,
+"""Painel Performance (ex-Potencial) (T8/T9 + panel-clarity T10) — service direto + HTTP,
 no Postgres real.
 
 T8: chamadas diretas a `get_potential` com seeds (o domínio lê

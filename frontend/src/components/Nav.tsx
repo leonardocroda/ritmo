@@ -1,6 +1,6 @@
 "use client";
 
-// Nav dos 3 painéis (TRN-01/02): Treinos · Potencial · Saúde. O Hoje
+// Nav dos 3 painéis (TRN-01/02): Treinos · Performance · Saúde. O Hoje
 // saiu da Fase 1 (AD-011) e a aba placeholder saiu da nav junto (AD-012).
 // Client component com usePathname para marcar o painel ativo
 // (pathname === href ou startsWith(href + "/"), design). Em 390px a
@@ -18,7 +18,7 @@ import { useEffect, useRef } from "react";
 
 const PANELS = [
   { href: "/treinos", label: "Treinos" },
-  { href: "/potencial", label: "Potencial" },
+  { href: "/performance", label: "Performance" },
   { href: "/saude", label: "Saúde" },
 ];
 

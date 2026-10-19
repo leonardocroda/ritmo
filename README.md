@@ -1,11 +1,11 @@
 # Ritmo
 
 Plataforma pessoal de corrida: sync do Garmin, painéis que importam
-(**Treinos · Potencial · Saúde**) e avaliação de treino com IA sob demanda.
+(**Treinos · Performance · Saúde**) e avaliação de treino com IA sob demanda.
 
 > Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
 >
-> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Potencial ✅ · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-012 — volta pós-08/11, redesenhado com uso real).
+> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-013) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-012 — volta pós-08/11, redesenhado com uso real).
 
 ## Estrutura
 
@@ -133,7 +133,7 @@ NEXT_PUBLIC_API_URL=http://192.168.0.10:8000 docker compose up -d --build fronte
 ## Painel Treinos
 
 A lista de corridas em `/treinos` (navegação no header: **Treinos ·
-Potencial · Saúde**). Tudo lido do banco próprio: **nenhuma chamada à API do Garmin**
+Performance · Saúde**). Tudo lido do banco próprio: **nenhuma chamada à API do Garmin**
 ao navegar (AD-002).
 
 - **Lista**: corridas ordenadas da mais recente, com tipo inferido
@@ -161,9 +161,9 @@ limiar, 16km → longão); consistência do longão conferida contra cálculo
 manual (Δ pace −4,65s/km · drift +9,98 bpm · decoupling +7,9%); suite com
 170 testes no Postgres do compose.
 
-## Painel Potencial
+## Painel Performance (ex-Potencial)
 
-"Qual meu máximo e a que distância dele estou?" — `/potencial` responde
+"Qual meu máximo e a que distância dele estou?" — `/performance` responde
 em 3 blocos narrativos, abertos pela linha-guia no topo (a pergunta do
 painel + a régua de leitura: provas e testes de campo medem,
 estimativas do relógio só aproximam) e com o retrato honesto (AD-004:

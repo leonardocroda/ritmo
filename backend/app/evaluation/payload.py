@@ -195,7 +195,7 @@ def _zonas_meta(detail: dict) -> list[dict]:
 
 def _vdot_block(settings: Settings) -> dict:
     """VDOT corrente do arquivo calibrado — mesma fonte de verdade do
-    painel Potencial (o arquivo já foi validado pela dependency de zonas)."""
+    painel Performance (ex-Potencial) (o arquivo já foi validado pela dependency de zonas)."""
     with open(settings.vdot_zones_path, encoding="utf-8") as file:
         data = json.load(file)
     return _keep(

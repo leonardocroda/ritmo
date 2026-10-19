@@ -1,4 +1,4 @@
-"""Calc do painel Potencial (potential/calc.py) — funções puras, pins literais.
+"""Calc do painel Performance (ex-Potencial) (potential/calc.py) — funções puras, pins literais.
 
 Cenários derivados dos done-when de T6/T7, dos ACs do endpoint
 (POT-07/08/09/10/14) e dos edge cases do spec: dedup prova×PR na

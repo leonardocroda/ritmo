@@ -1,4 +1,4 @@
-"""Matemática do painel Potencial — funções puras (design).
+"""Matemática do painel Performance (ex-Potencial) — funções puras (design).
 
 Sem DB, sem I/O — a mesma entrada devolve sempre os mesmos valores
 (AD-003), pinável em teste e trocável no v2 (média ponderada dos PRs

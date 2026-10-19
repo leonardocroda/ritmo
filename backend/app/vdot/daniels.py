@@ -1,7 +1,8 @@
 """Equações clássicas de Jack Daniels' Running Formula — funções puras.
 
 Fonte única do cálculo VDOT (design potential-panel): o script de
-calibração (`calibrate_vdot.py`) e o painel Potencial importam daqui.
+calibração (`calibrate_vdot.py`) e o painel Performance (ex-Potencial)
+importam daqui.
 Movidas de `calibrate_vdot.py` sem alteração de assinatura — as mesmas
 que geraram a calibração vigente (10K 41:15 -> 50.2).
 """
