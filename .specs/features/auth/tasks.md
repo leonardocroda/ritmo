@@ -221,12 +221,12 @@ T15 → T16
 
 **Done when**:
 
-- [ ] 4 falhas → check passa; 5ª falha → check levanta `RateLimitedError` (mesmo com senha correta depois)
-- [ ] Janela expira (timestamps manipulados no teste) → check passa de novo
-- [ ] Sucesso (`reset`) zera o contador; emails são isolados entre si
-- [ ] Testes cobrem os 4 comportamentos acima
-- [ ] Gate check passes: `uv run pytest tests/test_auth_rate_limit.py`
-- [ ] Test count: ~5 novos + 362 existentes
+- [x] 4 falhas → check passa; 5ª falha → check levanta `RateLimitedError` (mesmo com senha correta depois)
+- [x] Janela expira (timestamps manipulados no teste) → check passa de novo
+- [x] Sucesso (`reset`) zera o contador; emails são isolados entre si
+- [x] Testes cobrem os 4 comportamentos acima
+- [x] Gate check passes: `uv run pytest tests/test_auth_rate_limit.py`
+- [x] Test count: ~5 novos + 362 existentes
 
 **Tests**: unit
 **Gate**: quick
