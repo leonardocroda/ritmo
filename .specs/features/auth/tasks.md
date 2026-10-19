@@ -250,13 +250,13 @@ T15 → T16
 
 **Done when**:
 
-- [ ] Register: convite válido → user + sessão; email normalizado lowercase; erros de domínio nos 3 casos
-- [ ] Login: sucesso → token; senha/email errado → mesma exceção genérica; lockout respeita o limiter; prune das sessões expiradas roda no login (AUTH-16)
-- [ ] `resolve_session`: token válido → user; expirado/revogado/ausente → None; sliding renova quando `expires_at - now ≤ 15d` (borda inclusa)
-- [ ] `revoke` em token inexistente não levanta
-- [ ] Testes (DB-backed): ~10 cobrindo os fluxos acima
-- [ ] Gate check passes: `uv run pytest tests/test_auth_service.py`
-- [ ] Test count: ~10 novos + 362 existentes
+- [x] Register: convite válido → user + sessão; email normalizado lowercase; erros de domínio nos 3 casos
+- [x] Login: sucesso → token; senha/email errado → mesma exceção genérica; lockout respeita o limiter; prune das sessões expiradas roda no login (AUTH-16)
+- [x] `resolve_session`: token válido → user; expirado/revogado/ausente → None; sliding renova quando `expires_at - now ≤ 15d` (borda inclusa)
+- [x] `revoke` em token inexistente não levanta
+- [x] Testes (DB-backed): ~10 cobrindo os fluxos acima
+- [x] Gate check passes: `uv run pytest tests/test_auth_service.py`
+- [x] Test count: ~10 novos + 362 existentes
 
 **Tests**: integration
 **Gate**: quick
