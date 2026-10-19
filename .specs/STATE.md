@@ -138,6 +138,14 @@
 - **Date**: 2026-10-18
 - **Status**: active
 
+### AD-018
+- **Decision**: Modelo de sessão **stateful** (cookie HttpOnly host-only + token opaco de 32 bytes guardado como hash SHA-256 na tabela `sessions` — revogação, sliding e kill-switch de senha triviais) e proteção de telas **API-autoritativa com proxy otimista** (FastAPI aplica 401 e decide tudo; `proxy.ts` do Next 16 olha apenas a *presença* do cookie e redireciona — nunca valida token). JWT/Bearer stateless foi avaliado e descartado: revogação exigiria denylist, sliding exigiria re-emissão — reconstruindo o estado que o banco dá de graça — e os ganhos (escala horizontal, ausência de lookup) não existem neste deploy (1 container, Postgres no mesmo host).
+- **Reason**: Decisão do usuário (19/10/2026) na discussão do design do auth, a partir da análise de trade-offs: "Sair no header" e sliding de 30d são requisitos (AUTH-09/12); o lookup por request custa <1ms no Postgres local; e o proxy otimista segue o padrão do guia oficial de auth do Next 16 sem BFF (que reescreveria o fluxo client→API por ganho nulo).
+- **Trade-off**: 1 query de sessão por request (irrelevante na escala) e flash raro de shell quando o cookie está morto no browser (proxy não consulta banco, por design) em troca de zero dependência de assinatura e revogação imediata. Cookie host-only exige frontend e API no mesmo host (portas diferem) — constraint documentada no README §LAN.
+- **Scope**: `app/auth/` (futura), `frontend/src/proxy.ts`, `frontend/src/lib/api.ts`, qualquer feature futura que consuma sessão (`/perfil`, tokens por usuário); Fase 3 pode revisar se surgir app nativo/multi-serviço.
+- **Date**: 2026-10-19
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: `ai-evaluation` — **concluída com a emenda job validada** (PASS, `c9509a5`): 25/25 ACs, gate 362, sensor 9/9 cumulativo; relatório em `.specs/features/ai-evaluation/validation.md` (histórico: PASS original → UAT pediu job → emenda → PASS)
