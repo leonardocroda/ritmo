@@ -70,14 +70,14 @@ export class ApiError extends Error {
 
 /** Cria um job de sync (SYNC-01). 409 = já existe job ativo (SYNC-02). */
 export async function startSync(): Promise<JobCreated> {
-  const res = await fetch(`${API_BASE}/api/sync`, { method: "POST" });
+  const res = await apiFetch("/api/sync", { method: "POST" });
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as JobCreated;
 }
 
 /** Último job do usuário — o que a UI poleia a cada 2s (SYNC-05). */
 export async function getLatestJob(): Promise<LatestJob> {
-  const res = await fetch(`${API_BASE}/api/sync/jobs/latest`, {
+  const res = await apiFetch("/api/sync/jobs/latest", {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -256,7 +256,7 @@ export async function getActivities(
   if (options.limit !== undefined) params.set("limit", String(options.limit));
   if (options.offset !== undefined) params.set("offset", String(options.offset));
   const query = params.toString();
-  const res = await fetch(`${API_BASE}/api/activities${query ? `?${query}` : ""}`, {
+  const res = await apiFetch(`/api/activities${query ? `?${query}` : ""}`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -265,7 +265,7 @@ export async function getActivities(
 
 /** Detalhe do treino (TRN-13). 404 = id inexistente (ApiError.status). */
 export async function getActivityDetail(id: number): Promise<ActivityDetailOut> {
-  const res = await fetch(`${API_BASE}/api/activities/${id}`, {
+  const res = await apiFetch(`/api/activities/${id}`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -280,7 +280,7 @@ export async function evaluateActivity(
   id: number,
   body: EvaluateRequest,
 ): Promise<EvaluationOut> {
-  const res = await fetch(`${API_BASE}/api/activities/${id}/evaluate`, {
+  const res = await apiFetch(`/api/activities/${id}/evaluate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -296,8 +296,8 @@ export async function getEvaluation(
   activityId: number,
   evaluationId: number,
 ): Promise<EvaluationOut> {
-  const res = await fetch(
-    `${API_BASE}/api/activities/${activityId}/evaluate/${evaluationId}`,
+  const res = await apiFetch(
+    `/api/activities/${activityId}/evaluate/${evaluationId}`,
     { cache: "no-store" },
   );
   if (!res.ok) throw await parseError(res);
@@ -363,7 +363,7 @@ export type PotentialOut = {
  * o `days` segue morto (CLR-04: um `?days=` qualquer é ignorado pelo
  * backend) e o `pmc` voltou com janela fixa de 60d (AD-017). */
 export async function getPotential(): Promise<PotentialOut> {
-  const res = await fetch(`${API_BASE}/api/potential`, {
+  const res = await apiFetch("/api/potential", {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -501,7 +501,7 @@ export type HealthSummaryOut = {
  * painel (7/30/42/60/90d — feature health-window, default 60); o backend
  * valida `days` em [7, 365]. */
 export async function getHealthSummary(days = 60): Promise<HealthSummaryOut> {
-  const res = await fetch(`${API_BASE}/api/health/summary?days=${days}`, {
+  const res = await apiFetch(`/api/health/summary?days=${days}`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);

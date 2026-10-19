@@ -368,10 +368,10 @@ T15 → T16
 
 **Done when**:
 
-- [ ] Zero `fetch(` direto restante em `api.ts` (grep)
-- [ ] Painéis continuam renderizando (build ok; UAT final confere)
-- [ ] Gate check passes: `npm run lint && npm run build`
-- [ ] Test count: sem test runner (matrix "none") — build gate
+- [x] Zero `fetch(` direto restante em `api.ts` (grep)
+- [x] Painéis continuam renderizando (build ok; UAT final confere)
+- [x] Gate check passes: `npm run lint && npm run build`
+- [x] Test count: sem test runner (matrix "none") — build gate
 
 **Tests**: none
 **Gate**: build
