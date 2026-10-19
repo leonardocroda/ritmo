@@ -450,10 +450,10 @@ T15 → T16
 
 **Done when**:
 
-- [ ] Login válido entra e aterrissa em `next` (ou `/treinos`); erros 401/429 inline em PT-BR
-- [ ] Sem header de painéis (layout da T11)
-- [ ] Gate check passes: `npm run lint && npm run build`
-- [ ] Test count: sem test runner (matrix "none") — build gate
+- [x] Login válido entra e aterrissa em `next` (ou `/treinos`); erros 401/429 inline em PT-BR
+- [x] Sem header de painéis (layout da T11)
+- [x] Gate check passes: `npm run lint && npm run build`
+- [x] Test count: sem test runner (matrix "none") — build gate
 
 **Tests**: none
 **Gate**: build
