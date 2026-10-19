@@ -90,6 +90,38 @@
 - **Date**: 2026-10-17
 - **Status**: active
 
+### AD-012
+- **Decision**: Criada a **Fase 1.5 — Identidade e dados por usuário** no roadmap (antes da Fase 2), antecipando o núcleo da Fase 2.5: auth, perfil, zonas no banco, LTHR por usuário e cofre de tokens Garmin. O MVP continua no PC/LAN, sem HTTPS — deploy em nuvem, fila de sync multiusuário e LGPD completa seguem na Fase 2.5.
+- **Reason**: Decisão do usuário (18/10/2026): zonas/tokens/LTHR por usuário são pré-requisito de qualquer multiusuário (MVP de 5–20 convidados) e o custo agora é mínimo — `user_id` já existe em toda tabela, o lock de sync já é por usuário e a tabela `zones` já existe (ociosa).
+- **Trade-off**: Adia a Fase 2 (revisão semanal, story, alertas) por ~2 fins de semana em troca da plataforma pronta para receber convidados sem retrofit.
+- **Scope**: Roadmap §6 (Fases 1.5/2.5/3), módulos novos `auth/` e `user/`, todos os módulos que leem `DEFAULT_USER_ID` em query.
+- **Date**: 2026-10-18
+- **Status**: active
+
+### AD-013
+- **Decision**: Auth **próprio self-hosted**: email+senha (argon2id) + sessão em banco via cookie HttpOnly SameSite=Lax; cadastro por **código de convite** (env `INVITE_CODE`); bootstrap do usuário 1 e suporte via CLI (`app.auth.set_password`). Substitui a menção a Supabase Auth/Clerk da Fase 2.5 para o MVP.
+- **Reason**: Decisão do usuário (18/10/2026): o app já tem Postgres próprio e espírito local-first — dependência externa de auth não funciona offline, adiciona conta/serviço e não reduz custo real num MVP de 5–20 pessoas. Convite dá controle de entrada com zero UI de admin.
+- **Trade-off**: ~1–2 dias de código de sessão/hasheamento próprios (e responsabilidade de segurança própria) em troca de zero dependência externa e revogação trivial; migrar para provedor gerenciado no futuro fica contido no módulo `auth/`.
+- **Scope**: `backend/app/auth/` (modelos, router, dependência `current_user`), `frontend` (`/login`, `/registrar`, layout protegido, 401 → redirect), fix da sequência `users_pkey`, CORS explícito (cookie credentials não aceita `*`), rate limit simples no login.
+- **Date**: 2026-10-18
+- **Status**: active
+
+### AD-014
+- **Decision**: Tokens Garmin migram do tokenstore filesystem para o **banco, criptografados em repouso** (Fernet, `TOKEN_ENCRYPTION_KEY` no env): tabela por usuário, gateway `GarminGateway.from_user(db, user_id)`, refresh do oauth2 **persistido de volta** no banco, seed dos tokens atuais do usuário 1 e login de convidados via **CLI operador-assistida** (`python -m app.garmin.login --user <email>`, MFA interativo).
+- **Reason**: Decisão do usuário (18/10/2026): com múltiplos usuários, o tokenstore único em filesystem não escala e o refresh perdido hoje mata a sessão silenciosamente. CLI em vez de fluxo web evita o convidado digitar a senha Garmin no site (barreira de confiança do plano §10.6) e mantém o MFA interativo funcionando.
+- **Trade-off**: Operador conecta cada convidado manualmente (custo de operação) em troca de zero coleta de credenciais Garmin no site; criptografia com chave no `.env` protege contra vazamento do dump do banco, não contra quem tem acesso ao host — aceitável no MVP, LGPD completa na 2.5.
+- **Scope**: `garmin/tokens_store.py` (cofre), `garmin/client.py` (`from_user`), `garmin/login.py` (`--user`), seed dos tokens do usuário 1, `/perfil` (status da conexão), spike para definir o formato exato de dump/resume da lib `garth`.
+- **Date**: 2026-10-18
+- **Status**: active
+
+### AD-015
+- **Decision**: **Zonas VDOT e LTHR passam a ser dados por usuário no banco**: seed do `vdot_zones.json` → tabela `zones` (já existente, passa a ser usada), `ZoneConfig` lê do banco por usuário, `LTHR_BPM` sai do env e vira campo do perfil. A entrevista de calibração de zonas no app segue na Fase 2.
+- **Reason**: Decisão do usuário (18/10/2026): arquivo single-user não serve a múltiplos corredores; LTHR (177) e zonas entram no payload da avaliação IA e precisam vir do perfil de cada um. O JSON calibrado continua como seed — nada é re-digitação.
+- **Trade-off**: Leitura de zona passa pelo banco (uma query a mais por classificação) em troca de zonas/LTHR corretos por usuário; calibração self-service fica para a Fase 2 como planejado.
+- **Scope**: `vdot/zones.py` (fonte), `core/config.py` (`lthr_bpm` vira fallback), `users` (coluna `lthr_bpm`), seed no `init_db`, endpoint/página do perfil (zonas ativas).
+- **Date**: 2026-10-18
+- **Status**: active
+
 ### AD-016
 - **Decision**: A aba Hoje sai da navegação e a rota `/hoje` é deletada (junto com o `PanelPlaceholder`, cujo único usuário era ela): AD-011 adiou o painel pra pós-meia mas manteve o placeholder — o placeholder na nav ocupa espaço sem entregar nada na Fase 1. A home já redireciona pra `/treinos` (workouts-list); nenhum redirect extra é necessário.
 - **Reason**: Decisão do usuário (18/10/2026): aba vazia não paga o espaço na nav. Quando o Hoje voltar (pós-08/11), volta redesenhado a partir de evidência de uso real (AD-011) e a rota nasce de novo com spec própria.
@@ -112,7 +144,7 @@
 - **Phase / Task**: Execute concluído — 20 tasks no total (T1-T13 + T14-T20 da emenda); código `4019ad8..d6fa4bd`
 - **Completed**: avaliação como **job em background** (emenda 18/10, decisão do usuário): POST cria `pending` (201, payload montado, zero NIM no request) → worker BackgroundTasks consome NIM → `done` (veredito sanitizado + tokens + evaluated) ou `error` com o motivo NA LINHA — a tentativa nunca se perde; recovery de órfãs no startup; UI com polling ~2s (card "Analisando treino…" → veredito; card de erro com a causa); modelo A/B testado ao vivo (glm-5.3 thinking e flash — 429 do flash também vira linha error com motivo)
 - **In-progress**: none
-- **Next step**: **Fase 1 encerrada** (Avaliar com IA aprovada no UAT, 18/10): Fase 2 do plano (§6) — revisão semanal por IA, histórico agregado de avaliações + % no alvo, story com veredito, calibração de zonas no app; pendências menores vivas: sync de passos/NEAT como feature própria, sequência `users_pkey` desincronizada no `init_db` (Fase 2.5); decisão aberta de produto: NVIDIA_MODEL padrão no `.env` (flash no dia a dia vs glm-5.3 para análises profundas — A/B já feito)
+- **Next step**: **Fase 1.5 planejada e decidida (18/10, AD-012..015)** — Identidade e dados por usuário antes da Fase 2: `auth` (email+senha+sessão+convite) → `user-scope` (fim do DEFAULT_USER_ID em query) → `zones-db` (seed do JSON, LTHR no perfil) → `garmin-tokens-db` (cofre Fernet, gateway por usuário, CLI --user) → `user-profile` (`/perfil`). Próximo passo concreto: **"specify feature auth"** (workflow spec-driven). Pendências menores vivas: sync de passos/NEAT, sequência `users_pkey` desincronizada (vira fix no `auth`); decisão aberta de produto: NVIDIA_MODEL padrão no `.env` (flash no dia a dia vs glm-5.3 para análises profundas — A/B já feito)
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main (commits locais; push só com go-ahead do usuário)

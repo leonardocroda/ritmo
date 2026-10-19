@@ -202,6 +202,22 @@ patterns(id, nome, gatilho, descrição)  -- padrões de falha pessoais ("km1_r�
 - [x] Botão **Avaliar com IA**: intenção → payload → NIM → card de veredito salvo (18/10/2026)
 - [ ] Painel Hoje: readiness + countdown da prova + semana — **adiado** (17/10/2026, AD-011): volta pós-meia redesenhado com uso real; readiness duplica o Saúde, alertas são Fase 2, "planejada vs executada" não tem fonte de dados
 
+### Fase 1.5 — Identidade e dados por usuário (decidida 18/10/2026, AD-012..015)
+
+> Gatilho: decisão do usuário de antecipar o núcleo da Fase 2.5 — auth, perfil e dados
+> por usuário (zonas, LTHR, tokens Garmin) são pré-requisitos de qualquer multiusuário,
+> e fazer agora é barato: `user_id` já existe em toda tabela, o lock de sync já é por
+> usuário e a tabela `zones` já existe (ociosa). O MVP continua no PC/LAN, sem HTTPS
+> (deploy nuvem, fila de sync e LGPD completa seguem na Fase 2.5).
+
+- [ ] **`auth`** — contas próprias: email+senha (argon2id), sessão em banco via cookie HttpOnly (SameSite=Lax), `/login` + `/registrar` com **código de convite** (env `INVITE_CODE`), proteção de API e telas (401 → redirect), bootstrap do usuário 1 via CLI (`app.auth.set_password`), fix da sequência `users_pkey`, CORS explícito (`allow_credentials` exige origem exata), rate limit simples no login
+- [ ] **`user-scope`** — todas as queries usam o usuário da sessão (fim do `DEFAULT_USER_ID` hardcoded em ~30 pontos: activities, health, potential, evaluation, garmin, payload); teste de isolamento A×B (usuário B não lê nada de A)
+- [ ] **`zones-db`** — seed do `vdot_zones.json` → tabela `zones` (que já existe); `ZoneConfig` passa a ler do banco por usuário (o arquivo vira seed); **LTHR sai do env** (`LTHR_BPM`) e vira campo do perfil; a entrevista de calibração no app segue na Fase 2
+- [ ] **`garmin-tokens-db`** — cofre de tokens **criptografado em repouso** (Fernet, `TOKEN_ENCRYPTION_KEY` no env); fonte de verdade migra do tokenstore filesystem para o banco; gateway `from_user(db, user_id)`; refresh do oauth2 **persistido de volta** (hoje se perde); CLI `python -m app.garmin.login --user <email>` (MFA interativo — operador-assistida, decisão AD-014); seed dos tokens atuais do usuário 1
+- [ ] **`user-profile`** — `/perfil`: display_name editável, troca de senha, zonas VDOT ativas + LTHR, status da conexão Garmin (conectado / reconectar com instrução CLI), logout
+
+Estimativa: 3–5 dias (2 fins de semana). **Fora de escopo desta fase:** HTTPS/deploy em nuvem (2.5), fila de sync multiusuário (2.5), delete-de-conta completo (2.5), calibração de zonas no app (Fase 2), fluxo web de credenciais Garmin (Fase 3).
+
 ### Fase 2 — Fechando o ciclo (após a meia de 08/11)
 - [ ] **Revisão semanal por IA** (série de treinos: tendências, carga, sono × execução)
 - [ ] Histórico de avaliações + % no alvo por tipo de treino (meus padrões de falha em gráfico)
@@ -215,10 +231,10 @@ patterns(id, nome, gatilho, descrição)  -- padrões de falha pessoais ("km1_r�
 > Gatilho: 90 dias de uso próprio sólido + pedido de amigos. Não é a Fase 3 — é um ensaio dela.
 
 - [ ] Deploy: `docker-compose` (app + worker + Postgres + Redis) em VPS barata (Hetzner/Fly.io/Render) + HTTPS
-- [ ] Auth de usuários (Supabase Auth / Clerk — dia de trabalho)
-- [ ] `user_id` propagado nas queries + isolamento por usuário (ver seção 10)
+- [x] ~~Auth de usuários (Supabase Auth / Clerk)~~ — **antecipado na Fase 1.5** (auth próprio, AD-013)
+- [x] ~~`user_id` propagado nas queries + isolamento por usuário~~ — **antecipado na Fase 1.5** (AD-012)
 - [ ] Sync por fila (RQ/arq + worker separado), 1 job por usuário, lock por sessão Garmin
-- [ ] Cofre de tokens Garmin criptografados em repouso (LGPD: são dados de saúde de terceiros)
+- [x] ~~Cofre de tokens Garmin criptografados em repouso~~ — **antecipado na Fase 1.5** (Fernet + env, AD-014); LGPD completa (deletar tudo, disclaimer) segue aqui
 - [ ] Chave NVIDIA única da plataforma + cota por usuário (o registro de tokens da v1 vira o medidor)
 - [ ] Disclaimer claro: beta privado, dados deletáveis, como desconectar (apagar tudo)
 
@@ -314,9 +330,9 @@ O card na UI renderiza `headline` + veredito (✅⚠️❌) + listas; `execucao_
 1. **`user_id` no schema desde a Fase 1** (usuário único hardcodado). Retrofit de escopo multiusuário depois é o tipo de refactor que mata projetos — agora custa ~zero.
 2. **SQLAlchemy desde a Fase 1**: SQLite→Postgres vira troca de connection string, não reescrita.
 3. **Sync como job isolado** (`SyncJob(user_id, janela)`), mesmo rodando in-process na v1 — vira worker de fila (RQ/arq) sem mudar a interface.
-4. **Auth**: Supabase Auth/Clerk — ~1 dia.
-5. **Cofre de tokens Garmin criptografados** (KMS/age): com terceiros, os dados guardados passam a ser **dados de saúde de outras pessoas** — LGPD manda criptografia em repouso e direito de deletar tudo.
-6. **Fluxo "Conectar Garmin" para não-usuários**: o gargalo verdadeiro. O `garminconnect` loga via SSO com email+senha (MFA interativo). No meu caso, isso já existe (tokens do MCP); para um convidado, significa digitar a senha Garmin **no meu site** — funciona entre amigos num beta com disclosure claro, mas é barreira de confiança real e precisa de UX dedicada.
+4. **Auth**: ~~Supabase Auth/Clerk~~ → **auth próprio self-hosted** (email+senha argon2id + sessão em banco, ~1–2 dias — AD-013, Fase 1.5). Zero dependência externa; migrar para provedor gerenciado, se um dia valer a pena, fica contido no módulo `auth/`.
+5. **Cofre de tokens Garmin criptografados** (KMS/age): com terceiros, os dados guardados passam a ser **dados de saúde de outras pessoas** — LGPD manda criptografia em repouso e direito de deletar tudo. → **Feito na Fase 1.5** (Fernet + chave no env, AD-014); KMS/rotação de chave e delete-de-conta completo seguem na 2.5.
+6. **Fluxo "Conectar Garmin" para não-usuários**: o gargalo verdadeiro. O `garminconnect` loga via SSO com email+senha (MFA interativo). No meu caso, isso já existe (tokens do MCP); para um convidado, significa digitar a senha Garmin **no meu site** — funciona entre amigos num beta com disclosure claro, mas é barreira de confiança real e precisa de UX dedicada. → **MVP (Fase 1.5, AD-014): CLI operador-assistida** (`login --user <email>`), que evita a barreira; fluxo web fica para quando fizer sentido.
 
 ### O que NÃO porta (bloqueio comercial — não de teste controlado)
 

@@ -5,7 +5,7 @@ Plataforma pessoal de corrida: sync do Garmin, painéis que importam
 
 > Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
 >
-> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-017) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-016 — volta pós-08/11, redesenhado com uso real).
+> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-017) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-016 — volta pós-08/11, redesenhado com uso real) · **Fase 1.5 planejada** (18/10, AD-012..015): identidade e dados por usuário — auth próprio + convite, zonas/LTHR no banco, cofre de tokens Garmin criptografado, `/perfil`.
 
 ## Estrutura
 
@@ -337,5 +337,9 @@ Memória do projeto: `.specs/STATE.md` (decisões AD-NNN + handoff) e
 8. UI lê **só** do banco próprio; Garmin só é chamado pelo botão de sync
 9. Hierarquia de confiança: pace/GPS > FC de pulso (FC corrobora, não decide)
 10. Intenção declarada > números brutos — avaliação só sob pedido (custo de tokens)
+11. **Fase 1.5 (AD-012..015)**: auth próprio self-hosted (email+senha+sessão, cadastro por
+    convite) · zonas VDOT e LTHR por usuário no banco (JSON vira seed) · tokens Garmin no
+    banco criptografados (Fernet, refresh persistido) · login Garmin segue CLI
+    operador-assistida (`login --user`) · MVP segue no PC/LAN — HTTPS/deploy na Fase 2.5
 
 Detalhes, arquitetura e roadmap completo: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md).
