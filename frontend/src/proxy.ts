@@ -1,0 +1,52 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+// Proxy otimista de sessão (AD-018, feature auth): checa só a PRESENÇA
+// do cookie de sessão — nunca valida o token. A API é a autoridade
+// (require_session); aqui é UX de redirect antes de renderizar, padrão
+// do guia de auth do Next 16 (middleware virou proxy na v16).
+
+// Cookie setado pela API (settings.session_cookie_name) — host-only,
+// visível aqui porque frontend e API estão no mesmo host (só a porta difere).
+const SESSION_COOKIE = "ritmo_session";
+
+// Painéis protegidos (AUTH-17); `/` é caso à parte: o next vira /treinos,
+// para onde a home autenticada já redireciona (AUTH-20).
+const PANEL_PREFIXES = ["/treinos", "/performance", "/saude"];
+const AUTH_ROUTES = ["/login", "/registrar"];
+
+function isPanelRoute(pathname: string): boolean {
+  return (
+    pathname === "/" ||
+    PANEL_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))
+  );
+}
+
+export function proxy(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
+  const hasSession = request.cookies.has(SESSION_COOKIE);
+
+  // Sem cookie em rota de painel → /login?next=<rota corrente> (AUTH-17).
+  // O next preserva query e é URL-encoded; o login volta à rota original.
+  if (isPanelRoute(pathname) && !hasSession) {
+    const next = pathname === "/" ? "/treinos" : pathname + search;
+    return NextResponse.redirect(
+      new URL(`/login?next=${encodeURIComponent(next)}`, request.nextUrl),
+    );
+  }
+
+  // Autenticado em tela de auth → painéis (AUTH-19); sem next: é a
+  // sessão falando, o destino natural é o painel principal.
+  if (AUTH_ROUTES.includes(pathname) && hasSession) {
+    return NextResponse.redirect(new URL("/treinos", request.nextUrl));
+  }
+
+  return NextResponse.next();
+}
+
+// Roda em todas as rotas de página; exclui a API (proteção real é o
+// require_session do backend), assets estáticos e favicon (convenção
+// do guia de auth do Next 16).
+export const config = {
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+};

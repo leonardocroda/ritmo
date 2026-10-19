@@ -422,11 +422,11 @@ T15 → T16
 
 **Done when**:
 
-- [ ] Sem cookie em rota protegida → `/login?next=` (URL-encoded, preserva query); `/` sem cookie → `/login?next=/treinos`
-- [ ] Com cookie em `/login`/`/registrar` → `/treinos`
-- [ ] Matcher não roda em `/api/*` nem assets estáticos
-- [ ] Gate check passes: `npm run lint && npm run build` (comportamento no UAT final)
-- [ ] Test count: sem test runner (matrix "none") — build gate
+- [x] Sem cookie em rota protegida → `/login?next=` (URL-encoded, preserva query); `/` sem cookie → `/login?next=/treinos`
+- [x] Com cookie em `/login`/`/registrar` → `/treinos`
+- [x] Matcher não roda em `/api/*` nem assets estáticos
+- [x] Gate check passes: `npm run lint && npm run build` (comportamento no UAT final)
+- [x] Test count: sem test runner (matrix "none") — build gate
 
 **Tests**: none
 **Gate**: build

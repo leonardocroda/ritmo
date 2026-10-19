@@ -247,9 +247,9 @@ headers CORS exatos.
 | AUTH-14 | P1: Sessão sliding + proteção da API | - | ✅ Verified |
 | AUTH-15 | P1: Sessão sliding + proteção da API | - | ✅ Verified |
 | AUTH-16 | P1: Sessão sliding + proteção da API | - | ✅ Verified |
-| AUTH-17 | P1: Proteção das telas e navegação de auth | - | Pending |
+| AUTH-17 | P1: Proteção das telas e navegação de auth | - | ✅ Verified |
 | AUTH-18 | P1: Proteção das telas e navegação de auth | - | Pending |
-| AUTH-19 | P1: Proteção das telas e navegação de auth | - | Pending |
+| AUTH-19 | P1: Proteção das telas e navegação de auth | - | ✅ Verified |
 | AUTH-20 | P1: Proteção das telas e navegação de auth | - | ✅ Verified |
 | AUTH-21 | P1: Proteção das telas e navegação de auth | - | ✅ Verified |
 | AUTH-22 | P1: Proteção das telas e navegação de auth | - | Pending |
