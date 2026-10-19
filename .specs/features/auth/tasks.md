@@ -165,10 +165,10 @@ T15 → T16
 
 **Done when**:
 
-- [ ] 5 settings novas com defaults do design; `cors_origins_list` segue funcionando com lista explícita
-- [ ] `.env.example` documenta `INVITE_CODE`, `SESSION_*` e `CORS_ORIGINS` (com exemplo do IP da LAN)
-- [ ] Gate check passes: Full suite verde (config-only — nenhum comportamento muda até o wiring)
-- [ ] Test count: 362 existentes
+- [x] 5 settings novas com defaults do design; `cors_origins_list` segue funcionando com lista explícita
+- [x] `.env.example` documenta `INVITE_CODE`, `SESSION_*` e `CORS_ORIGINS` (com exemplo do IP da LAN)
+- [x] Gate check passes: Full suite verde (config-only — nenhum comportamento muda até o wiring)
+- [x] Test count: 362 existentes
 
 **Tests**: none
 **Gate**: full

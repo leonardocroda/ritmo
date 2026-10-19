@@ -19,7 +19,20 @@ class Settings(BaseSettings):
     # App
     app_name: str = "Ritmo"
     app_env: str = "dev"
-    cors_origins: str = "*"
+    # CORS — lista explícita (AUTH-28): allow_credentials com "*" é
+    # rejeitado pelos browsers. Override no .env com o IP da LAN, ex.:
+    # CORS_ORIGINS=http://localhost:3000,http://192.168.15.16:3000
+    cors_origins: str = "http://localhost:3000"
+
+    # Auth (feature auth — AD-013/018): convite + sessão stateful em banco
+    # Vazio/ausente = registro desabilitado (403) até o user-scope no ar
+    invite_code: str = ""
+    # Sessão sliding: TTL de 30d, renovado quando restam ≤15d (AUTH-12)
+    session_ttl_days: int = 30
+    session_renew_threshold_days: int = 15
+    # Cookie host-only HttpOnly (design auth); Secure exige HTTPS — Fase 2.5
+    session_cookie_name: str = "ritmo_session"
+    session_cookie_secure: bool = False
 
     # Fuso da conversão de deitar/acordar do painel Saúde (bed_time/wake_time
     # são gravados GMT naive; o horário exibido usa este fuso)
