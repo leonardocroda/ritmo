@@ -252,7 +252,7 @@ headers CORS exatos.
 | AUTH-19 | P1: Proteção das telas e navegação de auth | - | ✅ Verified |
 | AUTH-20 | P1: Proteção das telas e navegação de auth | - | ✅ Verified |
 | AUTH-21 | P1: Proteção das telas e navegação de auth | - | ✅ Verified |
-| AUTH-22 | P1: Proteção das telas e navegação de auth | - | Pending |
+| AUTH-22 | P1: Proteção das telas e navegação de auth | - | ✅ Verified |
 | AUTH-23 | P1: Sair no header | - | Pending |
 | AUTH-24 | P1: Sair no header | - | Pending |
 | AUTH-25 | P1: Bootstrap do usuário 1 + fixes | - | ✅ Verified |

@@ -477,10 +477,10 @@ T15 → T16
 
 **Done when**:
 
-- [ ] Cadastro válido entra auto-logado; 403/409/422 exibidos inline por campo
-- [ ] Sem header de painéis
-- [ ] Gate check passes: `npm run lint && npm run build`
-- [ ] Test count: sem test runner (matrix "none") — build gate
+- [x] Cadastro válido entra auto-logado; 403/409/422 exibidos inline por campo
+- [x] Sem header de painéis
+- [x] Gate check passes: `npm run lint && npm run build`
+- [x] Test count: sem test runner (matrix "none") — build gate
 
 **Tests**: none
 **Gate**: build
