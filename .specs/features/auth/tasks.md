@@ -109,11 +109,11 @@ T15 → T16
 
 **Done when**:
 
-- [ ] `UserSession` com unique em `token_hash` e FK CASCADE (deletar usuário derruba sessões)
-- [ ] `User.email` nullable + unique (múltiplos NULL permitidos — seed id 1 sem email)
-- [ ] Testes: email NULL múltiplo aceito; email duplicado viola unique; delete de usuário cascata nas sessões
-- [ ] Gate check passes: `uv run pytest tests/test_auth_models.py` + Full suite verde
-- [ ] Test count: ~3 novos + 362 existentes (no silent deletions)
+- [x] `UserSession` com unique em `token_hash` e FK CASCADE (deletar usuário derruba sessões)
+- [x] `User.email` nullable + unique (múltiplos NULL permitidos — seed id 1 sem email)
+- [x] Testes: email NULL múltiplo aceito; email duplicado viola unique; delete de usuário cascata nas sessões
+- [x] Gate check passes: `uv run pytest tests/test_auth_models.py` + Full suite verde
+- [x] Test count: ~3 novos + 362 existentes (no silent deletions)
 
 **Tests**: integration
 **Gate**: full

@@ -40,6 +40,29 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     display_name: Mapped[str] = mapped_column(String(120))
+    # Auth (feature auth): email único — normalizado lowercase no service;
+    # nullable porque o seed id 1 nasce sem email até o CLI vinculá-lo
+    # (múltiplos NULL são permitidos em unique no Postgres)
+    email: Mapped[str | None] = mapped_column(String(255), unique=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255))  # argon2id
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
+class UserSession(Base):
+    """Sessão stateful (feature auth): token opaco no cookie, banco guarda
+    só o hash SHA-256 (AUTH-15). Logout = DELETE (sem flag); sliding de
+    30 dias move ``expires_at``. Nome da classe evita colisão com
+    ``sqlalchemy.orm.Session``."""
+
+    __tablename__ = "sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    # CASCADE: deletar o usuário derruba as sessões (revogação total)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
 

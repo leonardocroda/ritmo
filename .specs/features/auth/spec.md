@@ -260,7 +260,7 @@ headers CORS exatos.
 | AUTH-27 | P1: Bootstrap do usuário 1 + fixes | - | Pending |
 | AUTH-28 | P1: Bootstrap do usuário 1 + fixes | - | Pending |
 
-**Coverage:** 28 total, 0 mapped to tasks (fase de Tasks pendente), 28 unmapped ⚠️
+**Coverage:** 28 total, 28 mapped to tasks, 0 unmapped
 
 ---
 
