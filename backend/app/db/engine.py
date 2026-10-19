@@ -6,7 +6,7 @@ específico de dialeto. Config 100% via DATABASE_URL (requisito travado).
 
 from collections.abc import Iterator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import get_settings
@@ -39,3 +39,12 @@ def init_db() -> None:
         if db.get(User, DEFAULT_USER_ID) is None:
             db.add(User(id=DEFAULT_USER_ID, display_name="Leonardo"))
             db.commit()
+
+        # AUTH-27: o seed com id explícito não avança a sequência — sem o
+        # setval, o primeiro INSERT sem id (register/CLI) colide com a
+        # pkey 1. Pendência do handoff, corrigida aqui para acompanhar o
+        # seed. Idempotente: reajusta para MAX(id) (COALESCE cobre tabela
+        # vazia). Postgres-only — único dialeto (AD-007).
+        db.execute(
+            text("SELECT setval('users_id_seq', (SELECT COALESCE(MAX(id), 1) FROM users))")
+        )

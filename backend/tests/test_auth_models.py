@@ -84,3 +84,49 @@ def test_user_delete_cascades_sessions(db) -> None:
     db.commit()
 
     assert db.query(UserSession).count() == 0
+
+
+# ---------------------------------------------------------------
+# T2 — sequência users_pkey reajustada no init_db (AUTH-27)
+# ---------------------------------------------------------------
+
+
+def test_insert_without_id_gets_id_greater_than_seed(db) -> None:
+    """Done-when T2 (AUTH-27): após o init_db, INSERT sem id explícito
+    recebe id > 1 sem duplicate key — o setval corrige a sequência que o
+    seed (id explícito) deixou para trás."""
+    user = User(display_name="Primeiro via app")
+    db.add(user)
+    db.commit()
+
+    assert user.id > 1
+
+
+def test_second_insert_id_increases(db) -> None:
+    """Done-when T2: o segundo INSERT sem id recebe id crescente — dois
+    cadastros seguidos (register da T7) nunca colidem."""
+    first = User(display_name="Primeiro")
+    db.add(first)
+    db.commit()
+    second = User(display_name="Segundo")
+    db.add(second)
+    db.commit()
+
+    assert second.id > first.id
+
+
+def test_init_db_rerun_is_idempotent(db) -> None:
+    """Done-when T2: re-executar init_db não duplica o seed e o setval
+    reajusta a sequência mesmo após inserts manuais — INSERT sem id
+    continua funcionando."""
+    init_db()
+    db.add(User(id=7, display_name="Manual"))
+    db.commit()
+
+    init_db()
+
+    assert db.query(User).count() == 2  # seed 1 + o manual — seed não duplica
+    auto = User(display_name="Pós rerun")
+    db.add(auto)
+    db.commit()
+    assert auto.id > 7  # setval reajustou para MAX(id) = 7

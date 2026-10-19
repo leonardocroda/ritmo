@@ -137,11 +137,11 @@ T15 → T16
 
 **Done when**:
 
-- [ ] Após `init_db`, INSERT sem id explícito recebe id > 1 sem duplicate key
-- [ ] Re-executar `init_db` é idempotente (seed não duplica, setval reajusta)
-- [ ] Testes: insert sem id → id > 1; segundo insert → id crescente
-- [ ] Gate check passes: `uv run pytest tests/test_auth_models.py` + Full suite verde
-- [ ] Test count: ~2 novos + 362 existentes
+- [x] Após `init_db`, INSERT sem id explícito recebe id > 1 sem duplicate key
+- [x] Re-executar `init_db` é idempotente (seed não duplica, setval reajusta)
+- [x] Testes: insert sem id → id > 1; segundo insert → id crescente
+- [x] Gate check passes: `uv run pytest tests/test_auth_models.py` + Full suite verde
+- [x] Test count: ~2 novos + 362 existentes
 
 **Tests**: integration
 **Gate**: full

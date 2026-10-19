@@ -257,7 +257,7 @@ headers CORS exatos.
 | AUTH-24 | P1: Sair no header | - | Pending |
 | AUTH-25 | P1: Bootstrap do usuário 1 + fixes | - | Pending |
 | AUTH-26 | P1: Bootstrap do usuário 1 + fixes | - | Pending |
-| AUTH-27 | P1: Bootstrap do usuário 1 + fixes | - | Pending |
+| AUTH-27 | P1: Bootstrap do usuário 1 + fixes | - | ✅ Verified |
 | AUTH-28 | P1: Bootstrap do usuário 1 + fixes | - | Pending |
 
 **Coverage:** 28 total, 28 mapped to tasks, 0 unmapped
