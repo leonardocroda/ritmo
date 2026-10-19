@@ -2,16 +2,17 @@
 
 // Painel Saúde (§4.5) — página-composição: busca /api/health/summary em 1
 // round-trip POR JANELA (seletor fixo 7/30/42/60/90d — feature
-// health-window, default 60) e monta as 5 seções do fio condutor
-// (panel-clarity): Sono → Carga de treino → Recuperação → Dose-resposta →
-// Equilíbrio de vida, cada uma com cabeçalho forte numerado
+// health-window, default 60) e monta as 4 seções do fio condutor
+// (panel-clarity): Sono → Recuperação → Dose-resposta → Equilíbrio de
+// vida, cada uma com cabeçalho forte numerado
 // (PanelSection — CLR-12/13) e a linha-guia conectando tudo no topo
-// (CLR-26). Bloco null -> estado vazio próprio do bloco (HLT-19); painel
-// inteiro vazio (sono, HRV, RHR, estresse e PMC ausentes) -> estado
-// vazio apontando o sync (CLR-11) — só com `load`, a seção Carga já
-// renderiza com dados. A troca de janela refaz a busca mantendo os dados
-// anteriores na tela; o seq descarta a resposta velha quando o usuário
-// troca rápido (padrão WorkoutsList).
+// (CLR-26). Sem PMC: a curva de carga voltou ao painel Performance
+// (AD-013 reverte a CLR-03 — o bloco mudou de endpoint junto com a
+// tela, AD-009). Bloco null -> estado vazio próprio do bloco (HLT-19);
+// painel inteiro vazio (sono, HRV, RHR e estresse ausentes) -> estado
+// vazio apontando o sync (CLR-11). A troca de janela refaz a busca
+// mantendo os dados anteriores na tela; o seq descarta a resposta
+// velha quando o usuário troca rápido (padrão WorkoutsList).
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
@@ -21,7 +22,6 @@ import DoseResponse from "@/components/health/DoseResponse";
 import HrvChart from "@/components/health/HrvChart";
 import HrvTable from "@/components/health/HrvTable";
 import Lifestyle from "@/components/health/Lifestyle";
-import PmcChart from "@/components/health/PmcChart";
 import RemChart from "@/components/health/RemChart";
 import RhrChart from "@/components/health/RhrChart";
 import SleepChart from "@/components/health/SleepChart";
@@ -146,18 +146,12 @@ export default function HealthPanel() {
     );
   }
 
-  const { sleep, hrv, rhr, stress, pmc, dose_response, lifestyle } = state.panel;
+  const { sleep, hrv, rhr, stress, dose_response, lifestyle } = state.panel;
 
-  // Estado vazio geral (CLR-11): painel vazio somente com sono, HRV, RHR,
-  // estresse E PMC ausentes — com `load` no banco a seção Carga de treino
-  // renderiza com dados (padrão WorkoutsList, HLT-28 evoluído).
-  if (
-    sleep === null &&
-    hrv === null &&
-    rhr === null &&
-    stress === null &&
-    pmc === null
-  ) {
+  // Estado vazio geral (CLR-11, sem o pmc — AD-013): painel vazio com
+  // sono, HRV, RHR e estresse ausentes; a curva de carga mora no painel
+  // Performance agora.
+  if (sleep === null && hrv === null && rhr === null && stress === null) {
     return (
       <p className="mt-6 rounded-xl border border-white/10 bg-card px-4 py-6 text-sm text-muted">
         Nada por aqui ainda. Use o botão &ldquo;Puxar do Garmin&rdquo; no topo
@@ -181,10 +175,10 @@ export default function HealthPanel() {
         </p>
       )}
 
-      {/* Linha-guia (CLR-26): o fio que conecta as 5 seções */}
+      {/* Linha-guia (CLR-26): o fio que conecta as 4 seções */}
       <p className="mt-3 text-sm text-muted">
-        O fio: o sono recupera, o treino impõe carga, o corpo responde,
-        dormir mal custa — e a vida fora da corrida sustenta tudo.
+        O fio: o sono recupera, o corpo responde, dormir mal custa — e a
+        vida fora da corrida sustenta tudo.
       </p>
 
       <PanelSection
@@ -216,23 +210,6 @@ export default function HealthPanel() {
 
       <PanelSection
         index={2}
-        title="Carga de treino"
-        subtitle={`Quanta carga estou impondo ao corpo? A curva de ${days} dias traz fitness (CTL), fadiga (ATL) e forma (TSB) — carga acima da que o corpo absorve compromete recuperação e adaptação.`}
-      >
-        {pmc !== null ? (
-          <div className="rounded-xl border border-white/10 bg-card p-3">
-            <PmcChart pmc={pmc} />
-          </div>
-        ) : (
-          <BlockEmpty>
-            Sem curva de carga ainda — ela nasce no primeiro sync, que acumula
-            o treino dos últimos dias.
-          </BlockEmpty>
-        )}
-      </PanelSection>
-
-      <PanelSection
-        index={3}
         title="Recuperação"
         subtitle="Como o corpo está respondendo? HRV noturna e frequência cardíaca de repouso — os sinais diários de quanto da carga está virando adaptação."
       >
@@ -264,7 +241,7 @@ export default function HealthPanel() {
       </PanelSection>
 
       <PanelSection
-        index={4}
+        index={3}
         title="Dose-resposta"
         subtitle="O que dormir mal me custa? Noites curtas (<6h) contra noites adequadas (≥6h45) — HRV e score médios da mesma noite mostram o preço."
       >
@@ -272,7 +249,7 @@ export default function HealthPanel() {
       </PanelSection>
 
       <PanelSection
-        index={5}
+        index={4}
         title="Equilíbrio de vida"
         subtitle="A base fora da corrida sustenta o treino? Força por semana, yoga e estresse médio da janela — o que apoia ou sabota a recuperação."
       >

@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.db.models import (
     DEFAULT_USER_ID,
     Activity,
+    DailyLoad,
     PersonalRecord,
     RacePrediction,
 )
@@ -87,12 +88,54 @@ def _demonstrated_block(points: list[dict], prs: list[PersonalRecord]) -> dict |
     return {"vdot": best["vdot"], "source": source, "date": best["date"]}
 
 
-def get_potential(db: Session, calibration: Calibration) -> dict:
-    """Payload do painel — os 4 blocos do design §Contrato.
+# Janela fixa da curva PMC no painel Performance (AD-013): o mesmo
+# default do seletor da Saúde; o param `days` segue morto (CLR-04).
+PMC_WINDOW_DAYS = 60
 
-    Sem `pmc` e sem janela `days` (CLR-03): a curva de carga mora no
-    health (panel-clarity T1/T2). A matemática vive em calc.py (pura,
-    AD-003) — aqui é só leitura e montagem.
+
+def _pmc_block(db: Session) -> dict | None:
+    """Bloco Carga de treino — de volta ao painel (AD-013 reverte a
+    CLR-03): últimas PMC_WINDOW_DAYS linhas de `load`, mais antiga
+    primeiro (mesma janela DESC+limit+reverse da PMC original), valores
+    exatamente como as linhas — zero recálculo (CLR-06). Sem linhas ->
+    None (estado vazio, não erro — CLR-02)."""
+    rows = (
+        db.execute(
+            select(DailyLoad)
+            .where(DailyLoad.user_id == DEFAULT_USER_ID)
+            .order_by(DailyLoad.date.desc())
+            .limit(PMC_WINDOW_DAYS)
+        )
+        .scalars()
+        .all()
+    )[::-1]
+    if not rows:
+        return None
+
+    def entry(row: DailyLoad) -> dict:
+        return {
+            "date": row.date,
+            "ctl": row.ctl,
+            "atl": row.atl,
+            "tsb": row.tsb,
+            "acwr": row.acwr,
+        }
+
+    return {
+        "days": PMC_WINDOW_DAYS,
+        "points": [entry(row) for row in rows],
+        "current": entry(rows[-1]),
+    }
+
+
+def get_potential(db: Session, calibration: Calibration) -> dict:
+    """Payload do painel — os 5 blocos do design §Contrato.
+
+    Com `pmc` de volta (AD-013 reverte a CLR-03; panel-clarity T1/T2
+    viram referência histórica): a curva de carga mora aqui de novo,
+    janela fixa de 60d — sem `days` (CLR-04 vigente: o param segue
+    morto no endpoint). A matemática vive em calc.py (pura, AD-003) —
+    aqui é só leitura e montagem.
     """
     prs = (
         db.execute(
@@ -130,4 +173,5 @@ def get_potential(db: Session, calibration: Calibration) -> dict:
         "predictions": predictions(_garmin_by_event(db), pr_5k_s, calibration.vdot, prs),
         "vo2max": _vo2max_block(activities),
         "decay": decay(prs, calibration.vdot),
+        "pmc": _pmc_block(db),
     }

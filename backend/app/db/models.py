@@ -150,7 +150,7 @@ class Stress(Base):
 
 
 class DailyLoad(Base):
-    """PMC (CTL/ATL/TSB) + ACWR por dia — alimenta o painel Potencial."""
+    """PMC (CTL/ATL/TSB) + ACWR por dia — alimenta o painel Performance."""
 
     __tablename__ = "load"
     __table_args__ = (UniqueConstraint("user_id", "date", name="uq_load_user_date"),)

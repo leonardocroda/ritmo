@@ -1,6 +1,6 @@
 // Cabeçalho forte de seção (AD-009 — CLR-12/13/14) — a unidade de
 // clareza trans-painel: índice numeral discreto quando a ordem forma um
-// passo a passo (Saúde 1–5; Performance narra sem índice), título maior,
+// passo a passo (Saúde 1–4; Performance narra sem índice), título maior,
 // subtítulo sempre visível cobrindo "o que é / por que importa" — nada
 // atrás de clique (context.md B) — e selo de fonte/método opcional
 // (pill do Vo2maxTrend). Sem card wrapper (context.md D); o espaçamento
@@ -9,7 +9,7 @@
 import type { ReactNode } from "react";
 
 type PanelSectionProps = {
-  /** Numeral do passo na ordem do fio condutor (Saúde 1–5). */
+  /** Numeral do passo na ordem do fio condutor (Saúde 1–4). */
   index?: number;
   title: string;
   /** A pergunta que a seção responde + o que ela mostra (1–2 linhas). */

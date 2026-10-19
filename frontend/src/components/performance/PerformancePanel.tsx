@@ -2,14 +2,14 @@
 
 // Painel Performance (ex-Potencial, §4.4 — AD-013) — página-composição:
 // busca /api/potential em 1
-// round-trip e monta os 3 blocos narrativos da panel-clarity (CLR-17):
-// Onde estou → O que isso prevê → O que o relógio estima. Card da lacuna
+// round-trip e monta os 4 blocos narrativos (CLR-17 + AD-013): Onde
+// estou → O que isso prevê → O que o relógio estima → Carga de treino
+// (a curva PMC voltou pra cá, janela fixa de 60d). Card da lacuna
 // com a narrativa honesta de §9.5 + timeline VDOT com faixa (AD-004),
 // previsões vs PRs, decaimento (só com PRs canônicos) e VO2max do relógio
-// (bloco inteiro ausente quando não existe — POT-27/CLR-22). Sem PMC: a
-// curva de carga mora no painel Saúde (CLR-25); a linha-guia do topo
-// carrega a pergunta do painel e a régua provas/testes > estimativas
-// (AD-005, CLR-27).
+// (bloco inteiro ausente quando não existe — POT-27/CLR-22). A
+// linha-guia do topo carrega a pergunta do painel e a régua
+// provas/testes > estimativas (AD-005, CLR-27).
 
 import { useEffect, useState } from "react";
 
@@ -17,6 +17,7 @@ import { getPotential, type PotentialOut, type VdotBlock } from "@/lib/api";
 import { formatVdot } from "@/lib/format";
 import PanelSection from "@/components/PanelSection";
 import DecayTable from "@/components/performance/DecayTable";
+import PmcChart from "@/components/performance/PmcChart";
 import PredictionsTable from "@/components/performance/PredictionsTable";
 import VdotTimeline from "@/components/performance/VdotTimeline";
 import Vo2maxTrend from "@/components/performance/Vo2maxTrend";
@@ -89,15 +90,16 @@ export default function PerformancePanel() {
     );
   }
 
-  const { vdot, predictions, vo2max, decay } = state.panel;
+  const { vdot, predictions, vo2max, decay, pmc } = state.panel;
 
-  // Estado vazio recalculado sem o pmc (CLR-24, padrão WorkoutsList): nada
-  // de pessoal no banco — só o teste de calibração do arquivo, sem
-  // VO2max/PRs — aponta o sync.
+  // Estado vazio recalculado com o pmc de volta (CLR-24 evoluído —
+  // AD-013): nada de pessoal no banco — só o teste de calibração do
+  // arquivo, sem VO2max/PRs e sem linhas de carga — aponta o sync.
   if (
     vdot.timeline.length <= 1 &&
     vo2max === null &&
-    decay.length === 0
+    decay.length === 0 &&
+    pmc === null
   ) {
     return (
       <p className="mt-6 rounded-xl border border-white/10 bg-card px-4 py-6 text-sm text-muted">
@@ -111,8 +113,9 @@ export default function PerformancePanel() {
     <div className="mt-4">
       {/* Linha-guia (CLR-27): a pergunta do painel + a régua de leitura */}
       <p className="text-sm text-muted">
-        Qual é o meu máximo e a que distância dele estou? A régua: provas e
-        testes de campo medem, estimativas do relógio só aproximam.
+        Qual é o meu máximo, a que distância dele estou — e quanta carga
+        estou impondo pra chegar lá? A régua: provas e testes de campo
+        medem, estimativas do relógio só aproximam.
       </p>
 
       <PanelSection
@@ -147,6 +150,22 @@ export default function PerformancePanel() {
           </div>
         </PanelSection>
       )}
+
+      <PanelSection
+        title="Carga de treino"
+        subtitle="O motor por trás do número: quanta carga estou impondo ao corpo? A curva de 60 dias traz fitness (CTL), fadiga (ATL) e forma (TSB) — carga acima da que o corpo absorve compromete recuperação e adaptação."
+      >
+        {pmc !== null ? (
+          <div className="rounded-xl border border-white/10 bg-card p-3">
+            <PmcChart pmc={pmc} />
+          </div>
+        ) : (
+          <p className="rounded-xl border border-white/10 bg-card px-4 py-6 text-sm text-muted">
+            Sem curva de carga ainda — ela nasce no primeiro sync, que acumula
+            o treino dos últimos dias.
+          </p>
+        )}
+      </PanelSection>
     </div>
   );
 }

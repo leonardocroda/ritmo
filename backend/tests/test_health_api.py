@@ -495,61 +495,22 @@ def test_lifestyle_streak_exceeds_window(db, fixed_today) -> None:
 
 
 # ---------------------------------------------------------------
-# T1 (panel-clarity) — bloco pmc no service (seeds de `load`)
+# AD-013 — o bloco pmc saiu da Saúde (voltou ao painel Performance):
+# a exclusão é do contrato, não do dado vazio.
 # ---------------------------------------------------------------
 
 
-def test_pmc_window_asc_and_current_from_load(db) -> None:
-    """Done-when T1 (CLR-01/06): janela pedida devolve as últimas `days`
-    linhas de `load` em ASC com os valores exatamente como as linhas —
-    nenhum recálculo; `current` = última linha; acwr null atravessa."""
-    _seed_load(db, date(2026, 10, 13), 20.0, 25.0, -5.0)  # janela 28d incompleta
-    _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
-    _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
-    db.commit()
-
-    pmc = service.get_health(db, 2, SAO_PAULO)["pmc"]
-    assert pmc["days"] == 2
-    assert pmc["points"] == [
-        {"date": date(2026, 10, 14), "ctl": 21.0, "atl": 27.0, "tsb": -6.0, "acwr": 1.40},
-        {"date": date(2026, 10, 15), "ctl": 22.0, "atl": 28.0, "tsb": -6.0, "acwr": 1.42},
-    ]
-    assert pmc["current"] == {
-        "date": date(2026, 10, 15), "ctl": 22.0, "atl": 28.0, "tsb": -6.0, "acwr": 1.42,
-    }
-
-
-def test_pmc_window_larger_than_history_returns_what_exists(db) -> None:
-    """Edge do spec (CLR-02): janela maior que o histórico devolve as
-    linhas disponíveis — `days` é a pedida, os pontos são os que existem."""
-    _seed_load(db, date(2026, 10, 13), 20.0, 25.0, -5.0, 1.31)
-    _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
-    _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
-    db.commit()
-
-    pmc = service.get_health(db, 365, SAO_PAULO)["pmc"]
-    assert pmc["days"] == 365
-    assert [p["date"] for p in pmc["points"]] == [
-        date(2026, 10, 13), date(2026, 10, 14), date(2026, 10, 15),
-    ]
-
-
-def test_pmc_null_without_load_rows(db) -> None:
-    """CLR-02: sem linhas em `load` -> pmc null (estado vazio, não erro —
-    mesma semântica de POT-12)."""
-    assert service.get_health(db, 60, SAO_PAULO)["pmc"] is None
-
-
-def test_pmc_sits_between_stress_and_dose_response(db) -> None:
-    """Done-when T1 (CLR-01): `pmc` monta entre `stress` e
-    `dose_response` — ordem das chaves do payload pinada (o espelho do
-    router e do cliente seguem a mesma posição)."""
+def test_health_payload_omits_pmc_even_with_load_rows(db) -> None:
+    """AD-013 (revérte o lado Saúde da CLR-01): com linhas de `load` no
+    banco a chave continua ausente — a curva mora no payload de
+    /api/potential (test_potential_api). Ordem das chaves pinada — o
+    espelho do router e do cliente seguem a mesma posição."""
     _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
     db.commit()
 
     payload = service.get_health(db, 60, SAO_PAULO)
     assert list(payload.keys()) == [
-        "sleep", "hrv", "rhr", "stress", "pmc", "dose_response", "lifestyle",
+        "sleep", "hrv", "rhr", "stress", "dose_response", "lifestyle",
     ]
 
 
@@ -694,16 +655,18 @@ def test_api_invalid_app_timezone_falls_back_with_warning(client, monkeypatch, c
 
 
 # ---------------------------------------------------------------
-# T2 (panel-clarity) — pmc no GET /api/health/summary (HTTP)
+# AD-013 — GET /api/health/summary sem pmc (HTTP)
 # ---------------------------------------------------------------
 
 
-def test_api_pmc_traverses_http_between_stress_and_dose(client) -> None:
-    """Done-when T2 (CLR-01): `pmc` no payload JSON com dias/valores
-    pinados, entre `stress` e `dose_response` — ordem das chaves pinada."""
+def test_api_health_payload_omits_pmc_even_with_load(client) -> None:
+    """AD-013 via HTTP: banco com `load` -> payload sem a chave `pmc`
+    (a exclusão é do contrato, não do dado vazio — a curva mora no
+    /api/potential agora); ordem das chaves pinada. O resto do payload
+    intacto (HLT-03 segue verde: days fora de [7, 365] continua 422
+    antes da query)."""
     with SessionLocal() as db:
         _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
-        _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
         db.commit()
 
     response = client.get("/api/health/summary", params={"days": 60})
@@ -711,26 +674,6 @@ def test_api_pmc_traverses_http_between_stress_and_dose(client) -> None:
     body = response.json()
 
     assert list(body.keys()) == [
-        "sleep", "hrv", "rhr", "stress", "pmc", "dose_response", "lifestyle",
+        "sleep", "hrv", "rhr", "stress", "dose_response", "lifestyle",
     ]
-    assert body["pmc"] == {
-        "days": 60,
-        "points": [
-            {"date": "2026-10-14", "ctl": 21.0, "atl": 27.0, "tsb": -6.0, "acwr": 1.40},
-            {"date": "2026-10-15", "ctl": 22.0, "atl": 28.0, "tsb": -6.0, "acwr": 1.42},
-        ],
-        "current": {
-            "date": "2026-10-15", "ctl": 22.0, "atl": 28.0, "tsb": -6.0, "acwr": 1.42,
-        },
-    }
-
-
-def test_api_pmc_null_traverses_http_without_load(client) -> None:
-    """Done-when T2 (CLR-02): banco sem `load` -> "pmc": null no JSON —
-    estado vazio, não erro; o resto do payload intacto (HLT-03 segue
-    verde: days fora de [7, 365] continua 422 antes da query)."""
-    response = client.get("/api/health/summary")
-    assert response.status_code == 200
-    body = response.json()
-    assert body["pmc"] is None
     assert body["dose_response"]["neutral_nights"] == 0

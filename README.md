@@ -164,7 +164,7 @@ manual (Δ pace −4,65s/km · drift +9,98 bpm · decoupling +7,9%); suite com
 ## Painel Performance (ex-Potencial)
 
 "Qual meu máximo e a que distância dele estou?" — `/performance` responde
-em 3 blocos narrativos, abertos pela linha-guia no topo (a pergunta do
+em 4 blocos narrativos, abertos pela linha-guia no topo (a pergunta do
 painel + a régua de leitura: provas e testes de campo medem,
 estimativas do relógio só aproximam) e com o retrato honesto (AD-004:
 **faixa, nunca número único mágico**). Leitura 100% do banco próprio:
@@ -197,12 +197,18 @@ sequencial por sync, upsert por evento).
   relógio com selo "estimativa" e nota de hierarquia (provas/testes >
   algoritmo — AD-005); bloco inteiro ausente quando não há dados
   (POT-27).
+- **Carga de treino** — a curva PMC de volta ao painel (AD-013 reverte
+  a CLR-03): CTL/ATL em linhas e TSB em barras (janela fixa de 60 dias)
+  com os destaques do último dia — fitness, fadiga, forma e ACWR ("—"
+  até 28 dias completos de carga, SYNC-24).
 
-Sem PMC e sem janela de dias: a curva de carga mora no painel Saúde
-(posição 2) e `GET /api/potential` entrega só `{vdot, predictions,
-vo2max, decay}` — o `?days=` saiu do contrato (um valor qualquer é
-query não declarada, ignorada). Estado vazio (timeline só com o teste
-de calibração, sem VO2max e sem PRs canônicos) orienta o primeiro sync.
+Com a curva PMC de volta ao painel (AD-013 — o bloco mudou de endpoint
+junto com a tela, AD-009): `GET /api/potential` entrega `{vdot,
+predictions, vo2max, decay, pmc}` com janela fixa de 60d — o `?days=`
+segue fora do contrato (um valor qualquer é query não declarada,
+ignorada). Estado vazio (timeline só com o teste de calibração, sem
+VO2max, sem PRs canônicos e sem linhas de carga) orienta o primeiro
+sync.
 
 Validação real (16/10/2026): sync com `predictions: 4` no stats e
 `pr_date` auto-curado nas 7 PRs (fix do key-case `prStartTimeGmt`);
@@ -213,31 +219,27 @@ no Postgres do compose.
 
 ## Painel Saúde
 
-O corpo sob o treino — `/saude` conta a história em 5 seções numeradas,
-ligadas pela linha-guia no topo (o fio: o sono recupera, o treino impõe
-carga, o corpo responde, dormir mal custa — e a vida fora da corrida
-sustenta tudo). Um round-trip: `GET /api/health/summary?days=60`
+O corpo sob o treino — `/saude` conta a história em 4 seções numeradas,
+ligadas pela linha-guia no topo (o fio: o sono recupera, o corpo
+responde, dormir mal custa — e a vida fora da corrida sustenta tudo).
+A curva PMC mudou-se pro Painel Performance (AD-013 reverte a CLR-03).
+Um round-trip: `GET /api/health/summary?days=60`
 (`days` 7–365 validado, 422 fora do intervalo) traz o painel inteiro;
 blocos de série vazios vêm `null` — estado vazio honesto, não erro.
 Leitura 100% do banco próprio (AD-002).
 
 - **1. Sono**: duração de cada noite contra o piso de 7h, fases do sono,
   REM na banda de 21–31% e o padrão por dia da semana.
-- **2. Carga de treino**: a curva PMC — CTL/ATL em linhas e TSB em
-  barras (janela de 60 dias) com os destaques do último dia: fitness,
-  fadiga, forma e ACWR ("—" até 28 dias completos de carga — SYNC-24).
-  A curva migrou do painel Potencial: fala do histórico de treino, não
-  do potencial.
-- **3. Recuperação**: HRV noturna e frequência cardíaca de repouso —
+- **2. Recuperação**: HRV noturna e frequência cardíaca de repouso —
   os sinais diários de quanto da carga está virando adaptação.
-- **4. Dose-resposta**: noites curtas (<6h) contra adequadas (≥6h45) —
+- **3. Dose-resposta**: noites curtas (<6h) contra adequadas (≥6h45) —
   o preço de dormir mal em HRV e score médios.
-- **5. Equilíbrio de vida**: força por semana, yoga e estresse médio —
+- **4. Equilíbrio de vida**: força por semana, yoga e estresse médio —
   a base fora da corrida que sustenta (ou sabota) a recuperação.
 
-Com só a série de carga no banco, a seção 2 já renderiza com dados — o
-painel nunca se diz vazio escondendo a carga; com nada pessoal, o
-estado vazio orienta o primeiro sync.
+Com nada pessoal no banco, o estado vazio orienta o primeiro sync; a
+série de carga sozinha não acende mais nada aqui — a curva mora no
+Painel Performance (AD-013).
 
 Os dois painéis seguem o padrão de clareza **AD-009**: cabeçalho forte
 por seção (índice + título + subtítulo "o que é / por que importa"

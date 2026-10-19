@@ -1,11 +1,13 @@
 "use client";
 
-// Curva PMC fitness/fadiga — seção Carga de treino do painel Saúde
-// (CLR-07/08) — Recharts ComposedChart (AD-008): TSB como barras
+// Curva PMC fitness/fadiga — seção Carga de treino do painel
+// Performance (AD-013 reverte a CLR-03; CLR-07/08 do panel-clarity) —
+// Recharts ComposedChart (AD-008): TSB como barras
 // semitransparentes atrás, CTL e ATL como linhas, zero marcado. Cards
 // do último dia com ACWR "—" quando null (CLR-10 — janela de 28d
 // incompleta, honestidade do SYNC-24, nenhum número inventado).
-// POT-23/24 (potential-panel) viram referência histórica.
+// POT-23/24 (potential-panel) voltam a valer — a curva mora no painel
+// de novo.
 
 import {
   Bar,

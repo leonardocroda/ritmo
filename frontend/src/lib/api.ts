@@ -348,19 +348,20 @@ export type DecayRow = {
   delta_pct: number;
 };
 
-/** Espelho do `PotentialOut` (backend/app/potential/router.py) — sem
- * `pmc` e sem janela `days` (CLR-03): a curva de carga é contrato
- * exclusivo do Painel Saúde (`PmcBlock` abaixo). */
+/** Espelho do `PotentialOut` (backend/app/potential/router.py) — com o
+ * `pmc` de volta (AD-013 reverte a CLR-03): curva de carga com janela
+ * fixa de 60d e sem query params. */
 export type PotentialOut = {
   vdot: VdotBlock;
   predictions: Record<CanonicalEvent, PredictionRow>;
   vo2max: Vo2maxBlock | null;
   decay: DecayRow[];
+  pmc: PmcBlock | null;
 };
 
 /** Painel Performance inteiro em 1 payload (POT-11) — sem query params:
- * o `days` morreu junto com o `pmc` e o cliente limpo não envia nada
- * (CLR-04: um `?days=` qualquer seria ignorado pelo backend). */
+ * o `days` segue morto (CLR-04: um `?days=` qualquer é ignorado pelo
+ * backend) e o `pmc` voltou com janela fixa de 60d (AD-013). */
 export async function getPotential(): Promise<PotentialOut> {
   const res = await fetch(`${API_BASE}/api/potential`, {
     cache: "no-store",
@@ -440,8 +441,8 @@ export type RhrBlock = { points: RhrPoint[]; baseline: number };
 export type StressPoint = { date: string; avg: number };
 export type StressBlock = { points: StressPoint[]; avg_window: number };
 
-/** Ponto da PMC (contrato exclusivo do Painel Saúde) — null espelha a
- * linha do banco (janela 28d incompleta). */
+/** Ponto da PMC (Painel Performance — AD-013 reverte a CLR-03) — null
+ * espelha a linha do banco (janela 28d incompleta). */
 export type PmcPoint = {
   date: string;
   ctl: number | null;
@@ -450,9 +451,10 @@ export type PmcPoint = {
   acwr: number | null;
 };
 
-/** Bloco Carga de treino (CLR-01) — contrato EXCLUSIVO do Painel Saúde
- * (o Potencial perdeu o bloco — CLR-03): janela `days` única da Saúde;
- * sem linhas em `load` -> null (CLR-02 — estado vazio, não erro). */
+/** Bloco Carga de treino (CLR-01) — contrato do Painel Performance
+ * (AD-013 reverte a CLR-03: o bloco voltou do Saúde pra cá): janela
+ * fixa de 60d; sem linhas em `load` -> null (CLR-02 — estado vazio,
+ * não erro). */
 export type PmcBlock = {
   days: number;
   points: PmcPoint[];
@@ -483,14 +485,14 @@ export type Yoga = { sessions: number; per_week_avg: number };
 
 export type Lifestyle = { strength: Strength; yoga: Yoga };
 
-/** Espelho do `HealthSummaryOut` (backend/app/health/router.py). Séries
+/** Espelho do `HealthSummaryOut` (backend/app/health/router.py) — sem
+ * `pmc`: a curva de carga voltou ao painel Performance (AD-013). Séries
  * vazias -> bloco null; dose_response/lifestyle sempre presentes. */
 export type HealthSummaryOut = {
   sleep: SleepBlock | null;
   hrv: HrvBlock | null;
   rhr: RhrBlock | null;
   stress: StressBlock | null;
-  pmc: PmcBlock | null;
   dose_response: DoseResponse;
   lifestyle: Lifestyle;
 };
