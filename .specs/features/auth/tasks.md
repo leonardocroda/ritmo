@@ -192,12 +192,12 @@ T15 → T16
 
 **Done when**:
 
-- [ ] Roundtrip hash/verify funciona; senha errada → verify False
-- [ ] `new_session_token()` gera strings únicas de entropia adequada; `hash_token` é determinístico, 64 hex, e nunca devolve o token
-- [ ] `argon2-cffi` no `pyproject.toml` (`uv sync` ok)
-- [ ] Testes: roundtrip, verify negativo, tokens distintos, hash 64-hex determinístico
-- [ ] Gate check passes: `uv run pytest tests/test_auth_security.py`
-- [ ] Test count: ~6 novos + 362 existentes
+- [x] Roundtrip hash/verify funciona; senha errada → verify False
+- [x] `new_session_token()` gera strings únicas de entropia adequada; `hash_token` é determinístico, 64 hex, e nunca devolve o token
+- [x] `argon2-cffi` no `pyproject.toml` (`uv sync` ok)
+- [x] Testes: roundtrip, verify negativo, tokens distintos, hash 64-hex determinístico
+- [x] Gate check passes: `uv run pytest tests/test_auth_security.py`
+- [x] Test count: ~6 novos + 362 existentes
 
 **Tests**: unit
 **Gate**: quick
