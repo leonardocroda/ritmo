@@ -531,10 +531,10 @@ T15 → T16
 
 **Done when**:
 
-- [ ] README documenta CLI, convite, same-host e interim; status atualizado com "auth ✅"
-- [ ] `.env.example` completo e coerente com `core/config.py`
-- [ ] Gate check passes: Build+Full final — `cd backend && uv run pytest` + `cd frontend && npm run lint && npm run build`
-- [ ] Test count: suite inteira verde (~407)
+- [x] README documenta CLI, convite, same-host e interim; status atualizado com "auth ✅"
+- [x] `.env.example` completo e coerente com `core/config.py`
+- [x] Gate check passes: Build+Full final — `cd backend && uv run pytest` + `cd frontend && npm run lint && npm run build`
+- [x] Test count: suite inteira verde (~407)
 
 **Tests**: none
 **Gate**: build+full

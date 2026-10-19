@@ -5,7 +5,7 @@ Plataforma pessoal de corrida: sync do Garmin, painéis que importam
 
 > Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
 >
-> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-017) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-016 — volta pós-08/11, redesenhado com uso real) · **Fase 1.5 planejada** (18/10, AD-012..015): identidade e dados por usuário — auth próprio + convite, zonas/LTHR no banco, cofre de tokens Garmin criptografado, `/perfil`.
+> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-017) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-016 — volta pós-08/11, redesenhado com uso real) · **Fase 1.5 em andamento** (AD-012..015): **auth próprio + convite ✅** (login, sessão sliding 30d, Sair no header, bootstrap por CLI — §Login e acesso) · zonas/LTHR no banco, cofre de tokens Garmin criptografado e `/perfil` a seguir.
 
 ## Estrutura
 
@@ -129,6 +129,53 @@ PC (DHCP)? Sobrescreva na subida — o valor novo exige rebuild do frontend:
 ```bash
 NEXT_PUBLIC_API_URL=http://192.168.0.10:8000 docker compose up -d --build frontend
 ```
+
+**Constraint do cookie (auth)**: o cookie de sessão é host-only — o frontend precisa ser
+acessado pelo **mesmo host** configurado em `NEXT_PUBLIC_API_URL` (só a porta difere).
+Abrir `localhost:3000` com a API anunciada no IP da LAN (ou vice-versa) quebra o cookie e
+vira loop de redirect. Detalhes em **Login e acesso**.
+
+## Login e acesso
+
+Auth própria (feature auth, AD-013): **toda tela e todo endpoint de dado exigem sessão** —
+sem ela, a API responde 401 e as telas caem no `/login`. Fica público só o que precisa:
+`GET /api/health` (liveness) e as telas de auth (`/login`, `/registrar`).
+
+### Primeiro acesso (bootstrap do dono)
+
+O usuário seed (id 1) nasce sem credenciais. Defina o email+senha pela CLI:
+
+```bash
+docker compose exec backend python -m app.auth.set_password
+# fora do compose: cd backend && uv run python -m app.auth.set_password
+```
+
+Email via `input`, senha via `getpass` (vincula o seed preservando o display_name). A CLI
+também serve de **reset de suporte**: conta existente troca o hash da senha sem tocar no
+nome; email desconhecido cria conta nova.
+
+### Convidados (cadastro por convite)
+
+1. Defina `INVITE_CODE` no `.env` do backend e reinicie — **vazio = registro desabilitado**
+   (403 na tela de cadastro). Ligue o convite só quando o acesso por usuário (`user-scope`)
+   estiver no ar.
+2. Compartilhe `http://<host>:3000/registrar` + o código. Cadastro válido **já entra logado**
+   (auto-login) e aterrissa nos painéis.
+
+### Sessão
+
+- Cookie `ritmo_session` **HttpOnly** + `SameSite=Lax`, host-only, 30 dias com renewal
+  **sliding**: request autenticado com ≤15 dias restantes estende a validade para +30d —
+  usuário ativo nunca é deslogado no meio do uso.
+- **Sair** (header, ao lado do sync) revoga só a sessão do dispositivo corrente; celular e
+  PC podem estar logados ao mesmo tempo.
+- Sessão expirou em uso? O primeiro fetch recebe 401 e o client redireciona para
+  `/login?next=<rota atual>` — após o login, volta à rota original. Logado abrindo
+  `/login` ou `/registrar`, vai direto para `/treinos`.
+
+> **Interim**: até a feature `user-scope` entrar, qualquer sessão autenticada lê o dataset
+> do usuário 1 (painéis e sync). O registro desabilitado (`INVITE_CODE` vazio) fecha essa
+> janela até lá.
 
 ## Painel Treinos
 
