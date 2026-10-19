@@ -1,8 +1,8 @@
 "use client";
 
-// Painel Performance (ex-Potencial, §4.4 — AD-013) — página-composição:
+// Painel Performance (ex-Potencial, §4.4 — AD-017) — página-composição:
 // busca /api/potential em 1
-// round-trip e monta os 4 blocos narrativos (CLR-17 + AD-013): Onde
+// round-trip e monta os 4 blocos narrativos (CLR-17 + AD-017): Onde
 // estou → O que isso prevê → O que o relógio estima → Carga de treino
 // (a curva PMC voltou pra cá, janela fixa de 60d). Card da lacuna
 // com a narrativa honesta de §9.5 + timeline VDOT com faixa (AD-004),
@@ -93,7 +93,7 @@ export default function PerformancePanel() {
   const { vdot, predictions, vo2max, decay, pmc } = state.panel;
 
   // Estado vazio recalculado com o pmc de volta (CLR-24 evoluído —
-  // AD-013): nada de pessoal no banco — só o teste de calibração do
+  // AD-017): nada de pessoal no banco — só o teste de calibração do
   // arquivo, sem VO2max/PRs e sem linhas de carga — aponta o sync.
   if (
     vdot.timeline.length <= 1 &&

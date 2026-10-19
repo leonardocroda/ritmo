@@ -90,7 +90,7 @@
 - **Date**: 2026-10-17
 - **Status**: active
 
-### AD-012
+### AD-016
 - **Decision**: A aba Hoje sai da navegação e a rota `/hoje` é deletada (junto com o `PanelPlaceholder`, cujo único usuário era ela): AD-011 adiou o painel pra pós-meia mas manteve o placeholder — o placeholder na nav ocupa espaço sem entregar nada na Fase 1. A home já redireciona pra `/treinos` (workouts-list); nenhum redirect extra é necessário.
 - **Reason**: Decisão do usuário (18/10/2026): aba vazia não paga o espaço na nav. Quando o Hoje voltar (pós-08/11), volta redesenhado a partir de evidência de uso real (AD-011) e a rota nasce de novo com spec própria.
 - **Trade-off**: Quem bookmarkava `/hoje` toma 404 em troca de nav honesta; nenhum dado é perdido (o painel era placeholder).
@@ -98,7 +98,7 @@
 - **Date**: 2026-10-18
 - **Status**: active
 
-### AD-013
+### AD-017
 - **Decision**: O painel Potencial vira **Performance** (rota `/performance`, `components/performance/`, `PerformancePanel`) e a curva PMC (**Carga de treino**) volta pra ele como 4ª seção narrativa — reverte a CLR-03 do panel-clarity. Pela AD-009 (bloco muda de endpoint junto com a tela), `pmc` sai de `GET /api/health/summary` e volta ao payload de `GET /api/potential` com **janela fixa de 60d** (o default que a Saúde usava); o query param `days` segue morto lá (CLR-04 vigente — query não declarada é ignorada). O endpoint e o domínio backend **mantêm o nome `potential`** (`/api/potential`, `app/potential/`, tipos `PotentialOut`): potencial é o vocabulário do domínio (VDOT/predições), Performance é o nome do painel na UI. O PLANO (§4.4) segue como referência histórica — o plano não é reescrito, o mapeamento é este registro.
 - **Reason**: Decisão do usuário (18/10/2026): a carga de treino é performance — "quanta carga imponho e o que ela prevê" conta a história completa no mesmo painel; no Saúde a curva ficava sem contexto de resultado (e o fio da Saúde não precisa dela: sono → resposta → dose-resposta → vida). O painel renomeado porque "Performance" cobre potencial + carga; "Potencial" só cobria metade.
 - **Trade-off**: A Saúde perde a seção que justificava linhas de `load` no payload (5 → 4 seções) e seu estado vazio endurece (só `load` no banco = painel vazio apontando sync); a PMC na Performance perde o seletor de janela que tinha na Saúde — janela fixa 60d, seletor próprio volta como spec se o uso pedir.

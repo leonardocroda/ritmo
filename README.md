@@ -5,7 +5,7 @@ Plataforma pessoal de corrida: sync do Garmin, painéis que importam
 
 > Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
 >
-> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-013) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-012 — volta pós-08/11, redesenhado com uso real).
+> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-017) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-016 — volta pós-08/11, redesenhado com uso real).
 
 ## Estrutura
 
@@ -197,12 +197,12 @@ sequencial por sync, upsert por evento).
   relógio com selo "estimativa" e nota de hierarquia (provas/testes >
   algoritmo — AD-005); bloco inteiro ausente quando não há dados
   (POT-27).
-- **Carga de treino** — a curva PMC de volta ao painel (AD-013 reverte
+- **Carga de treino** — a curva PMC de volta ao painel (AD-017 reverte
   a CLR-03): CTL/ATL em linhas e TSB em barras (janela fixa de 60 dias)
   com os destaques do último dia — fitness, fadiga, forma e ACWR ("—"
   até 28 dias completos de carga, SYNC-24).
 
-Com a curva PMC de volta ao painel (AD-013 — o bloco mudou de endpoint
+Com a curva PMC de volta ao painel (AD-017 — o bloco mudou de endpoint
 junto com a tela, AD-009): `GET /api/potential` entrega `{vdot,
 predictions, vo2max, decay, pmc}` com janela fixa de 60d — o `?days=`
 segue fora do contrato (um valor qualquer é query não declarada,
@@ -222,7 +222,7 @@ no Postgres do compose.
 O corpo sob o treino — `/saude` conta a história em 4 seções numeradas,
 ligadas pela linha-guia no topo (o fio: o sono recupera, o corpo
 responde, dormir mal custa — e a vida fora da corrida sustenta tudo).
-A curva PMC mudou-se pro Painel Performance (AD-013 reverte a CLR-03).
+A curva PMC mudou-se pro Painel Performance (AD-017 reverte a CLR-03).
 Um round-trip: `GET /api/health/summary?days=60`
 (`days` 7–365 validado, 422 fora do intervalo) traz o painel inteiro;
 blocos de série vazios vêm `null` — estado vazio honesto, não erro.
@@ -239,7 +239,7 @@ Leitura 100% do banco próprio (AD-002).
 
 Com nada pessoal no banco, o estado vazio orienta o primeiro sync; a
 série de carga sozinha não acende mais nada aqui — a curva mora no
-Painel Performance (AD-013).
+Painel Performance (AD-017).
 
 Os dois painéis seguem o padrão de clareza **AD-009**: cabeçalho forte
 por seção (índice + título + subtítulo "o que é / por que importa"

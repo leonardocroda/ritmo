@@ -7,7 +7,7 @@
 // vida, cada uma com cabeçalho forte numerado
 // (PanelSection — CLR-12/13) e a linha-guia conectando tudo no topo
 // (CLR-26). Sem PMC: a curva de carga voltou ao painel Performance
-// (AD-013 reverte a CLR-03 — o bloco mudou de endpoint junto com a
+// (AD-017 reverte a CLR-03 — o bloco mudou de endpoint junto com a
 // tela, AD-009). Bloco null -> estado vazio próprio do bloco (HLT-19);
 // painel inteiro vazio (sono, HRV, RHR e estresse ausentes) -> estado
 // vazio apontando o sync (CLR-11). A troca de janela refaz a busca
@@ -148,7 +148,7 @@ export default function HealthPanel() {
 
   const { sleep, hrv, rhr, stress, dose_response, lifestyle } = state.panel;
 
-  // Estado vazio geral (CLR-11, sem o pmc — AD-013): painel vazio com
+  // Estado vazio geral (CLR-11, sem o pmc — AD-017): painel vazio com
   // sono, HRV, RHR e estresse ausentes; a curva de carga mora no painel
   // Performance agora.
   if (sleep === null && hrv === null && rhr === null && stress === null) {

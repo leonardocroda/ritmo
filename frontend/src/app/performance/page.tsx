@@ -1,6 +1,6 @@
 import PerformancePanel from "@/components/performance/PerformancePanel";
 
-// Painel Performance (ex-Potencial §4.4 — AD-013) — a lista é client-side
+// Painel Performance (ex-Potencial §4.4 — AD-017) — a lista é client-side
 // (fetch em /api/potential, padrão do painel Treinos).
 export default function PerformancePage() {
   return (

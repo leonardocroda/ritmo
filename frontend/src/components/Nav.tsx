@@ -1,7 +1,7 @@
 "use client";
 
 // Nav dos 3 painéis (TRN-01/02): Treinos · Performance · Saúde. O Hoje
-// saiu da Fase 1 (AD-011) e a aba placeholder saiu da nav junto (AD-012).
+// saiu da Fase 1 (AD-011) e a aba placeholder saiu da nav junto (AD-016).
 // Client component com usePathname para marcar o painel ativo
 // (pathname === href ou startsWith(href + "/"), design). Em 390px a
 // linha é rolável (overflow-x-auto) em vez de quebrar o header.

@@ -3,7 +3,7 @@
 Padrão do activities/router.py (modelos de saída inline + HTTPException),
 mas um payload único: uma página, um round-trip (design §Abordagens).
 Sem `days` (CLR-04: um `?days=` qualquer vira query não declarada —
-ignorada, 200) e com o `pmc` de volta (AD-013 reverte a CLR-03): a
+ignorada, 200) e com o `pmc` de volta (AD-017 reverte a CLR-03): a
 curva de carga mora no painel Performance, janela fixa de 60d. O
 arquivo de calibração falhou -> 500 com a mesma mensagem do workouts-list.
 """
@@ -88,7 +88,7 @@ class PmcPoint(BaseModel):
 
 
 class PmcBlock(BaseModel):
-    """Bloco Carga de treino — de volta ao painel Performance (AD-013
+    """Bloco Carga de treino — de volta ao painel Performance (AD-017
     reverte a CLR-03): janela fixa de 60d; sem linhas em `load` -> null
     (estado vazio, não erro)."""
 
@@ -108,7 +108,7 @@ class PotentialOut(BaseModel):
 @router.get("")
 def get_potential(db: Session = Depends(get_db)) -> PotentialOut:
     """O painel inteiro em 1 payload — os 5 blocos, com o `pmc` de
-    volta (AD-013 reverte a CLR-03).
+    volta (AD-017 reverte a CLR-03).
 
     Query param não declarado (`?days=90` do cliente antigo) é ignorado:
     200 sem efeito no payload (CLR-04). O carregamento da calibração

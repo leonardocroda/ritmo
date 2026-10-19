@@ -349,7 +349,7 @@ export type DecayRow = {
 };
 
 /** Espelho do `PotentialOut` (backend/app/potential/router.py) — com o
- * `pmc` de volta (AD-013 reverte a CLR-03): curva de carga com janela
+ * `pmc` de volta (AD-017 reverte a CLR-03): curva de carga com janela
  * fixa de 60d e sem query params. */
 export type PotentialOut = {
   vdot: VdotBlock;
@@ -361,7 +361,7 @@ export type PotentialOut = {
 
 /** Painel Performance inteiro em 1 payload (POT-11) — sem query params:
  * o `days` segue morto (CLR-04: um `?days=` qualquer é ignorado pelo
- * backend) e o `pmc` voltou com janela fixa de 60d (AD-013). */
+ * backend) e o `pmc` voltou com janela fixa de 60d (AD-017). */
 export async function getPotential(): Promise<PotentialOut> {
   const res = await fetch(`${API_BASE}/api/potential`, {
     cache: "no-store",
@@ -441,7 +441,7 @@ export type RhrBlock = { points: RhrPoint[]; baseline: number };
 export type StressPoint = { date: string; avg: number };
 export type StressBlock = { points: StressPoint[]; avg_window: number };
 
-/** Ponto da PMC (Painel Performance — AD-013 reverte a CLR-03) — null
+/** Ponto da PMC (Painel Performance — AD-017 reverte a CLR-03) — null
  * espelha a linha do banco (janela 28d incompleta). */
 export type PmcPoint = {
   date: string;
@@ -452,7 +452,7 @@ export type PmcPoint = {
 };
 
 /** Bloco Carga de treino (CLR-01) — contrato do Painel Performance
- * (AD-013 reverte a CLR-03: o bloco voltou do Saúde pra cá): janela
+ * (AD-017 reverte a CLR-03: o bloco voltou do Saúde pra cá): janela
  * fixa de 60d; sem linhas em `load` -> null (CLR-02 — estado vazio,
  * não erro). */
 export type PmcBlock = {
@@ -486,7 +486,7 @@ export type Yoga = { sessions: number; per_week_avg: number };
 export type Lifestyle = { strength: Strength; yoga: Yoga };
 
 /** Espelho do `HealthSummaryOut` (backend/app/health/router.py) — sem
- * `pmc`: a curva de carga voltou ao painel Performance (AD-013). Séries
+ * `pmc`: a curva de carga voltou ao painel Performance (AD-017). Séries
  * vazias -> bloco null; dose_response/lifestyle sempre presentes. */
 export type HealthSummaryOut = {
   sleep: SleepBlock | null;

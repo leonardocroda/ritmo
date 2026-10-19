@@ -88,13 +88,13 @@ def _demonstrated_block(points: list[dict], prs: list[PersonalRecord]) -> dict |
     return {"vdot": best["vdot"], "source": source, "date": best["date"]}
 
 
-# Janela fixa da curva PMC no painel Performance (AD-013): o mesmo
+# Janela fixa da curva PMC no painel Performance (AD-017): o mesmo
 # default do seletor da Saúde; o param `days` segue morto (CLR-04).
 PMC_WINDOW_DAYS = 60
 
 
 def _pmc_block(db: Session) -> dict | None:
-    """Bloco Carga de treino — de volta ao painel (AD-013 reverte a
+    """Bloco Carga de treino — de volta ao painel (AD-017 reverte a
     CLR-03): últimas PMC_WINDOW_DAYS linhas de `load`, mais antiga
     primeiro (mesma janela DESC+limit+reverse da PMC original), valores
     exatamente como as linhas — zero recálculo (CLR-06). Sem linhas ->
@@ -131,7 +131,7 @@ def _pmc_block(db: Session) -> dict | None:
 def get_potential(db: Session, calibration: Calibration) -> dict:
     """Payload do painel — os 5 blocos do design §Contrato.
 
-    Com `pmc` de volta (AD-013 reverte a CLR-03; panel-clarity T1/T2
+    Com `pmc` de volta (AD-017 reverte a CLR-03; panel-clarity T1/T2
     viram referência histórica): a curva de carga mora aqui de novo,
     janela fixa de 60d — sem `days` (CLR-04 vigente: o param segue
     morto no endpoint). A matemática vive em calc.py (pura, AD-003) —

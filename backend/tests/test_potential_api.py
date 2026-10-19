@@ -4,7 +4,7 @@ no Postgres real.
 T8: chamadas diretas a `get_potential` com seeds (o domínio lê
 exclusivamente o banco próprio — AD-002; nenhuma chamada Garmin).
 T9: TestClient cobrindo a superfície HTTP (500/estados vazios).
-panel-clarity revisitado (AD-013, 18/10): o `pmc` VOLTOU ao contrato
+panel-clarity revisitado (AD-017, 18/10): o `pmc` VOLTOU ao contrato
 com janela fixa de 60d (CLR-03 revertida; CLR-04 segue — `days`
 continua param morto, sem validação nova); os asserts de PMC migraram
 1:1 de volta do test_health_api.py.
@@ -268,12 +268,12 @@ def test_potential_domain_never_imports_garmin_gateway() -> None:
 
 
 # ---------------------------------------------------------------
-# AD-013 — service com o pmc de volta (CLR-03 revertida)
+# AD-017 — service com o pmc de volta (CLR-03 revertida)
 # ---------------------------------------------------------------
 
 
 def test_service_payload_includes_pmc_from_load_rows(db) -> None:
-    """AD-013 (revérte a CLR-03): payload com os 5 blocos — as linhas de
+    """AD-017 (revérte a CLR-03): payload com os 5 blocos — as linhas de
     `load` viram o bloco com janela fixa de 60d, valores exatamente como
     as linhas (zero recálculo, CLR-06), `current` = última linha, acwr
     null atravessa (CLR-02). Ordem das chaves pinada — o espelho do
@@ -299,7 +299,7 @@ def test_service_payload_includes_pmc_from_load_rows(db) -> None:
 
 
 def test_service_pmc_window_caps_at_60_rows(db) -> None:
-    """Janela fixa (AD-013): 61 linhas em `load` -> as últimas 60, mais
+    """Janela fixa (AD-017): 61 linhas em `load` -> as últimas 60, mais
     antiga primeiro (mesma DESC+limit+reverse da PMC original)."""
     for i in range(61):
         day = date(2026, 8, 16) + timedelta(days=i)  # 16/08..15/10
@@ -325,7 +325,7 @@ def test_service_pmc_null_without_load_rows(db) -> None:
 
 def _seed_full_panel(db) -> None:
     """Painel completo: PRs reais + predições da sonda + linhas de load
-    (que viram o bloco pmc — AD-013) + vo2max."""
+    (que viram o bloco pmc — AD-017) + vo2max."""
     _seed_prs(db)
     _seed_garmin_predictions(db)
     _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
@@ -338,7 +338,7 @@ def _seed_full_panel(db) -> None:
 
 def test_api_happy_path_200_full_payload(client) -> None:
     """POT-11: 200 com o payload completo em JSON — datas ISO e os pins
-    do design atravessando o HTTP (com `pmc` — AD-013; janela fixa de
+    do design atravessando o HTTP (com `pmc` — AD-017; janela fixa de
     60d, `current` = última linha)."""
     with SessionLocal() as db:
         _seed_full_panel(db)
@@ -388,7 +388,7 @@ def test_api_happy_path_200_full_payload(client) -> None:
 
 
 def test_api_pmc_traverses_http_from_load(client) -> None:
-    """AD-013 via HTTP: só linhas em `load` já montam o bloco `pmc`
+    """AD-017 via HTTP: só linhas em `load` já montam o bloco `pmc`
     (dias/valores pinados, janela fixa 60d) — os outros blocos seguem
     com estados vazios honestos. Ordem das chaves pinada no JSON."""
     with SessionLocal() as db:
@@ -415,7 +415,7 @@ def test_api_dead_days_param_returns_identical_payload(client) -> None:
     """Done-when T10 (CLR-04, segue vigente): `?days=90` (param morto do
     cliente antigo) -> 200 com payload idêntico ao da chamada sem param —
     o painel cheio (com `load` semeados — o `pmc` de janela fixa incluso,
-    AD-013) mostraria qualquer efeito de janela."""
+    AD-017) mostraria qualquer efeito de janela."""
     with SessionLocal() as db:
         _seed_full_panel(db)
         db.commit()
@@ -452,7 +452,7 @@ def test_api_missing_zones_file_responds_500(client, monkeypatch) -> None:
 
 
 def test_api_empty_bank_keeps_empty_states_with_pmc_null(client) -> None:
-    """Done-when (estado vazio × AD-013): banco vazio -> 200 com os 5
+    """Done-when (estado vazio × AD-017): banco vazio -> 200 com os 5
     blocos e os estados vazios honestos que o empty check da UI lê
     (timeline só com o teste, vo2max null, decay [], pmc null) —
     estado vazio, não erro; a curva só nasce no primeiro sync."""

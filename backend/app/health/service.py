@@ -217,7 +217,7 @@ def _lifestyle_block(activities: list[Activity], today: date, window_start: date
 def get_health(db: Session, days: int, tz: ZoneInfo) -> dict:
     """Payload completo do painel — os 6 blocos do design §Contrato.
 
-    Sem `pmc`: a curva de carga voltou ao painel Performance (AD-013
+    Sem `pmc`: a curva de carga voltou ao painel Performance (AD-017
     reverte a CLR-03 — o bloco mudou de endpoint junto com a tela,
     AD-009). `days` já validado (7–365) pelo router; a matemática vive
     em calc.py (pura, AD-003) — aqui é leitura e montagem. Séries vazias

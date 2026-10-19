@@ -495,13 +495,13 @@ def test_lifestyle_streak_exceeds_window(db, fixed_today) -> None:
 
 
 # ---------------------------------------------------------------
-# AD-013 — o bloco pmc saiu da Saúde (voltou ao painel Performance):
+# AD-017 — o bloco pmc saiu da Saúde (voltou ao painel Performance):
 # a exclusão é do contrato, não do dado vazio.
 # ---------------------------------------------------------------
 
 
 def test_health_payload_omits_pmc_even_with_load_rows(db) -> None:
-    """AD-013 (revérte o lado Saúde da CLR-01): com linhas de `load` no
+    """AD-017 (revérte o lado Saúde da CLR-01): com linhas de `load` no
     banco a chave continua ausente — a curva mora no payload de
     /api/potential (test_potential_api). Ordem das chaves pinada — o
     espelho do router e do cliente seguem a mesma posição."""
@@ -655,12 +655,12 @@ def test_api_invalid_app_timezone_falls_back_with_warning(client, monkeypatch, c
 
 
 # ---------------------------------------------------------------
-# AD-013 — GET /api/health/summary sem pmc (HTTP)
+# AD-017 — GET /api/health/summary sem pmc (HTTP)
 # ---------------------------------------------------------------
 
 
 def test_api_health_payload_omits_pmc_even_with_load(client) -> None:
-    """AD-013 via HTTP: banco com `load` -> payload sem a chave `pmc`
+    """AD-017 via HTTP: banco com `load` -> payload sem a chave `pmc`
     (a exclusão é do contrato, não do dado vazio — a curva mora no
     /api/potential agora); ordem das chaves pinada. O resto do payload
     intacto (HLT-03 segue verde: days fora de [7, 365] continua 422
