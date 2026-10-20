@@ -219,19 +219,26 @@ def test_resolve_missing_invalid_or_expired_token_returns_none(db) -> None:
     assert service.resolve_session(db, "expirado") == (None, False)
 
 
-def test_resolve_renews_at_threshold_boundary_inclusive(db) -> None:
+def test_resolve_renews_at_threshold_boundary_inclusive(db, monkeypatch) -> None:
     """Done-when T6 (AUTH-12): restam EXATAMENTE 15 dias (borda inclusa)
-    → renova para now + 30d e sinaliza — a renovação persiste no banco."""
-    expires = _naive_now() + timedelta(days=15)
+    → renova para now + 30d e sinaliza — a renovação persiste no banco.
+
+    Relógio PINADO (lição do sensor, 19/10): sem pin, o service recomputa
+    ``now`` microssegundos depois do seed e ``remaining = 15d - ε``
+    satisfaz ``<=`` E ``<`` — o mutante ``<`` sobrevive. Com o MESMO
+    ``fixed_now`` no seed e no service, ``remaining == 15d`` exato: só a
+    borda inclusa (``<=``) renova."""
+    fixed_now = _naive_now()
+    expires = fixed_now + timedelta(days=15)
     user = _seed_session(db, "ana@example.com", "na-borda", expires)
+    monkeypatch.setattr(service, "_utcnow_naive", lambda: fixed_now)
 
     resolved, renewed = service.resolve_session(db, "na-borda")
 
     assert resolved is not None and resolved.id == user.id
     assert renewed is True
     row = db.query(UserSession).filter(UserSession.token_hash == _token_hash("na-borda")).one()
-    remaining = row.expires_at - _naive_now()
-    assert timedelta(days=30) - remaining < timedelta(minutes=5)  # ~30d
+    assert row.expires_at == fixed_now + timedelta(days=service.settings.session_ttl_days)
 
 
 def test_resolve_skips_renewal_above_threshold(db) -> None:
