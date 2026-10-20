@@ -24,7 +24,7 @@ from app.auth.security import hash_password  # noqa: E402
 from app.auth.service import create_session, login  # noqa: E402
 from app.db.base import Base  # noqa: E402
 from app.db.engine import SessionLocal, engine  # noqa: E402
-from app.db.models import DEFAULT_USER_ID, User, UserSession  # noqa: E402
+from app.db.models import User  # noqa: E402
 from app.main import app  # noqa: E402
 
 
@@ -36,24 +36,6 @@ def _clean_database():
     """
     Base.metadata.drop_all(bind=engine)
     yield
-
-
-@pytest.fixture(autouse=True)
-def _bypass_session_protection():
-    """Interim do spec auth (assumption travada): a suite existente não
-    conhece sessão — o override devolve o usuário seed e os routers
-    protegidos se comportam como antes. Os testes da API de auth
-    (test_auth_api) limpam o override para exercer a proteção real
-    (401/cookie/sliding) — o comportamento coberto por lá é o real."""
-    from app.main import app as fastapi_app
-
-    def _seed_user():
-        with SessionLocal() as db:
-            return db.get(User, DEFAULT_USER_ID)
-
-    fastapi_app.dependency_overrides[require_session] = _seed_user
-    yield
-    fastapi_app.dependency_overrides.pop(require_session, None)
 
 
 def _make_user(
@@ -79,11 +61,12 @@ def _make_user(
 def session_client():
     """TestClient com sessão real de um usuário de teste (padrão).
 
-    Remove o override global do conftest (usuário 1) para que o endpoint
-    resolva o usuário do cookie real. O lifespan do TestClient roda
-    ``init_db`` (tabelas + usuário 1), cria um User + UserSession no banco
-    e devolve ``(client, user_id)`` para que os testes semeiem linhas com o
-    ``user_id`` do usuário autenticado. Autocontido.
+    User-scope (T7): sem override global — o endpoint resolve o usuário
+    do cookie real. O lifespan do TestClient roda ``init_db`` (tabelas +
+    usuário 1), cria um User + UserSession no banco e devolve
+    ``(client, user_id)`` para que os testes semeiem linhas com o
+    ``user_id`` do usuário autenticado. Autocontido. O pop defensivo do
+    override garante sessão real mesmo se um override for re-introduzido.
     """
     app.dependency_overrides.pop(require_session, None)
     with TestClient(app) as client:
