@@ -55,7 +55,7 @@ Hoje, qualquer sessão autenticada lê e grava sobre o dataset do usuário 1 (`D
 2. WHEN `GET /api/activities/{id}` chega com sessão do usuário X e a atividade tem `user_id = Y ≠ X` THEN o sistema SHALL responder 404 "atividade não encontrada"  <!-- unwanted-behavior -->
 3. WHEN `GET /api/health/summary` chega com sessão válida do usuário X THEN o sistema SHALL montar todos os blocos (sono, HRV, RHR, estresse, dose-response, lifestyle) a partir de linhas com `user_id = X`  <!-- event-driven -->
 4. WHEN `GET /api/potential` chega com sessão válida do usuário X THEN o sistema SHALL retornar VDOT, predições de prova, PMC e decaimento a partir de linhas com `user_id = X`  <!-- event-driven -->
-5. WHEN o endpoint de sync estado (`sync_state` por tipo de dado) é consultado com sessão do usuário X THEN o sistema SHALL devolver apenas o estado de X  <!-- event-driven -->
+5. WHEN o estado do sync é consultado com sessão do usuário X (último job e job por id) THEN o sistema SHALL devolver apenas o estado de X — o estado interno por tipo de dado (`sync_state`) é lido e gravado por `user_id` no sync  <!-- event-driven, emendado na validação: a redação original citava um endpoint `sync_state` que nunca existiu como rota HTTP; as superfícies reais são `/api/sync/jobs/latest` e `/api/sync/jobs/{id}` -->
 6. WHILE um endpoint de leitura de dados é chamado com sessão válida THEN o sistema SHALL usar o `user_id` do usuário autenticado, nunca `DEFAULT_USER_ID`  <!-- state-driven -->
 7. IF uma requisição de leitura de dados chega sem sessão válida THEN o sistema SHALL responder 401 JSON sem nenhum dado  <!-- unwanted-behavior -->
 
@@ -128,25 +128,25 @@ Hoje, qualquer sessão autenticada lê e grava sobre o dataset do usuário 1 (`D
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| USR-01 | P1: Leituras de dados por usuário da sessão | - | Implementing |
-| USR-02 | P1: Leituras de dados por usuário da sessão | - | Implementing |
-| USR-03 | P1: Leituras de dados por usuário da sessão | - | Implementing |
-| USR-04 | P1: Leituras de dados por usuário da sessão | - | Implementing |
-| USR-05 | P1: Leituras de dados por usuário da sessão | - | Implementing |
-| USR-06 | P1: Leituras de dados por usuário da sessão | - | Implementing |
-| USR-07 | P1: Leituras de dados por usuário da sessão | - | Implementing |
-| USR-08 | P1: Isolamento A×B | - | Implementing |
-| USR-09 | P1: Isolamento A×B | - | Implementing |
-| USR-10 | P1: Isolamento A×B | - | Implementing |
-| USR-11 | P1: Isolamento A×B | - | Implementing |
-| USR-12 | P1: Isolamento A×B | - | Implementing |
-| USR-13 | P1: Writes por usuário da sessão | - | Implementing |
-| USR-14 | P1: Writes por usuário da sessão | - | Implementing |
-| USR-15 | P1: Writes por usuário da sessão | - | Implementing |
-| USR-16 | P1: Writes por usuário da sessão | - | Implementing |
-| USR-17 | P2: Testes de sessão real e isolamento | - | Implementing |
-| USR-18 | P2: Testes de sessão real e isolamento | - | Implementing |
-| USR-19 | P2: Testes de sessão real e isolamento | - | Implementing |
+| USR-01 | P1: Leituras de dados por usuário da sessão | - | ✅ Verified |
+| USR-02 | P1: Leituras de dados por usuário da sessão | - | ✅ Verified |
+| USR-03 | P1: Leituras de dados por usuário da sessão | - | ✅ Verified |
+| USR-04 | P1: Leituras de dados por usuário da sessão | - | ✅ Verified |
+| USR-05 | P1: Leituras de dados por usuário da sessão | - | ✅ Verified (texto emendado na validação) |
+| USR-06 | P1: Leituras de dados por usuário da sessão | - | ✅ Verified |
+| USR-07 | P1: Leituras de dados por usuário da sessão | - | ✅ Verified |
+| USR-08 | P1: Isolamento A×B | - | ✅ Verified |
+| USR-09 | P1: Isolamento A×B | - | ✅ Verified |
+| USR-10 | P1: Isolamento A×B | - | ✅ Verified |
+| USR-11 | P1: Isolamento A×B | - | ✅ Verified |
+| USR-12 | P1: Isolamento A×B | - | ✅ Verified |
+| USR-13 | P1: Writes por usuário da sessão | - | ✅ Verified |
+| USR-14 | P1: Writes por usuário da sessão | - | ✅ Verified |
+| USR-15 | P1: Writes por usuário da sessão | - | ✅ Verified |
+| USR-16 | P1: Writes por usuário da sessão | - | ✅ Verified |
+| USR-17 | P2: Testes de sessão real e isolamento | - | ✅ Verified |
+| USR-18 | P2: Testes de sessão real e isolamento | - | ✅ Verified |
+| USR-19 | P2: Testes de sessão real e isolamento | - | ✅ Verified |
 
 **Coverage:** 19 total, 19 mapped to tasks, 0 unmapped
 

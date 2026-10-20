@@ -98,6 +98,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: test_auth_service.py::test_resolve_renews_at_threshold_boundary_inclusive / AUTH-12 (backend/tests,tempo)
 - last seen: 2026-10-20T01:14:15Z
 
+### L-015 - Anchor isolation ACs to routes that actually exist; when the state has no HTTP surface, scope the AC to the internal seam that reads it and to the user-scoped public route that exposes it.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `backend/api` · harmful: 0
+- features: user-scope
+- evidence: USR-05 (spec.md:58) (backend/api)
+- last seen: 2026-10-20T19:57:14Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

@@ -164,24 +164,29 @@
 
 ## Handoff
 
-- **Feature**: `auth` — **concluída e validada (PASS, 20/10/2026)**: 20/20 ACs backend com
-  evidência spec-anchored, sensor 6/6 mutantes mortas, UAT aprovado nos dois hosts
-  (AUTH-17..24); relatório em `.specs/features/auth/validation.md` (histórico: iteração 0
-  FAIL → fix relógio pinado `449deed` → iteração 1 PASS condicionado → UAT → PASS final)
-- **Phase / Task**: Execute concluído — 16 tasks + 2 emendas UAT (T17 migração idempotente
-  `258e13a`/AD-019; T18 rewrite same-origin `70bb171`/AD-020); código `6092b77..70bb171`
-- **Completed**: auth própria self-hosted completa — register por convite (auto-login) +
-  login/logout + sessão stateful sliding 30d (cookie HttpOnly host-only, hash SHA-256 no
-  banco) + proteção total da API (401) e das telas (proxy otimista) + CLI `set_password`
-  (bootstrap/suporte) + fixes `users_pkey`/CORS + transporte same-origin via rewrite do
-  Next (AD-020 — `localhost:3000` e IP-da-LAN funcionam igual; CORS opcional)
+- **Feature**: `user-scope` — **concluída e validada (PASS, 20/10/2026)**: 19/19 ACs com
+  evidência spec-anchored (USR-05 teve o texto emendado — citava um endpoint `sync_state`
+  que nunca existiu como rota HTTP), sensor 3/3 mutantes mortas, `validate_state.py` exit 0;
+  relatório em `.specs/features/user-scope/validation.md`
+- **Phase / Task**: Execute concluído — 8 tasks (T1 fixture `session_client`/`login_client`
+  `67bac81` → T2 activities `97f0368` → T3 health `f4a428b` → T4 potential `1d0ccff` →
+  T5 garmin `7f825b5` → T6 evaluation `f44d75c` → T7 override global removido `736706e`
+  → T8 isolamento A×B `233e51f`)
+- **Completed**: toda query de leitura e gravação usa o user_id do usuário da sessão —
+  activities/health/potential/garmin/evaluation filtram por `user.id` via
+  `Depends(require_session)`; `create_job(db, user_id)` sem default; job/avaliação/atividade
+  alheios → 404; conftest sem override global (testes com sessão real via `session_client`);
+  `test_user_isolation.py` com 7 testes A×B ponta a ponta; lições: L-015 (candidate) sobre
+  AC citar endpoint inexistente
 - **In-progress**: none
-- **Next step**: **Fase 1.5 feature 2 — `user-scope`** ("specify feature user-scope"): todas
-  as queries passam a usar o usuário da sessão (fim do `DEFAULT_USER_ID` em ~30 pontos de
-  query) + teste de isolamento A×B. Depois: `zones-db` → `garmin-tokens-db` → `user-profile`.
-  Pendências menores vivas: CLI `set_password` não aplica política de senha ≥8 (API aplica;
-  trocar a senha "test" por uma real antes de convidar); sync de passos/NEAT (Fase 2);
-  decisão aberta de produto: NVIDIA_MODEL padrão no `.env`
+- **Next step**: **Fase 1.5 feature 3 — `zones-db`** ("specify feature zones-db"): seed do
+  `vdot_zones.json` → tabela `zones`, `ZoneConfig` lê do banco por usuário, `LTHR_BPM` vira
+  campo do perfil (AD-015). Depois: `garmin-tokens-db` → `user-profile`. Pendências menores
+  vivas: CLI `set_password` não aplica política de senha ≥8 (API aplica; trocar a senha
+  "test" por uma real antes de convidar); 2 docstrings de teste defasadas (cosmético —
+  `test_activities_api.py:12-14`, `test_auth_api.py:3-4`); convite pode ser ligado
+  (`INVITE_CODE`) — o user-scope está no ar; decisão aberta de produto: NVIDIA_MODEL
+  default no `.env`
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main (commits locais; push só com go-ahead do usuário)

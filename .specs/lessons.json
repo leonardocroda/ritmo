@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 15,
+  "next_id": 16,
   "lessons": [
     {
       "id": "L-001",
@@ -256,6 +256,24 @@
       ],
       "created": "2026-10-20T01:14:15Z",
       "last_seen": "2026-10-20T01:14:15Z"
+    },
+    {
+      "id": "L-015",
+      "key": "spec_precision_gap::anchor isolation acs to routes that actually exist when the state has no http surface scope the ac to the internal seam that reads it and to the user scoped public route that exposes it",
+      "text": "Anchor isolation ACs to routes that actually exist; when the state has no HTTP surface, scope the AC to the internal seam that reads it and to the user-scoped public route that exposes it.",
+      "signal": "spec_precision_gap",
+      "scope": "backend/api",
+      "status": "candidate",
+      "features": [
+        "user-scope"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "USR-05 (spec.md:58) (backend/api)"
+      ],
+      "created": "2026-10-20T19:57:14Z",
+      "last_seen": "2026-10-20T19:57:14Z"
     }
   ]
 }
