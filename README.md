@@ -5,7 +5,7 @@ Plataforma pessoal de corrida: sync do Garmin, painéis que importam
 
 > Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
 >
-> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-017) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-016 — volta pós-08/11, redesenhado com uso real) · **Fase 1.5 em andamento** (AD-012..015): **auth próprio + convite ✅** (login, sessão sliding 30d, Sair no header, bootstrap por CLI — §Login e acesso) · zonas/LTHR no banco, cofre de tokens Garmin criptografado e `/perfil` a seguir.
+> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-017) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-016 — volta pós-08/11, redesenhado com uso real) · **Fase 1.5 em andamento** (AD-012..015): **auth próprio + convite ✅** (login, sessão sliding 30d, Sair no header, bootstrap por CLI — §Login e acesso) · **user-scope ✅** (toda query por usuário da sessão + isolamento A×B) · zonas/LTHR no banco, cofre de tokens Garmin criptografado e `/perfil` a seguir.
 
 ## Estrutura
 
@@ -149,8 +149,8 @@ nome; email desconhecido cria conta nova.
 ### Convidados (cadastro por convite)
 
 1. Defina `INVITE_CODE` no `.env` do backend e reinicie — **vazio = registro desabilitado**
-   (403 na tela de cadastro). Ligue o convite só quando o acesso por usuário (`user-scope`)
-   estiver no ar.
+   (403 na tela de cadastro). O acesso por usuário (`user-scope`) já está no ar: cada
+   convidado vê só os próprios dados.
 2. Compartilhe `http://<host>:3000/registrar` + o código. Cadastro válido **já entra logado**
    (auto-login) e aterrissa nos painéis.
 
@@ -167,9 +167,9 @@ nome; email desconhecido cria conta nova.
   `/login?next=<rota atual>` — após o login, volta à rota original. Logado abrindo
   `/login` ou `/registrar`, vai direto para `/treinos`.
 
-> **Interim**: até a feature `user-scope` entrar, qualquer sessão autenticada lê o dataset
-> do usuário 1 (painéis e sync). O registro desabilitado (`INVITE_CODE` vazio) fecha essa
-> janela até lá.
+> **Acesso por usuário (`user-scope`) ativo**: toda query de leitura e gravação usa o
+> `user_id` do usuário da sessão — painéis, sync e avaliações são isolados por dono
+> (teste A×B ponta a ponta na suíte). O registro via convite pode ser ligado.
 
 ## Painel Treinos
 

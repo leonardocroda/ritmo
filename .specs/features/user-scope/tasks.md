@@ -427,4 +427,4 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T5 | ✅ Complete | feat(user-scope): garmin sync by session user_id |
 | T6 | ✅ Complete | feat(user-scope): evaluation by session user_id |
 | T7 | ✅ Complete | refactor(test): remove global session override |
-| T8 | Pending | - |
+| T8 | ✅ Complete | feat(user-scope): A×B isolation tests across all data endpoints |
