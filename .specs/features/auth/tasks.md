@@ -572,6 +572,36 @@ fica para a Fase 2.5).
 
 ---
 
+### T18: Emenda UAT — transporte same-origin via rewrite (20/10)
+
+> Segunda emenda do UAT (pedido do usuário: "não tem como funcionar nos 2?"). Estado que a
+> gerou: localhost:3000 logava (200) mas o cookie ficava no host da API e o proxy não o via
+> → loop de login; o IP-da-LAN nem logava (CORS sem a origem). **Status: completa** —
+> verificação curl ponta a ponta nos dois hosts; UAT 390px segue com o usuário.
+
+**What**: `next.config.ts` ganha `rewrites()` (`/api/:path*` → `BACKEND_URL` — transporte
+puro, sem lógica de auth no Next); `API_BASE` vira `""` (relativo); compose/Dockerfile
+passam `BACKEND_URL=http://backend:8000` como **build arg** (o Next materializa as
+rewrites no build — descoberto em runtime com ECONNREFUSED 127.0.0.1:8000); README
+§LAN/§Sessão reescritos; **AD-020** registra a decisão (constraint same-host da AD-018
+morre; CORS vira opcional).
+
+**Where**: `frontend/next.config.ts` (+ `frontend/src/lib/api.ts`, `frontend/Dockerfile`, `docker-compose.yml`, `README.md`)
+
+**Done when**:
+
+- [x] Login via `localhost:3000` → 200 + Set-Cookie para o host aberto (cookie visível ao proxy)
+- [x] `/me` com o cookie via `localhost:3000` → 200 (sessão same-origin)
+- [x] Endpoint protegido sem cookie → 401 JSON (passthrough)
+- [x] Ambos os hosts funcionam sem rebuild quando o IP da LAN muda (cookie/origem deixam de depender dele)
+
+**Tests**: none
+**Gate**: build
+
+**Commit**: `feat(frontend): same-origin api rewrites for multi-host sessions`
+
+---
+
 ## Phase Execution Map
 
 Visual representation of task ordering. Phases run in sequence, and tasks within a phase run in order:

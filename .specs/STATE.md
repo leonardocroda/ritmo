@@ -154,6 +154,14 @@
 - **Date**: 2026-10-20
 - **Status**: active
 
+### AD-020
+- **Decision**: **Transporte da API pelo próprio Next** — rewrite same-origin (`/api/:path*` → `BACKEND_URL`) em `next.config.ts`; `API_BASE` relativo; `BACKEND_URL=http://backend:8000` chega como **build arg** (o Next materializa as rewrites no build output). O cookie de sessão passa a valer para o host que o usuário abriu: o proxy otimista o vê em **qualquer** host, CORS deixa de ser requisito do app e a constraint same-host (trade-off da AD-018) **deixa de existir**. `NEXT_PUBLIC_API_URL` sai do compose.
+- **Reason**: UAT real (20/10): abrir por `localhost:3000` prendia o usuário no login (login 200, cookie no host da API, proxy cego) e o IP-da-LAN nem logava (CORS sem a origem). Duas falhas empilhadas de transporte cross-host; o rewrite é transporte puro — nenhuma lógica de auth no Next, então **AD-018 segue de pé** (API autoritativa + proxy otimista). Matou a classe do problema: múltiplos hosts, mudança de IP da LAN sem rebuild e o caminho para HTTPS (Fase 2.5).
+- **Trade-off**: todo fetch passa por um hop no servidor Next (irrelevante em LAN — inclusive o polling de 2s do sync); rewrites materializam no build → `BACKEND_URL` exige rebuild ao mudar (compose default fixa o hostname interno do serviço, imune a DHCP); `npm run dev` usa o fallback `http://localhost:8000`.
+- **Scope**: `frontend/next.config.ts`, `frontend/src/lib/api.ts`, `frontend/Dockerfile`, `docker-compose.yml`, README §LAN/§Sessão; Fase 2.5 (HTTPS + cookie Secure continuam compatíveis).
+- **Date**: 2026-10-20
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: `ai-evaluation` — **concluída com a emenda job validada** (PASS, `c9509a5`): 25/25 ACs, gate 362, sensor 9/9 cumulativo; relatório em `.specs/features/ai-evaluation/validation.md` (histórico: PASS original → UAT pediu job → emenda → PASS)

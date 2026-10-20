@@ -3,7 +3,11 @@
 // Garmin (AD-002): o sync polleia `JobOut` e os painéis leem o domínio
 // de leitura `activities`.
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Auth (emenda UAT, 20/10 — AD-020): as chamadas vão pelo PRÓPRIO Next
+// (rewrite same-origin em next.config.ts → BACKEND_URL). Base vazia =
+// relativa: o cookie de sessão vale para o host que o usuário abriu e o
+// proxy otimista o vê em qualquer um. CORS deixou de ser requisito.
+export const API_BASE = "";
 
 /** Contadores de progresso — schema exato do stats_json (SYNC-05/06). */
 export type SyncStats = {

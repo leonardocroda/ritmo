@@ -7,8 +7,13 @@ RUN npm ci
 
 # URL da API lida pelo cliente — o Next inlina NEXT_PUBLIC_* durante o
 # build, então o valor chega como build arg e vira env antes de `next build`.
+# (AD-020: com o rewrite same-origin o cliente usa base relativa; o que o
+# build precisa é o destino INTERNO do rewrite — o hostname do serviço
+# backend na rede do compose.)
 ARG NEXT_PUBLIC_API_URL=http://localhost:8000
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ARG BACKEND_URL=http://localhost:8000
+ENV BACKEND_URL=${BACKEND_URL}
 
 COPY . .
 RUN npm run build

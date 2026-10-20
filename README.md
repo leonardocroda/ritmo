@@ -121,19 +121,11 @@ backfill.
 
 ### Acessando pela LAN
 
-O frontend chama a API pela URL de `NEXT_PUBLIC_API_URL`, inlada no build
-do Next — o **default do compose é o IP da LAN** (`http://192.168.15.16:8000`),
-para o celular acessar de qualquer ponto da rede sem ajuste. Mudou o IP do
-PC (DHCP)? Sobrescreva na subida — o valor novo exige rebuild do frontend:
-
-```bash
-NEXT_PUBLIC_API_URL=http://192.168.0.10:8000 docker compose up -d --build frontend
-```
-
-**Constraint do cookie (auth)**: o cookie de sessão é host-only — o frontend precisa ser
-acessado pelo **mesmo host** configurado em `NEXT_PUBLIC_API_URL` (só a porta difere).
-Abrir `localhost:3000` com a API anunciada no IP da LAN (ou vice-versa) quebra o cookie e
-vira loop de redirect. Detalhes em **Login e acesso**.
+O frontend chama a API **pelo próprio Next** (rewrite same-origin: `/api/*` →
+`BACKEND_URL`, AD-020) — o cookie de sessão vale para o host que você abriu e
+`localhost:3000` e `http://<IP-da-LAN>:3000` funcionam igual. Mudou o IP do PC
+(DHCP)? **Nada muda**: o acesso pelo celular continua `http://<novo-IP>:3000`, sem
+rebuild (o `BACKEND_URL` é o hostname interno do compose, não o IP externo).
 
 ## Login e acesso
 
@@ -164,9 +156,11 @@ nome; email desconhecido cria conta nova.
 
 ### Sessão
 
-- Cookie `ritmo_session` **HttpOnly** + `SameSite=Lax`, host-only, 30 dias com renewal
-  **sliding**: request autenticado com ≤15 dias restantes estende a validade para +30d —
-  usuário ativo nunca é deslogado no meio do uso.
+- Cookie `ritmo_session` **HttpOnly** + `SameSite=Lax`, host-only **do host que você abriu**
+  (o rewrite same-origin do AD-020 entrega o cookie no próprio frontend — `localhost:3000` e
+  `http://<IP-da-LAN>:3000` funcionam igual), 30 dias com renewal **sliding**: request
+  autenticado com ≤15 dias restantes estende a validade para +30d — usuário ativo nunca é
+  deslogado no meio do uso.
 - **Sair** (header, ao lado do sync) revoga só a sessão do dispositivo corrente; celular e
   PC podem estar logados ao mesmo tempo.
 - Sessão expirou em uso? O primeiro fetch recebe 401 e o client redireciona para

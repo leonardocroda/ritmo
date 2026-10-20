@@ -48,11 +48,14 @@ services:
     build:
       context: ./frontend
       args:
-        # O Next inlina NEXT_PUBLIC_* no build time — chega como build arg.
-        # Default = IP da LAN (acesso pelo celular na rede; README §LAN).
-        # Para sobrescrever: NEXT_PUBLIC_API_URL=... docker compose up -d --build frontend
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://192.168.15.16:8000}
+        # AD-020: destino do rewrite same-origin — resolvido NO BUILD (o Next
+        # materializa as rewrites no build output); hostname do serviço
+        # backend na rede do compose
+        BACKEND_URL: http://backend:8000
     container_name: ritmo-frontend
+    environment:
+      # Mesmo valor em runtime (idempotência — o standalone já saiu do build com ele)
+      BACKEND_URL: http://backend:8000
     ports:
       - "3000:3000"
     depends_on:
