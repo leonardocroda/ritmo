@@ -250,5 +250,5 @@ def get_activity_detail(
         "hr_color": HR_LINE_COLOR,
         "consistency": consistency_metrics(splits, activity.distance_m),
         "context": _context(db, activity, splits, user_id),
-        "evaluations": list_evaluations(db, activity.id),
+        "evaluations": list_evaluations(db, activity.id, user_id),
     }

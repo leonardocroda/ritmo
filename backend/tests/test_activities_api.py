@@ -654,12 +654,11 @@ def test_detail_context_null_when_no_health_data_for_date(session_client) -> Non
 # ---------------------------------------------------------------
 
 
-def _seed_evaluation(db, activity_id: int, *, verdict: str, created_at: datetime) -> None:
-    # Interim user-scope: SEM user_id explícito (default 1) — o
-    # list_evaluations segue filtrando DEFAULT_USER_ID até a T6 migrar
-    # o domínio evaluation.
+def _seed_evaluation(db, user_id: int, activity_id: int, *, verdict: str,
+                     created_at: datetime) -> None:
     db.add(
         Evaluation(
+            user_id=user_id,
             activity_id=activity_id,
             intent_type="facil",
             intent_text=None,
@@ -683,10 +682,12 @@ def test_detail_exposes_evaluations_newest_first(session_client) -> None:
                                  start=datetime(2026, 10, 13, 7, 0))
         db.flush()
         _seed_evaluation(
-            db, activity.id, verdict="too_hard", created_at=datetime(2026, 10, 15, 8, 0, 0)
+            db, user_id, activity.id,
+            verdict="too_hard", created_at=datetime(2026, 10, 15, 8, 0, 0)
         )
         _seed_evaluation(
-            db, activity.id, verdict="on_target", created_at=datetime(2026, 10, 16, 9, 0, 0)
+            db, user_id, activity.id,
+            verdict="on_target", created_at=datetime(2026, 10, 16, 9, 0, 0)
         )
         db.commit()
         activity_id = activity.id

@@ -15,7 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
-from app.db.models import DEFAULT_USER_ID, Activity, DailyLoad, Pattern, PersonalRecord
+from app.db.models import Activity, DailyLoad, Pattern, PersonalRecord
 
 # Zonas alvo por intenção (assumption do spec): facil→easy;
 # tempo/limiar→threshold; intervalado→interval; longao→easy∪marathon;
@@ -172,11 +172,11 @@ def _contexto(detail: dict) -> dict | None:
     return out or None
 
 
-def _carga_do_dia(db: Session, activity: Activity) -> dict | None:
+def _carga_do_dia(db: Session, activity: Activity, user_id: int) -> dict | None:
     """Linha de PMC da data local do treino; None sem linha (spec)."""
     row = db.execute(
         select(DailyLoad).where(
-            DailyLoad.user_id == DEFAULT_USER_ID,
+            DailyLoad.user_id == user_id,
             DailyLoad.date == activity.start_time.date(),
         )
     ).scalar_one_or_none()
@@ -207,10 +207,10 @@ def _vdot_block(settings: Settings) -> dict:
     )
 
 
-def _prs(db: Session) -> list[dict] | None:
+def _prs(db: Session, user_id: int) -> list[dict] | None:
     """PRs canônicos DATADOS como referência de prova; None sem nenhum."""
     rows = db.execute(
-        select(PersonalRecord).where(PersonalRecord.user_id == DEFAULT_USER_ID)
+        select(PersonalRecord).where(PersonalRecord.user_id == user_id)
     ).scalars().all()
     prs = [
         {
@@ -224,10 +224,10 @@ def _prs(db: Session) -> list[dict] | None:
     return prs or None
 
 
-def _padroes(db: Session) -> list[dict] | None:
+def _padroes(db: Session, user_id: int) -> list[dict] | None:
     """Padrões pessoais de falha ativos; None quando não há."""
     rows = db.execute(
-        select(Pattern).where(Pattern.user_id == DEFAULT_USER_ID, Pattern.active.is_(True))
+        select(Pattern).where(Pattern.user_id == user_id, Pattern.active.is_(True))
     ).scalars().all()
     if not rows:
         return None
@@ -240,13 +240,16 @@ def _padroes(db: Session) -> list[dict] | None:
 def build_evaluation_payload(
     db: Session,
     activity: Activity,
+    user_id: int,
     detail: dict,
     intent_type: str,
     intent_text: str | None,
     settings: Settings,
 ) -> dict:
     """Payload completo da avaliação (EVAL-02): intenção + números
-    determinísticos. Chaves ausentes = bloco sem dado no banco.
+    determinísticos. Chaves ausentes = bloco sem dado no banco. Toda
+    leitura (PMC, PRs, padrões) filtra pelo ``user_id`` do usuário da
+    sessão (user-scope, USR-15).
     """
     blocks: dict = {
         "intencao": {"tipo": intent_type, "texto": intent_text},
@@ -256,11 +259,11 @@ def build_evaluation_payload(
         "zona_alvo": _zona_alvo(detail, intent_type),
         "consistencia": detail["consistency"],
         "contexto": _contexto(detail),
-        "carga_do_dia": _carga_do_dia(db, activity),
+        "carga_do_dia": _carga_do_dia(db, activity, user_id),
         "zonas": _zonas_meta(detail),
         "vdot": _vdot_block(settings),
         "lthr_bpm": settings.lthr_bpm,
-        "prs": _prs(db),
-        "padroes": _padroes(db),
+        "prs": _prs(db, user_id),
+        "padroes": _padroes(db, user_id),
     }
     return {key: value for key, value in blocks.items() if value is not None}

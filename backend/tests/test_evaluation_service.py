@@ -15,7 +15,7 @@ from sqlalchemy import select
 
 from app.core.config import Settings
 from app.db.engine import SessionLocal, init_db
-from app.db.models import Activity, Evaluation, Split
+from app.db.models import Activity, Evaluation, Split, User
 from app.evaluation import nim, service
 from app.evaluation.nim import NimError
 from app.evaluation.prompt import PROMPT_VERSION, SYSTEM_PROMPT_V1
@@ -62,7 +62,12 @@ def zone_config(settings: Settings):
 
 def _seed_run(db, *, activity_type: str = "running", laps: int = 5) -> Activity:
     is_run = activity_type in ("running", "trail_running")
+    # user-scope: usuário dono da atividade (create_evaluation filtra por ele)
+    user = User(display_name="Corredora")
+    db.add(user)
+    db.flush()
     activity = Activity(
+        user_id=user.id,
         garmin_id=f"svc-{activity_type}-{laps}-{datetime.now().timestamp()}",
         start_time=START,
         activity_type=activity_type,
@@ -119,7 +124,7 @@ def test_create_evaluation_pending_sem_chamar_nim(
     _mock_nim(monkeypatch, calls=calls)
 
     created = service.create_evaluation(
-        db, activity.id, "facil", "era pra ser 30min a 4:15", zone_config, settings
+        db, activity.id, activity.user_id, "facil", "era pra ser 30min a 4:15", zone_config, settings
     )
 
     assert created["status"] == "pending"
@@ -157,7 +162,7 @@ def test_worker_conclui_done_com_veredito_sanitizado(
     calls: list = []
     _mock_nim(monkeypatch, verdict=echo_errado, capture=capture, calls=calls)
 
-    created = service.create_evaluation(db, activity.id, "facil", None, zone_config, settings)
+    created = service.create_evaluation(db, activity.id, activity.user_id, "facil", None, zone_config, settings)
     service.run_evaluation(created["id"])
 
     assert len(calls) == 1  # exatamente uma chamada à NIM
@@ -188,7 +193,7 @@ def test_worker_progressivo_pct_nulo(db, settings, zone_config, monkeypatch) -> 
     }
     _mock_nim(monkeypatch, verdict=echo_errado)
 
-    created = service.create_evaluation(db, activity.id, "progressivo", None, zone_config, settings)
+    created = service.create_evaluation(db, activity.id, activity.user_id, "progressivo", None, zone_config, settings)
     service.run_evaluation(created["id"])
 
     db.expire_all()
@@ -204,7 +209,7 @@ def test_worker_erro_nim_preserva_a_tentativa(
     activity = _seed_run(db)
     _mock_nim(monkeypatch, error=NimError("NIM HTTP 503"))
 
-    created = service.create_evaluation(db, activity.id, "facil", "tento 1", zone_config, settings)
+    created = service.create_evaluation(db, activity.id, activity.user_id, "facil", "tento 1", zone_config, settings)
     service.run_evaluation(created["id"])  # não levanta
 
     db.expire_all()
@@ -225,7 +230,7 @@ def test_worker_veredito_invalido_vira_error(db, settings, zone_config, monkeypa
     invalido = {k: v for k, v in VERDICT.items() if k != "headline"}
     _mock_nim(monkeypatch, verdict=invalido)
 
-    created = service.create_evaluation(db, activity.id, "facil", None, zone_config, settings)
+    created = service.create_evaluation(db, activity.id, activity.user_id, "facil", None, zone_config, settings)
     service.run_evaluation(created["id"])
 
     db.expire_all()
@@ -241,7 +246,7 @@ def test_worker_excecao_inesperada_vira_error(db, settings, zone_config, monkeyp
     activity = _seed_run(db)
     _mock_nim(monkeypatch, error=RuntimeError("boom inesperado"))
 
-    created = service.create_evaluation(db, activity.id, "facil", None, zone_config, settings)
+    created = service.create_evaluation(db, activity.id, activity.user_id, "facil", None, zone_config, settings)
     service.run_evaluation(created["id"])  # não levanta
 
     db.expire_all()
@@ -256,7 +261,7 @@ def test_worker_linha_nao_pending_e_noop(db, settings, zone_config, monkeypatch)
     calls: list = []
     _mock_nim(monkeypatch, calls=calls)
 
-    created = service.create_evaluation(db, activity.id, "facil", None, zone_config, settings)
+    created = service.create_evaluation(db, activity.id, activity.user_id, "facil", None, zone_config, settings)
     service.run_evaluation(created["id"])
     service.run_evaluation(created["id"])  # no-op
 
@@ -272,7 +277,7 @@ def test_recover_stale_pending_vira_interrompida(db, settings, zone_config, monk
     activity = _seed_run(db)
     _mock_nim(monkeypatch)
 
-    created = service.create_evaluation(db, activity.id, "facil", None, zone_config, settings)
+    created = service.create_evaluation(db, activity.id, activity.user_id, "facil", None, zone_config, settings)
     service.recover_stale_evaluations()
 
     db.expire_all()
@@ -283,7 +288,13 @@ def test_recover_stale_pending_vira_interrompida(db, settings, zone_config, monk
 
 def test_create_inexistente_retorna_none(db, settings, zone_config) -> None:
     """EVAL-09: id inexistente → None (404 no router)."""
-    assert service.create_evaluation(db, 999, "facil", None, zone_config, settings) is None
+    user = User(display_name="Corredora")
+    db.add(user)
+    db.flush()
+    assert (
+        service.create_evaluation(db, 999, user.id, "facil", None, zone_config, settings)
+        is None
+    )
 
 
 def test_create_nao_corrida_sem_chamar_nim(db, settings, zone_config, monkeypatch) -> None:
@@ -298,7 +309,7 @@ def test_create_nao_corrida_sem_chamar_nim(db, settings, zone_config, monkeypatc
     monkeypatch.setattr(nim, "chat_completion", fail_if_called)
 
     with pytest.raises(service.ActivityNotRunning):
-        service.create_evaluation(db, yoga.id, "facil", None, zone_config, settings)
+        service.create_evaluation(db, yoga.id, yoga.user_id, "facil", None, zone_config, settings)
     assert calls == []
 
 
@@ -307,7 +318,7 @@ def test_create_trail_running_aceito(db, settings, zone_config, monkeypatch) -> 
     trail = _seed_run(db, activity_type="trail_running")
     _mock_nim(monkeypatch)
 
-    created = service.create_evaluation(db, trail.id, "facil", None, zone_config, settings)
+    created = service.create_evaluation(db, trail.id, trail.user_id, "facil", None, zone_config, settings)
     service.run_evaluation(created["id"])
 
     db.expire_all()
@@ -325,7 +336,7 @@ def test_worker_usage_zeros_persiste_tokens_zero(
     activity = _seed_run(db)
     _mock_nim(monkeypatch, usage={"prompt_tokens": 0, "completion_tokens": 0})
 
-    created = service.create_evaluation(db, activity.id, "facil", None, zone_config, settings)
+    created = service.create_evaluation(db, activity.id, activity.user_id, "facil", None, zone_config, settings)
     service.run_evaluation(created["id"])
 
     db.expire_all()
@@ -339,12 +350,12 @@ def test_list_evaluations_ordenado_e_com_status(db, settings, zone_config, monke
     activity = _seed_run(db)
     _mock_nim(monkeypatch)
 
-    first = service.create_evaluation(db, activity.id, "facil", "primeira", zone_config, settings)
+    first = service.create_evaluation(db, activity.id, activity.user_id, "facil", "primeira", zone_config, settings)
     service.run_evaluation(first["id"])
-    second = service.create_evaluation(db, activity.id, "facil", "segunda", zone_config, settings)
+    second = service.create_evaluation(db, activity.id, activity.user_id, "facil", "segunda", zone_config, settings)
     service.run_evaluation(second["id"])
 
-    evaluations = service.list_evaluations(db, activity.id)
+    evaluations = service.list_evaluations(db, activity.id, activity.user_id)
     assert [e["id"] for e in evaluations] == [second["id"], first["id"]]
     assert evaluations[0]["intent_text"] == "segunda"
     assert evaluations[0]["status"] == "done"
@@ -355,4 +366,4 @@ def test_list_evaluations_ordenado_e_com_status(db, settings, zone_config, monke
 def test_list_evaluations_vazio_sem_avaliacoes(db, settings) -> None:
     """EVAL-17: sem avaliações → lista vazia (estado vazio, não erro)."""
     activity = _seed_run(db)
-    assert service.list_evaluations(db, activity.id) == []
+    assert service.list_evaluations(db, activity.id, activity.user_id) == []

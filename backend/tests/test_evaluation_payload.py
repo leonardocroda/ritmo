@@ -18,7 +18,7 @@ from sqlalchemy import select
 from app.activities import service
 from app.core.config import Settings
 from app.db.engine import SessionLocal, init_db
-from app.db.models import Activity, DailyLoad, Hrv, Pattern, PersonalRecord, Rhr, Sleep, Split
+from app.db.models import Activity, DailyLoad, Hrv, Pattern, PersonalRecord, Rhr, Sleep, Split, User
 from app.evaluation.payload import build_evaluation_payload
 from app.vdot.zones import load_zone_config
 
@@ -59,7 +59,12 @@ def _seed_activity(db, *, name: str = "Easy Run", distance_m: float = 5000.0,
                    elevation_gain_m: float | None = 55.0,
                    aerobic_te: float | None = 2.8, anaerobic_te: float | None = 0.4,
                    training_load: float | None = 120.0) -> Activity:
+    # user-scope: usuário dono da atividade (o payload lê por activity.user_id)
+    user = User(display_name="Corredora")
+    db.add(user)
+    db.flush()
     activity = Activity(
+        user_id=user.id,
         garmin_id=f"payload-{name}-{distance_m}-{duration_s}",
         start_time=START,
         activity_type="running",
@@ -101,17 +106,18 @@ def _seed_split(db, activity_id: int, idx: int, *, dist_m: float = 1000.0,
     )
 
 
-def _seed_day(db) -> None:
-    """Sono/HRV/RHR/PMC da data do treino + PRs + padrão ativo."""
-    db.add(Sleep(date=DAY, duration_s=28800.0, score=85))
-    db.add(Hrv(date=DAY, value=45.0, status="BALANCED"))
-    db.add(Rhr(date=DAY, value=43))
-    db.add(DailyLoad(date=DAY, ctl=132.2, atl=141.3, tsb=-9.2, acwr=1.1))
-    db.add(PersonalRecord(event="FASTEST_5K", value=1163.83, pr_date=date(2026, 4, 26)))
-    db.add(PersonalRecord(event="FASTEST_10K", value=2447.0, pr_date=None))
-    db.add(PersonalRecord(event="LONGEST_RUN", value=32000.0, pr_date=date(2024, 1, 1)))
+def _seed_day(db, user_id: int) -> None:
+    """Sono/HRV/RHR/PMC da data do treino + PRs + padrão ativo — do dono."""
+    db.add(Sleep(user_id=user_id, date=DAY, duration_s=28800.0, score=85))
+    db.add(Hrv(user_id=user_id, date=DAY, value=45.0, status="BALANCED"))
+    db.add(Rhr(user_id=user_id, date=DAY, value=43))
+    db.add(DailyLoad(user_id=user_id, date=DAY, ctl=132.2, atl=141.3, tsb=-9.2, acwr=1.1))
+    db.add(PersonalRecord(user_id=user_id, event="FASTEST_5K", value=1163.83, pr_date=date(2026, 4, 26)))
+    db.add(PersonalRecord(user_id=user_id, event="FASTEST_10K", value=2447.0, pr_date=None))
+    db.add(PersonalRecord(user_id=user_id, event="LONGEST_RUN", value=32000.0, pr_date=date(2024, 1, 1)))
     db.add(
         Pattern(
+            user_id=user_id,
             name="km1_rapido",
             trigger="largadas de prova",
             description="km 1 mais rápido que a média em 100% das provas máximas",
@@ -123,7 +129,9 @@ def _seed_day(db) -> None:
 def _payload(db, activity, settings, zone_config, *, intent_type: str,
              intent_text: str | None = None) -> dict:
     detail = service.get_activity_detail(db, activity.id, activity.user_id, zone_config)
-    return build_evaluation_payload(db, activity, detail, intent_type, intent_text, settings)
+    return build_evaluation_payload(
+        db, activity, activity.user_id, detail, intent_type, intent_text, settings
+    )
 
 
 def test_payload_completo_blocos_e_matematica_exata(db, settings, zone_config) -> None:
@@ -132,7 +140,7 @@ def test_payload_completo_blocos_e_matematica_exata(db, settings, zone_config) -
     for idx in range(1, 5):
         _seed_split(db, activity.id, idx, duration_s=300.0)
     _seed_split(db, activity.id, 5, duration_s=220.0, avg_hr=150)
-    _seed_day(db)
+    _seed_day(db, activity.user_id)
     db.commit()
 
     payload = _payload(db, activity, settings, zone_config,

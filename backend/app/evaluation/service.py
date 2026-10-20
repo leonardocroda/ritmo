@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 
 from app.activities import service as activities_service
 from app.core.config import Settings, get_settings
-from app.db.models import DEFAULT_USER_ID, Activity, Evaluation
+from app.db.models import Activity, Evaluation
 from app.evaluation import nim
 from app.evaluation.payload import build_evaluation_payload
 from app.evaluation.prompt import PROMPT_VERSION, SYSTEM_PROMPT_V1
@@ -63,6 +63,7 @@ def _evaluation_dict(evaluation: Evaluation) -> dict:
 def create_evaluation(
     db: Session,
     activity_id: int,
+    user_id: int,
     intent_type: str,
     intent_text: str | None,
     zone_config: ZoneConfig,
@@ -72,13 +73,15 @@ def create_evaluation(
 
     Request path: valida 404/422, monta o payload determinístico, grava
     a linha — NENHUMA chamada à NIM aqui (o worker é quem consome).
-    None = atividade inexistente (404 no router).
+    None = atividade inexistente OU de outro usuário (404 no router —
+    user-scope, USR-16: a avaliação vincula só a atividades do próprio
+    usuário e grava ``user_id`` do dono da sessão).
     """
     settings = settings or get_settings()
 
     activity = db.execute(
         select(Activity).where(
-            Activity.id == activity_id, Activity.user_id == DEFAULT_USER_ID
+            Activity.id == activity_id, Activity.user_id == user_id
         )
     ).scalar_one_or_none()
     if activity is None:
@@ -92,10 +95,11 @@ def create_evaluation(
         db, activity.id, activity.user_id, zone_config
     )
     payload = build_evaluation_payload(
-        db, activity, detail, intent_type, intent_text, settings
+        db, activity, user_id, detail, intent_type, intent_text, settings
     )
 
     evaluation = Evaluation(
+        user_id=user_id,
         activity_id=activity.id,
         intent_type=intent_type,
         intent_text=intent_text,
@@ -188,26 +192,30 @@ def recover_stale_evaluations() -> None:
         db.commit()
 
 
-def get_evaluation(db: Session, activity_id: int, evaluation_id: int) -> dict | None:
-    """Uma avaliação do treino por id (GET de status, EVAL-25); None → 404."""
+def get_evaluation(
+    db: Session, activity_id: int, evaluation_id: int, user_id: int
+) -> dict | None:
+    """Uma avaliação do treino por id (GET de status, EVAL-25); None → 404
+    (inexistente OU de outro usuário — user-scope, USR-12)."""
     evaluation = db.execute(
         select(Evaluation).where(
             Evaluation.id == evaluation_id,
             Evaluation.activity_id == activity_id,
-            Evaluation.user_id == DEFAULT_USER_ID,
+            Evaluation.user_id == user_id,
         )
     ).scalar_one_or_none()
     return None if evaluation is None else _evaluation_dict(evaluation)
 
 
-def list_evaluations(db: Session, activity_id: int) -> list[dict]:
-    """Avaliações do treino, mais recente primeiro (EVAL-17/18/19)."""
+def list_evaluations(db: Session, activity_id: int, user_id: int) -> list[dict]:
+    """Avaliações do treino, mais recente primeiro (EVAL-17/18/19) — só as
+    do usuário da sessão (user-scope, USR-08)."""
     rows = (
         db.execute(
             select(Evaluation)
             .where(
                 Evaluation.activity_id == activity_id,
-                Evaluation.user_id == DEFAULT_USER_ID,
+                Evaluation.user_id == user_id,
             )
             .order_by(Evaluation.created_at.desc(), Evaluation.id.desc())
         )

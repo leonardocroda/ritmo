@@ -11,8 +11,10 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.activities.router import get_zone_config
+from app.auth.deps import require_session
 from app.core.config import Settings, get_settings
 from app.db.engine import get_db
+from app.db.models import User
 from app.evaluation import service
 from app.evaluation.schemas import EvaluateIn, EvaluationOut
 from app.vdot.zones import ZoneConfig
@@ -25,13 +27,16 @@ def evaluate_activity(
     activity_id: int,
     request: EvaluateIn,
     background_tasks: BackgroundTasks,
+    user: User = Depends(require_session),
     db: Session = Depends(get_db),
     zone_config: ZoneConfig = Depends(get_zone_config),
 ) -> EvaluationOut:
     """Cria a avaliação pending (EVAL-21) e despacha o worker (EVAL-22/23).
 
     O request nunca espera a NIM: responde 201 com o registro pending;
-    a UI polla o GET de status até done/error.
+    a UI polla o GET de status até done/error. A avaliação nasce com o
+    ``user_id`` do usuário da sessão e só vincula a atividades próprias
+    (user-scope, USR-16 — atividade alheia -> 404).
     """
     settings = get_settings()
     if not settings.nvidia_api_key:
@@ -43,6 +48,7 @@ def evaluate_activity(
         result = service.create_evaluation(
             db,
             activity_id,
+            user.id,
             request.intent_type,
             request.intent_text,
             zone_config,
@@ -63,10 +69,12 @@ def evaluate_activity(
 def get_evaluation_status(
     activity_id: int,
     evaluation_id: int,
+    user: User = Depends(require_session),
     db: Session = Depends(get_db),
 ) -> EvaluationOut:
-    """Status de uma avaliação para o polling da UI (EVAL-25)."""
-    result = service.get_evaluation(db, activity_id, evaluation_id)
+    """Status de uma avaliação para o polling da UI (EVAL-25) — só a do
+    usuário da sessão (user-scope: alheia -> 404)."""
+    result = service.get_evaluation(db, activity_id, evaluation_id, user.id)
     if result is None:
         raise HTTPException(status_code=404, detail="avaliação não encontrada")
     return result

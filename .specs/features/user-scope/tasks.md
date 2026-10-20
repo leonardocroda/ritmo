@@ -425,6 +425,6 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T3 | ✅ Complete | feat(user-scope): health reads by session user_id |
 | T4 | ✅ Complete | feat(user-scope): potential reads by session user_id |
 | T5 | ✅ Complete | feat(user-scope): garmin sync by session user_id |
-| T6 | Pending | - |
+| T6 | ✅ Complete | feat(user-scope): evaluation by session user_id |
 | T7 | Pending | - |
 | T8 | Pending | - |
