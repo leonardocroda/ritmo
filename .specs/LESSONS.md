@@ -92,6 +92,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: EVAL-09/12 / backend/app/evaluation/router.py:33 (backend/routes)
 - last seen: 2026-10-18T14:11:35Z
 
+### L-014 - Boundary inclusiva de tempo so exige pinar o relogio no teste (mesmo fixed_now no seed e no service): sem pin, remaining = limite - epsilon satisfaz <= e < e o mutante < sobrevive.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `backend/tests,tempo` · harmful: 0
+- features: auth
+- evidence: test_auth_service.py::test_resolve_renews_at_threshold_boundary_inclusive / AUTH-12 (backend/tests,tempo)
+- last seen: 2026-10-20T01:14:15Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 14,
+  "next_id": 15,
   "lessons": [
     {
       "id": "L-001",
@@ -238,6 +238,24 @@
       ],
       "created": "2026-10-18T14:11:35Z",
       "last_seen": "2026-10-18T14:11:35Z"
+    },
+    {
+      "id": "L-014",
+      "key": "surviving_mutant::boundary inclusiva de tempo so exige pinar o relogio no teste mesmo fixed now no seed e no service sem pin remaining limite epsilon satisfaz e e o mutante sobrevive",
+      "text": "Boundary inclusiva de tempo so exige pinar o relogio no teste (mesmo fixed_now no seed e no service): sem pin, remaining = limite - epsilon satisfaz <= e < e o mutante < sobrevive.",
+      "signal": "surviving_mutant",
+      "scope": "backend/tests,tempo",
+      "status": "candidate",
+      "features": [
+        "auth"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "test_auth_service.py::test_resolve_renews_at_threshold_boundary_inclusive / AUTH-12 (backend/tests,tempo)"
+      ],
+      "created": "2026-10-20T01:14:15Z",
+      "last_seen": "2026-10-20T01:14:15Z"
     }
   ]
 }
