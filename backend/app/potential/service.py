@@ -11,7 +11,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.models import (
-    DEFAULT_USER_ID,
     Activity,
     DailyLoad,
     PersonalRecord,
@@ -24,11 +23,11 @@ from app.vdot.calibration import Calibration
 RUNNING_TYPES = ("running", "trail_running")
 
 
-def _garmin_by_event(db: Session) -> dict[str, float]:
-    """Snapshot latest das predições por evento; linha sem tempo = ausente."""
+def _garmin_by_event(db: Session, user_id: int) -> dict[str, float]:
+    """Snapshot latest das predições por evento do usuário; linha sem tempo = ausente."""
     rows = (
         db.execute(
-            select(RacePrediction).where(RacePrediction.user_id == DEFAULT_USER_ID)
+            select(RacePrediction).where(RacePrediction.user_id == user_id)
         )
         .scalars()
         .all()
@@ -93,16 +92,16 @@ def _demonstrated_block(points: list[dict], prs: list[PersonalRecord]) -> dict |
 PMC_WINDOW_DAYS = 60
 
 
-def _pmc_block(db: Session) -> dict | None:
+def _pmc_block(db: Session, user_id: int) -> dict | None:
     """Bloco Carga de treino — de volta ao painel (AD-017 reverte a
-    CLR-03): últimas PMC_WINDOW_DAYS linhas de `load`, mais antiga
-    primeiro (mesma janela DESC+limit+reverse da PMC original), valores
-    exatamente como as linhas — zero recálculo (CLR-06). Sem linhas ->
-    None (estado vazio, não erro — CLR-02)."""
+    CLR-03): últimas PMC_WINDOW_DAYS linhas de `load` do usuário, mais
+    antiga primeiro (mesma janela DESC+limit+reverse da PMC original),
+    valores exatamente como as linhas — zero recálculo (CLR-06). Sem
+    linhas -> None (estado vazio, não erro — CLR-02)."""
     rows = (
         db.execute(
             select(DailyLoad)
-            .where(DailyLoad.user_id == DEFAULT_USER_ID)
+            .where(DailyLoad.user_id == user_id)
             .order_by(DailyLoad.date.desc())
             .limit(PMC_WINDOW_DAYS)
         )
@@ -128,24 +127,25 @@ def _pmc_block(db: Session) -> dict | None:
     }
 
 
-def get_potential(db: Session, calibration: Calibration) -> dict:
+def get_potential(db: Session, user_id: int, calibration: Calibration) -> dict:
     """Payload do painel — os 5 blocos do design §Contrato.
 
     Com `pmc` de volta (AD-017 reverte a CLR-03; panel-clarity T1/T2
     viram referência histórica): a curva de carga mora aqui de novo,
     janela fixa de 60d — sem `days` (CLR-04 vigente: o param segue
     morto no endpoint). A matemática vive em calc.py (pura, AD-003) —
-    aqui é só leitura e montagem.
+    aqui é só leitura e montagem. Toda leitura filtra pelo ``user_id``
+    do usuário da sessão (user-scope, USR-04/06).
     """
     prs = (
         db.execute(
-            select(PersonalRecord).where(PersonalRecord.user_id == DEFAULT_USER_ID)
+            select(PersonalRecord).where(PersonalRecord.user_id == user_id)
         )
         .scalars()
         .all()
     )
     activities = (
-        db.execute(select(Activity).where(Activity.user_id == DEFAULT_USER_ID))
+        db.execute(select(Activity).where(Activity.user_id == user_id))
         .scalars()
         .all()
     )
@@ -170,8 +170,8 @@ def get_potential(db: Session, calibration: Calibration) -> dict:
             "gap_pct": gap_pct,
             "timeline": points,
         },
-        "predictions": predictions(_garmin_by_event(db), pr_5k_s, calibration.vdot, prs),
+        "predictions": predictions(_garmin_by_event(db, user_id), pr_5k_s, calibration.vdot, prs),
         "vo2max": _vo2max_block(activities),
         "decay": decay(prs, calibration.vdot),
-        "pmc": _pmc_block(db),
+        "pmc": _pmc_block(db, user_id),
     }

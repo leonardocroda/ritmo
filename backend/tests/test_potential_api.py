@@ -1,6 +1,12 @@
 """Painel Performance (ex-Potencial) (T8/T9 + panel-clarity T10) — service direto + HTTP,
 no Postgres real.
 
+User-scope (T4, USR-04/06): toda leitura filtra pelo ``user_id`` do
+usuário da sessão — os testes diretos criam um usuário próprio e o
+passam ao service; os HTTP usam ``session_client`` (sessão real por
+usuário, sem o override do conftest) e semeiam com o ``user_id``
+devolvido.
+
 T8: chamadas diretas a `get_potential` com seeds (o domínio lê
 exclusivamente o banco próprio — AD-002; nenhuma chamada Garmin).
 T9: TestClient cobrindo a superfície HTTP (500/estados vazios).
@@ -17,11 +23,10 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import pytest
-from fastapi.testclient import TestClient
 
+from app.auth.security import hash_password
 from app.db.engine import SessionLocal, init_db
-from app.db.models import Activity, DailyLoad, PersonalRecord, RacePrediction
-from app.main import app
+from app.db.models import Activity, DailyLoad, PersonalRecord, RacePrediction, User
 from app.potential import router as potential_router
 from app.potential import service
 from app.vdot.calibration import Calibration
@@ -62,33 +67,43 @@ def db():
         yield session
 
 
-@pytest.fixture()
-def client():
-    """TestClient: o lifespan recria o schema do teste (conftest derruba antes)."""
-    with TestClient(app) as test_client:
-        yield test_client
+def _new_user(db, email: str = "corredora@example.com") -> User:
+    """Usuário de teste para os testes diretos do service (id via sequência)."""
+    user = User(
+        display_name="Corredora",
+        email=email,
+        password_hash=hash_password("senha-segura-123"),
+    )
+    db.add(user)
+    db.flush()
+    return user
 
 
-def _seed_prs(db) -> None:
+def _seed_prs(db, user_id: int) -> None:
     for event, value, pr_date in REAL_PRS:
-        db.add(PersonalRecord(event=event, value=value, pr_date=pr_date, raw_json={}))
+        db.add(PersonalRecord(user_id=user_id, event=event, value=value,
+                              pr_date=pr_date, raw_json={}))
 
 
-def _seed_garmin_predictions(db, *, day: date = date(2026, 10, 15)) -> None:
+def _seed_garmin_predictions(db, user_id: int, *,
+                             day: date = date(2026, 10, 15)) -> None:
     for event, time_s in REAL_GARMIN:
-        db.add(RacePrediction(event=event, time_s=time_s, date=day, raw_json={}))
+        db.add(RacePrediction(user_id=user_id, event=event, time_s=time_s,
+                              date=day, raw_json={}))
 
 
-def _seed_load(db, day: date, ctl: float, atl: float, tsb: float,
+def _seed_load(db, user_id: int, day: date, ctl: float, atl: float, tsb: float,
                acwr: float | None = None) -> None:
-    db.add(DailyLoad(date=day, ctl=ctl, atl=atl, tsb=tsb, acwr=acwr))
+    db.add(DailyLoad(user_id=user_id, date=day, ctl=ctl, atl=atl, tsb=tsb, acwr=acwr))
 
 
-def _seed_activity(db, *, garmin_id: str, start: datetime, name: str = "Morning Run",
-                   activity_type: str = "running", distance_m: float = 10000.0,
-                   duration_s: float = 2500.0, raw_json: dict | None = None) -> None:
+def _seed_activity(db, user_id: int, *, garmin_id: str, start: datetime,
+                   name: str = "Morning Run", activity_type: str = "running",
+                   distance_m: float = 10000.0, duration_s: float = 2500.0,
+                   raw_json: dict | None = None) -> None:
     db.add(
         Activity(
+            user_id=user_id,
             garmin_id=garmin_id,
             start_time=start,
             activity_type=activity_type,
@@ -101,6 +116,51 @@ def _seed_activity(db, *, garmin_id: str, start: datetime, name: str = "Morning 
 
 
 # ---------------------------------------------------------------
+# T4 (user-scope) — isolamento A×B no painel Performance
+# ---------------------------------------------------------------
+
+
+def test_potential_data_isolated_per_user(session_client) -> None:
+    """USR-04/08: PRs, predições e carga de Y não vazam para o painel de
+    X — timeline/decay sem os PRs alheios, garmin_s da predição de X e
+    pmc com só as linhas de X."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        other = User(display_name="Outra", email="outro@example.com",
+                     password_hash=hash_password("senha-segura-123"))
+        db.add(other)
+        db.flush()
+        # X: um PR e uma predição próprios
+        db.add(PersonalRecord(user_id=user_id, event="FASTEST_5K",
+                              value=1163.83, pr_date=date(2026, 4, 26), raw_json={}))
+        db.add(RacePrediction(user_id=user_id, event="5K", time_s=1165.0,
+                              date=date(2026, 10, 15), raw_json={}))
+        # Y: dados que mudariam cada bloco se vazassem
+        db.add(PersonalRecord(user_id=other.id, event="FASTEST_10K",
+                              value=1800.0, pr_date=date(2026, 5, 1), raw_json={}))
+        db.add(RacePrediction(user_id=other.id, event="5K", time_s=999.0,
+                              date=date(2026, 10, 15), raw_json={}))
+        _seed_load(db, other.id, date(2026, 10, 15), 90.0, 95.0, -5.0, 2.0)
+        db.commit()
+
+    response = client.get("/api/potential")
+    assert response.status_code == 200
+    body = response.json()
+
+    # Predição do Garmin: a de X (1165), nunca a de Y (999)
+    assert body["predictions"]["5K"]["garmin_s"] == 1165.0
+    # Timeline: PR de X vira ponto; o 10K de Y (30:00 em 01/05/2026)
+    # não vira ponto — a data alheia não aparece na timeline
+    dates = [p["date"] for p in body["vdot"]["timeline"]]
+    assert "2026-05-01" not in dates
+    # Decay: só o evento com PR de X (5K); o FASTEST_10K alheio não vira linha
+    decay_events = {row["event"] for row in body["decay"]}
+    assert decay_events == {"5K"}
+    # PMC: sem linhas de load de X -> null (a linha de Y não vira curva)
+    assert body["pmc"] is None
+
+
+# ---------------------------------------------------------------
 # T8 — service.get_potential (chamadas diretas com seeds)
 # ---------------------------------------------------------------
 
@@ -108,27 +168,28 @@ def _seed_activity(db, *, garmin_id: str, start: datetime, name: str = "Morning 
 def test_get_potential_full_payload_from_seeds(db) -> None:
     """Done-when T8: os 4 blocos montados a partir do banco — pins do
     design §Contrato (PRs reais + predições da sonda + prova deduplicada)."""
-    _seed_prs(db)
-    _seed_garmin_predictions(db)
+    user = _new_user(db)
+    _seed_prs(db, user.id)
+    _seed_garmin_predictions(db, user.id)
     # Maratona de Londrina: prova E PR na mesma data -> só o PR vira ponto
     _seed_activity(
-        db, garmin_id="1", start=datetime(2026, 7, 5, 7, 10, 53),
+        db, user.id, garmin_id="1", start=datetime(2026, 7, 5, 7, 10, 53),
         name="Londrina Corrida", distance_m=42300.0, duration_s=14083.0,
         raw_json={"eventType": {"typeKey": "race", "typeId": 1}},
     )
     # Prova em data livre: vira ponto da timeline
     _seed_activity(
-        db, garmin_id="2", start=datetime(2025, 6, 15, 7, 0, 0),
+        db, user.id, garmin_id="2", start=datetime(2025, 6, 15, 7, 0, 0),
         name="Corrida de Aniversário", distance_m=10000.0, duration_s=2500.0,
         raw_json={"eventType": {"typeKey": "race", "typeId": 1}},
     )
     _seed_activity(
-        db, garmin_id="3", start=datetime(2026, 4, 22, 7, 0, 0),
+        db, user.id, garmin_id="3", start=datetime(2026, 4, 22, 7, 0, 0),
         raw_json={"vO2MaxValue": 54.0},
     )
     db.commit()
 
-    payload = service.get_potential(db, CALIBRATION)
+    payload = service.get_potential(db, user.id, CALIBRATION)
 
     # Bloco vdot: corrente da calibração; demonstrado = 5K com o evento na origem
     assert payload["vdot"]["current"] == {
@@ -190,22 +251,23 @@ def test_vo2max_points_filtered_and_ordered_from_raw_json(db) -> None:
     """Done-when T8 (POT-13): pontos do raw_json.vO2MaxValue das corridas
     (running/trail_running — filtro em Python, AD-001), start_time ASC com
     desempate id ASC (determinismo do spec); campo ausente/não-corrida fora."""
-    _seed_activity(db, garmin_id="10", start=datetime(2026, 4, 23, 7, 0),
+    user = _new_user(db)
+    _seed_activity(db, user.id, garmin_id="10", start=datetime(2026, 4, 23, 7, 0),
                    raw_json={"vO2MaxValue": 55.0})
-    _seed_activity(db, garmin_id="11", start=datetime(2026, 4, 22, 7, 0),
+    _seed_activity(db, user.id, garmin_id="11", start=datetime(2026, 4, 22, 7, 0),
                    raw_json={"vO2MaxValue": 54.0})
-    _seed_activity(db, garmin_id="12", start=datetime(2026, 4, 21, 7, 0),
+    _seed_activity(db, user.id, garmin_id="12", start=datetime(2026, 4, 21, 7, 0),
                    activity_type="cycling", raw_json={"vO2MaxValue": 60.0})
-    _seed_activity(db, garmin_id="13", start=datetime(2026, 4, 20, 7, 0),
+    _seed_activity(db, user.id, garmin_id="13", start=datetime(2026, 4, 20, 7, 0),
                    raw_json={"distance": 5000})  # corrida sem o campo
     # Empate de start_time: a ordem segue id ASC (estável entre leituras)
-    _seed_activity(db, garmin_id="14", start=datetime(2026, 4, 26, 7, 0),
+    _seed_activity(db, user.id, garmin_id="14", start=datetime(2026, 4, 26, 7, 0),
                    raw_json={"vO2MaxValue": 55.5})
-    _seed_activity(db, garmin_id="15", start=datetime(2026, 4, 26, 7, 0),
+    _seed_activity(db, user.id, garmin_id="15", start=datetime(2026, 4, 26, 7, 0),
                    activity_type="trail_running", raw_json={"vO2MaxValue": 56.0})
     db.commit()
 
-    payload = service.get_potential(db, CALIBRATION)
+    payload = service.get_potential(db, user.id, CALIBRATION)
     assert payload["vo2max"] == {
         "points": [
             {"date": date(2026, 4, 22), "value": 54.0},
@@ -219,9 +281,11 @@ def test_vo2max_points_filtered_and_ordered_from_raw_json(db) -> None:
 def test_vo2max_null_without_watch_data(db) -> None:
     """Done-when T8 (POT-13): nenhuma corrida com vO2MaxValue -> vo2max=None
     (spec AC 7 — bloco null, não lista vazia)."""
-    _seed_activity(db, garmin_id="20", start=datetime(2026, 4, 22, 7, 0), raw_json={})
+    user = _new_user(db)
+    _seed_activity(db, user.id, garmin_id="20", start=datetime(2026, 4, 22, 7, 0),
+                   raw_json={})
     db.commit()
-    payload = service.get_potential(db, CALIBRATION)
+    payload = service.get_potential(db, user.id, CALIBRATION)
     assert payload["vo2max"] is None
 
 
@@ -229,7 +293,10 @@ def test_get_potential_without_user_data_keeps_empty_states(db) -> None:
     """Done-when T8: sem PRs/predições/provas -> decay=[], timeline só com o
     teste de calibração (demonstrado = o próprio teste), colunas de PR null,
     Riegel null (sem âncora de 5K) — nenhum número inventado."""
-    payload = service.get_potential(db, CALIBRATION)
+    user = _new_user(db)
+    db.commit()
+
+    payload = service.get_potential(db, user.id, CALIBRATION)
 
     (point,) = payload["vdot"]["timeline"]
     assert point["source"] == "teste"
@@ -278,12 +345,13 @@ def test_service_payload_includes_pmc_from_load_rows(db) -> None:
     as linhas (zero recálculo, CLR-06), `current` = última linha, acwr
     null atravessa (CLR-02). Ordem das chaves pinada — o espelho do
     router e do cliente seguem a posição."""
-    _seed_load(db, date(2026, 10, 13), 20.0, 25.0, -5.0)  # janela 28d incompleta
-    _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
-    _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
+    user = _new_user(db)
+    _seed_load(db, user.id, date(2026, 10, 13), 20.0, 25.0, -5.0)  # janela 28d incompleta
+    _seed_load(db, user.id, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
+    _seed_load(db, user.id, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
     db.commit()
 
-    payload = service.get_potential(db, CALIBRATION)
+    payload = service.get_potential(db, user.id, CALIBRATION)
     assert list(payload.keys()) == ["vdot", "predictions", "vo2max", "decay", "pmc"]
     assert payload["pmc"] == {
         "days": 60,
@@ -301,12 +369,13 @@ def test_service_payload_includes_pmc_from_load_rows(db) -> None:
 def test_service_pmc_window_caps_at_60_rows(db) -> None:
     """Janela fixa (AD-017): 61 linhas em `load` -> as últimas 60, mais
     antiga primeiro (mesma DESC+limit+reverse da PMC original)."""
+    user = _new_user(db)
     for i in range(61):
         day = date(2026, 8, 16) + timedelta(days=i)  # 16/08..15/10
-        _seed_load(db, day, float(i), 0.0, 0.0)
+        _seed_load(db, user.id, day, float(i), 0.0, 0.0)
     db.commit()
 
-    pmc = service.get_potential(db, CALIBRATION)["pmc"]
+    pmc = service.get_potential(db, user.id, CALIBRATION)["pmc"]
     assert len(pmc["points"]) == 60
     assert pmc["points"][0]["date"] == date(2026, 8, 17)  # a 1ª caiu fora
     assert pmc["current"]["date"] == date(2026, 10, 15)
@@ -315,7 +384,9 @@ def test_service_pmc_window_caps_at_60_rows(db) -> None:
 def test_service_pmc_null_without_load_rows(db) -> None:
     """CLR-02 (segue vigente): sem linhas em `load` -> pmc null (estado
     vazio, não erro — mesma semântica de POT-12)."""
-    assert service.get_potential(db, CALIBRATION)["pmc"] is None
+    user = _new_user(db)
+    db.commit()
+    assert service.get_potential(db, user.id, CALIBRATION)["pmc"] is None
 
 
 # ---------------------------------------------------------------
@@ -323,25 +394,26 @@ def test_service_pmc_null_without_load_rows(db) -> None:
 # ---------------------------------------------------------------
 
 
-def _seed_full_panel(db) -> None:
+def _seed_full_panel(db, user_id: int) -> None:
     """Painel completo: PRs reais + predições da sonda + linhas de load
     (que viram o bloco pmc — AD-017) + vo2max."""
-    _seed_prs(db)
-    _seed_garmin_predictions(db)
-    _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
-    _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
+    _seed_prs(db, user_id)
+    _seed_garmin_predictions(db, user_id)
+    _seed_load(db, user_id, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
+    _seed_load(db, user_id, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
     _seed_activity(
-        db, garmin_id="30", start=datetime(2026, 4, 22, 7, 0, 0),
+        db, user_id, garmin_id="30", start=datetime(2026, 4, 22, 7, 0, 0),
         raw_json={"vO2MaxValue": 54.0},
     )
 
 
-def test_api_happy_path_200_full_payload(client) -> None:
+def test_api_happy_path_200_full_payload(session_client) -> None:
     """POT-11: 200 com o payload completo em JSON — datas ISO e os pins
     do design atravessando o HTTP (com `pmc` — AD-017; janela fixa de
     60d, `current` = última linha)."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        _seed_full_panel(db)
+        _seed_full_panel(db, user_id)
         db.commit()
 
     response = client.get("/api/potential")
@@ -387,12 +459,13 @@ def test_api_happy_path_200_full_payload(client) -> None:
     assert by_event["MARATHON"]["delta_pct"] == -22.1
 
 
-def test_api_pmc_traverses_http_from_load(client) -> None:
+def test_api_pmc_traverses_http_from_load(session_client) -> None:
     """AD-017 via HTTP: só linhas em `load` já montam o bloco `pmc`
     (dias/valores pinados, janela fixa 60d) — os outros blocos seguem
     com estados vazios honestos. Ordem das chaves pinada no JSON."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
+        _seed_load(db, user_id, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
         db.commit()
 
     response = client.get("/api/potential")
@@ -411,13 +484,14 @@ def test_api_pmc_traverses_http_from_load(client) -> None:
     }
 
 
-def test_api_dead_days_param_returns_identical_payload(client) -> None:
+def test_api_dead_days_param_returns_identical_payload(session_client) -> None:
     """Done-when T10 (CLR-04, segue vigente): `?days=90` (param morto do
     cliente antigo) -> 200 com payload idêntico ao da chamada sem param —
     o painel cheio (com `load` semeados — o `pmc` de janela fixa incluso,
     AD-017) mostraria qualquer efeito de janela."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        _seed_full_panel(db)
+        _seed_full_panel(db, user_id)
         db.commit()
 
     plain = client.get("/api/potential")
@@ -427,11 +501,12 @@ def test_api_dead_days_param_returns_identical_payload(client) -> None:
     assert with_days.json() == plain.json()
 
 
-def test_api_dead_days_param_space_has_no_validation(client) -> None:
+def test_api_dead_days_param_space_has_no_validation(session_client) -> None:
     """Edge do spec (CLR-04): o espaço do param morto não herda validação
     nova — os valores que eram 422 no contrato antigo (0, -1, 366) agora
     são query ignorada: 200 com payload idêntico. Os bounds vivos de
     `days` são os do health (7–365 — test_health_api)."""
+    client, _user_id = session_client
     baseline = client.get("/api/potential").json()
     for params in ({"days": 0}, {"days": -1}, {"days": 366}):
         response = client.get("/api/potential", params=params)
@@ -439,23 +514,25 @@ def test_api_dead_days_param_space_has_no_validation(client) -> None:
         assert response.json() == baseline, params
 
 
-def test_api_missing_zones_file_responds_500(client, monkeypatch) -> None:
+def test_api_missing_zones_file_responds_500(session_client, monkeypatch) -> None:
     """POT-16: vdot_zones.json ausente/inválido -> 500 com a mensagem exata
     (a mesma do workouts-list — sem VDOT corrente não há painel)."""
     def raise_missing(path):
         raise ZoneConfigError(f"não foi possível carregar {path}")
 
     monkeypatch.setattr(potential_router, "load_calibration", raise_missing)
+    client, _user_id = session_client
     response = client.get("/api/potential")
     assert response.status_code == 500
     assert response.json()["detail"] == "zonas VDOT não configuradas"
 
 
-def test_api_empty_bank_keeps_empty_states_with_pmc_null(client) -> None:
+def test_api_empty_bank_keeps_empty_states_with_pmc_null(session_client) -> None:
     """Done-when (estado vazio × AD-017): banco vazio -> 200 com os 5
     blocos e os estados vazios honestos que o empty check da UI lê
     (timeline só com o teste, vo2max null, decay [], pmc null) —
     estado vazio, não erro; a curva só nasce no primeiro sync."""
+    client, _user_id = session_client
     response = client.get("/api/potential")
     assert response.status_code == 200
     body = response.json()
@@ -467,9 +544,10 @@ def test_api_empty_bank_keeps_empty_states_with_pmc_null(client) -> None:
     assert body["pmc"] is None
 
 
-def test_api_vo2max_null_traverses_http_as_json_null(client) -> None:
+def test_api_vo2max_null_traverses_http_as_json_null(session_client) -> None:
     """POT-13 via HTTP (done-when T9): nenhuma corrida com vO2MaxValue ->
     vo2max=null no JSON (a UI omite o bloco inteiro)."""
+    client, _user_id = session_client
     response = client.get("/api/potential")
     assert response.status_code == 200
     assert response.json()["vo2max"] is None

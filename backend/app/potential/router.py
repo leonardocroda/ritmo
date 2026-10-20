@@ -14,8 +14,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.auth.deps import require_session
 from app.core.config import get_settings
 from app.db.engine import get_db
+from app.db.models import User
 from app.potential import service
 from app.vdot.calibration import load_calibration
 from app.vdot.zones import ZoneConfigError
@@ -106,7 +108,10 @@ class PotentialOut(BaseModel):
 
 
 @router.get("")
-def get_potential(db: Session = Depends(get_db)) -> PotentialOut:
+def get_potential(
+    user: User = Depends(require_session),
+    db: Session = Depends(get_db),
+) -> PotentialOut:
     """O painel inteiro em 1 payload — os 5 blocos, com o `pmc` de
     volta (AD-017 reverte a CLR-03).
 
@@ -114,6 +119,7 @@ def get_potential(db: Session = Depends(get_db)) -> PotentialOut:
     200 sem efeito no payload (CLR-04). O carregamento da calibração
     acontece no corpo do handler — um arquivo ausente/inválido -> 500
     "zonas VDOT não configuradas" (spec: sem VDOT corrente não há painel).
+    Toda leitura filtra pelo usuário da sessão (user-scope).
     """
     try:
         calibration = load_calibration(get_settings().vdot_zones_path)
@@ -121,4 +127,4 @@ def get_potential(db: Session = Depends(get_db)) -> PotentialOut:
         raise HTTPException(
             status_code=500, detail="zonas VDOT não configuradas"
         ) from exc
-    return service.get_potential(db, calibration)
+    return service.get_potential(db, user.id, calibration)
