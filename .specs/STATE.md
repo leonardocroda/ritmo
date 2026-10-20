@@ -164,11 +164,24 @@
 
 ## Handoff
 
-- **Feature**: `ai-evaluation` — **concluída com a emenda job validada** (PASS, `c9509a5`): 25/25 ACs, gate 362, sensor 9/9 cumulativo; relatório em `.specs/features/ai-evaluation/validation.md` (histórico: PASS original → UAT pediu job → emenda → PASS)
-- **Phase / Task**: Execute concluído — 20 tasks no total (T1-T13 + T14-T20 da emenda); código `4019ad8..d6fa4bd`
-- **Completed**: avaliação como **job em background** (emenda 18/10, decisão do usuário): POST cria `pending` (201, payload montado, zero NIM no request) → worker BackgroundTasks consome NIM → `done` (veredito sanitizado + tokens + evaluated) ou `error` com o motivo NA LINHA — a tentativa nunca se perde; recovery de órfãs no startup; UI com polling ~2s (card "Analisando treino…" → veredito; card de erro com a causa); modelo A/B testado ao vivo (glm-5.3 thinking e flash — 429 do flash também vira linha error com motivo)
+- **Feature**: `auth` — **concluída e validada (PASS, 20/10/2026)**: 20/20 ACs backend com
+  evidência spec-anchored, sensor 6/6 mutantes mortas, UAT aprovado nos dois hosts
+  (AUTH-17..24); relatório em `.specs/features/auth/validation.md` (histórico: iteração 0
+  FAIL → fix relógio pinado `449deed` → iteração 1 PASS condicionado → UAT → PASS final)
+- **Phase / Task**: Execute concluído — 16 tasks + 2 emendas UAT (T17 migração idempotente
+  `258e13a`/AD-019; T18 rewrite same-origin `70bb171`/AD-020); código `6092b77..70bb171`
+- **Completed**: auth própria self-hosted completa — register por convite (auto-login) +
+  login/logout + sessão stateful sliding 30d (cookie HttpOnly host-only, hash SHA-256 no
+  banco) + proteção total da API (401) e das telas (proxy otimista) + CLI `set_password`
+  (bootstrap/suporte) + fixes `users_pkey`/CORS + transporte same-origin via rewrite do
+  Next (AD-020 — `localhost:3000` e IP-da-LAN funcionam igual; CORS opcional)
 - **In-progress**: none
-- **Next step**: **Fase 1.5 planejada e decidida (18/10, AD-012..015)** — Identidade e dados por usuário antes da Fase 2: `auth` (email+senha+sessão+convite) → `user-scope` (fim do DEFAULT_USER_ID em query) → `zones-db` (seed do JSON, LTHR no perfil) → `garmin-tokens-db` (cofre Fernet, gateway por usuário, CLI --user) → `user-profile` (`/perfil`). Próximo passo concreto: **"specify feature auth"** (workflow spec-driven). Pendências menores vivas: sync de passos/NEAT, sequência `users_pkey` desincronizada (vira fix no `auth`); decisão aberta de produto: NVIDIA_MODEL padrão no `.env` (flash no dia a dia vs glm-5.3 para análises profundas — A/B já feito)
+- **Next step**: **Fase 1.5 feature 2 — `user-scope`** ("specify feature user-scope"): todas
+  as queries passam a usar o usuário da sessão (fim do `DEFAULT_USER_ID` em ~30 pontos de
+  query) + teste de isolamento A×B. Depois: `zones-db` → `garmin-tokens-db` → `user-profile`.
+  Pendências menores vivas: CLI `set_password` não aplica política de senha ≥8 (API aplica;
+  trocar a senha "test" por uma real antes de convidar); sync de passos/NEAT (Fase 2);
+  decisão aberta de produto: NVIDIA_MODEL padrão no `.env`
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main (commits locais; push só com go-ahead do usuário)

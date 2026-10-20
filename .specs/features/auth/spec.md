@@ -11,10 +11,10 @@ self-hosted (AD-013), cadastro por código de convite, CLI de bootstrap, sessão
 
 ## Goals
 
-- [ ] Nenhuma tela ou endpoint de dado responde sem sessão válida (telas → `/login`; API → 401)
-- [ ] Leonardo e convidados com o código de convite criam conta e entram; a sessão sobrevive
+- [x] Nenhuma tela ou endpoint de dado responde sem sessão válida (telas → `/login`; API → 401)
+- [x] Leonardo e convidados com o código de convite criam conta e entram; a sessão sobrevive
       30 dias de uso contínuo (sliding) sem re-login
-- [ ] Infra pronta para cadastro via app: sequência `users_pkey` corrigida e CORS explícito
+- [x] Infra pronta para cadastro via app: sequência `users_pkey` corrigida e CORS explícito
       com credenciais
 
 ## Out of Scope

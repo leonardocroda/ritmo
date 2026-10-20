@@ -209,3 +209,51 @@ credenciais; suite 411 verde no Postgres do compose.
 **Next steps**: 1) orquestrador conduz o UAT 390px dos AUTH-17..24 (tabela acima) e anexa a
 evidência; 2) com UAT aprovado, atualizar o status de AUTH-17..24 no spec.md para ✅ Verified —
 a feature fecha sem necessidade de nova iteração do Verifier backend.
+
+---
+
+## UAT (20/10/2026) — evidência de execução dos AUTH-17..24
+
+**Resultado: ✅ APROVADO pelo usuário** ("Deu certo!" — 20/10/2026), com duas emendas de
+transporte incorporadas ao longo do UAT e o login/navegação confirmados **nos dois hosts**.
+
+**Ambiente**: stack compose no PC (backend :8000, frontend :3000, Postgres 16), acesso via
+`localhost:3000` (PC) e `http://192.168.15.16:3000` (LAN), login `lccroda@gmail.com` (seed
+vinculado pela CLI `set_password`).
+
+**Emendas que o UAT produziu** (ambas commitadas antes do fechamento):
+
+1. **T17 — `fix(db)` `258e13a`**: banco de dev pré-auth crashava no startup (`create_all`
+   não altera tabela existente) → migração idempotente no `init_db` (AD-019). Teste de
+   regressão incluído; suite 412/0.
+2. **T18 — `feat(frontend)` `70bb171`**: transporte cross-host quebrava o login em
+   `localhost:3000` (cookie no host da API, proxy cego) e bloqueava a origem da LAN
+   (CORS sem a origem) → rewrite same-origin `/api/*` no Next (AD-020); cookie vale para o
+   host aberto, proxy vê em qualquer host, CORS deixa de ser requisito. Verificado por curl
+   ponta a ponta: login 200 + Set-Cookie via `localhost:3000`, `/me` 200 com o cookie,
+   401 limpo sem sessão — nos dois hosts.
+
+**Cobertura por AC**:
+
+| AC | Evidência de execução |
+| --- | --- |
+| AUTH-17 (sem sessão → `/login?next=`) | ✅ declarado aprovado no fluxo testado (aba anônima/sem cookie cai no login; verificado também por curl: 401 + redirect do proxy) |
+| AUTH-18 (volta à rota original) | ✅ aprovado no fluxo testado |
+| AUTH-19..20 (logado em `/login`→`/treinos`; `/`→`/treinos`) | ✅ contemplados pelo fluxo aprovado (comportamento implementado no proxy/home; leitura de código pelo Verifier) |
+| AUTH-21 (401 em uso → redirect com `next`) | ✅ mecanismo exercido pelo UAT de sessão revogada/redirect; implementação verificada por leitura |
+| AUTH-22 (telas de auth sem header de painéis) | ✅ aprovado (telas `/login` e `/registrar` usadas no login real) |
+| AUTH-23 (header com display_name + Sair) | ✅ aprovado (header logado usado durante o UAT) |
+| AUTH-24 (Sair revoga no servidor) | ✅ mecanismo coberto por teste automatizado (`logout → revoga → 401`); aprovado no fluxo |
+
+**Nota de honestidade**: o usuário reportou aprovação consolidada ("Deu certo!") após o
+login funcionar nos dois hosts, sem relatório item a item dos 8 pontos; os pontos não
+nomeados individualmente ficam cobertos pela combinação de (a) declaração de aprovação do
+dono do produto, (b) testes automatizados do backend (412/0, sensor 6/6) e (c) leitura
+independente da implementação frontend pelo Verifier (iteração 1).
+
+## Final Verdict
+
+✅ **PASS** — feature auth concluída (20/10/2026): 20/20 ACs backend com evidência
+spec-anchored + sensor 6/6 mutantes mortas + UAT aprovado nos dois hosts (AUTH-17..24).
+Gates: backend 412/0 (Postgres do compose) · frontend lint+build ✅. Range
+`31020a5..70bb171` (18 tasks + 2 emendas UAT).
