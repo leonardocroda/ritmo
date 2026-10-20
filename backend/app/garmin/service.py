@@ -18,7 +18,6 @@ from app.db.engine import SessionLocal
 from app.db.models import (
     Activity,
     BodyBattery,
-    DEFAULT_USER_ID,
     Hrv,
     Rhr,
     Sleep,
@@ -110,10 +109,12 @@ def _save_stats(db: Session, job: SyncJob, stats: dict) -> None:
     db.commit()
 
 
-def create_job(db: Session, user_id: int = DEFAULT_USER_ID) -> SyncJob:
+def create_job(db: Session, user_id: int) -> SyncJob:
     """Cria o job pending; job ativo existente -> JobConflictError (SYNC-02).
 
-    O índice parcial de `sync_jobs` transforma o insert concorrente em
+    ``user_id`` é obrigatório (user-scope): o sync é isolado por usuário
+    desde a criação — quem chama é o router com o usuário da sessão. O
+    índice parcial de `sync_jobs` transforma o insert concorrente em
     IntegrityError — sem janela de corrida entre check e insert.
     """
     job = SyncJob(user_id=user_id, status="pending")

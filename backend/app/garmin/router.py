@@ -12,8 +12,9 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.auth.deps import require_session
 from app.db.engine import get_db
-from app.db.models import DEFAULT_USER_ID, SyncJob
+from app.db.models import SyncJob, User
 from app.garmin.service import JobConflictError, create_job, run_sync
 
 router = APIRouter(prefix="/api/sync")
@@ -60,13 +61,15 @@ def _active_job(db: Session, user_id: int) -> SyncJob:
 @router.post("", status_code=status.HTTP_201_CREATED)
 def start_sync(
     background_tasks: BackgroundTasks,
+    user: User = Depends(require_session),
     db: Session = Depends(get_db),
 ) -> JobCreated:
-    """SYNC-01: cria o job pending e agenda o sync em background."""
+    """SYNC-01: cria o job pending e agenda o sync em background — sempre
+    para o usuário da sessão (user-scope, USR-13)."""
     try:
-        job = create_job(db, DEFAULT_USER_ID)
+        job = create_job(db, user.id)
     except JobConflictError as exc:
-        active = _active_job(db, DEFAULT_USER_ID)  # SYNC-02: estado do job corrente
+        active = _active_job(db, user.id)  # SYNC-02: estado do job corrente
         raise HTTPException(
             status_code=409,
             detail={
@@ -82,11 +85,14 @@ def start_sync(
 
 
 @router.get("/jobs/latest")
-def get_latest_job(db: Session = Depends(get_db)) -> LatestJob:
-    """O endpoint que a UI poleia — último job, qualquer status."""
+def get_latest_job(
+    user: User = Depends(require_session),
+    db: Session = Depends(get_db),
+) -> LatestJob:
+    """O endpoint que a UI poleia — último job DO USUÁRIO da sessão, qualquer status."""
     job = db.execute(
         select(SyncJob)
-        .where(SyncJob.user_id == DEFAULT_USER_ID)
+        .where(SyncJob.user_id == user.id)
         .order_by(SyncJob.id.desc())
         .limit(1)
     ).scalar_one_or_none()
@@ -94,9 +100,14 @@ def get_latest_job(db: Session = Depends(get_db)) -> LatestJob:
 
 
 @router.get("/jobs/{job_id}")
-def get_job(job_id: int, db: Session = Depends(get_db)) -> JobOut:
-    """SYNC-05: stats parciais/finais do job; 404 se inexistente."""
+def get_job(
+    job_id: int,
+    user: User = Depends(require_session),
+    db: Session = Depends(get_db),
+) -> JobOut:
+    """SYNC-05: stats parciais/finais do job; 404 se inexistente OU de
+    outro usuário (user-scope, USR-12 — nunca vaza a existência)."""
     job = db.get(SyncJob, job_id)
-    if job is None:
+    if job is None or job.user_id != user.id:
         raise HTTPException(status_code=404, detail="job não encontrado")
     return _job_out(job)

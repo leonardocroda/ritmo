@@ -18,7 +18,6 @@ from app.db.models import (
     Activity,
     BodyBattery,
     DailyLoad,
-    DEFAULT_USER_ID,
     Hrv,
     PersonalRecord,
     RacePrediction,
@@ -28,6 +27,7 @@ from app.db.models import (
     Stress,
     SyncJob,
     SyncState,
+    User,
 )
 from app.garmin import service
 from app.garmin.client import GarminAuthExpiredError, SyncBudgetExceededError
@@ -76,9 +76,17 @@ def _table_counts(db) -> dict[str, int]:
     return {name: _count(db, model) for name, model in models.items()}
 
 
-def _create_job() -> SyncJob:
+def _create_job(user_id: int | None = None) -> SyncJob:
+    """Job pending — usuário novo quando ``user_id`` ausente, o mesmo
+    usuário quando o teste roda syncs sequenciais (o incremental é por
+    usuário: user-scope). O commit do create_job grava os dois."""
     with SessionLocal() as session:
-        return create_job(session, DEFAULT_USER_ID)
+        if user_id is None:
+            user = User(display_name="Corredora")
+            session.add(user)
+            session.flush()
+            user_id = user.id
+        return create_job(session, user_id)
 
 
 def _load_job(job_id: int) -> SyncJob:
@@ -88,10 +96,13 @@ def _load_job(job_id: int) -> SyncJob:
 
 def test_create_job_conflict_when_active_job_exists(db):
     """SYNC-02: job ativo existente -> JobConflictError (base do 409)."""
-    job = create_job(db, DEFAULT_USER_ID)
+    user = User(display_name="Corredora")
+    db.add(user)
+    db.flush()
+    job = create_job(db, user.id)
 
     with pytest.raises(JobConflictError):
-        create_job(db, DEFAULT_USER_ID)
+        create_job(db, user.id)
 
     assert db.get(SyncJob, job.id).status == "pending"  # o corrente segue intacto
 
@@ -157,7 +168,7 @@ def test_run_sync_happy_path_done_with_full_stats(db, monkeypatch):
         assert load_dates[0] == date(2026, 10, 3)
         assert load_dates[-1] == TODAY
         for data_type in ("activities", "sleep", "hrv", "rhr", "stress", "body_battery"):
-            assert get_sync_state(s, DEFAULT_USER_ID, data_type) == TODAY
+            assert get_sync_state(s, job.user_id, data_type) == TODAY
 
 
 def test_sync_is_idempotent_2x_same_counts(db, monkeypatch):
@@ -169,7 +180,7 @@ def test_sync_is_idempotent_2x_same_counts(db, monkeypatch):
     with SessionLocal() as s:
         counts_after_first = _table_counts(s)
 
-    second_job = _create_job()
+    second_job = _create_job(first_job.user_id)
     run_sync(second_job.id)
     with SessionLocal() as s:
         assert _table_counts(s) == counts_after_first
@@ -195,7 +206,7 @@ def test_incremental_windows_after_backfill(db, monkeypatch):
     assert len(fake.calls["sleep"]) == 121
     assert fake.calls["body_battery"] == [(BACKFILL_HEALTH_START, TODAY)]
 
-    second_job = _create_job()
+    second_job = _create_job(first_job.user_id)
     run_sync(second_job.id)
     fake = FakeGateway.last
     assert fake.calls["activities"] == [(REPULL_START, TODAY)]  # SYNC-10
@@ -212,7 +223,7 @@ def test_second_sync_calls_made_much_smaller(db, monkeypatch):
 
     first_job = _create_job()
     run_sync(first_job.id)
-    second_job = _create_job()
+    second_job = _create_job(first_job.user_id)
     run_sync(second_job.id)
 
     assert _load_job(first_job.id).stats_json["calls_made"] == 499
@@ -299,7 +310,7 @@ def test_activities_failure_after_retries_job_error(db, monkeypatch):
         assert _table_counts(s)["activities"] == 0  # nada parcial gravado
         assert _table_counts(s)["splits"] == 0
         assert _table_counts(s)["sleep"] == 0  # fases seguintes nem rodaram
-        assert get_sync_state(s, DEFAULT_USER_ID, "activities") is None
+        assert get_sync_state(s, job.user_id, "activities") is None
 
 
 def test_health_type_failure_warns_and_continues(db, monkeypatch):
@@ -329,8 +340,8 @@ def test_health_type_failure_warns_and_continues(db, monkeypatch):
     with SessionLocal() as s:
         assert _count(s, Sleep) == 0
         assert _count(s, Hrv) == 121
-        assert get_sync_state(s, DEFAULT_USER_ID, "sleep") is None  # tipo falhou
-        assert get_sync_state(s, DEFAULT_USER_ID, "hrv") == TODAY  # os demais avançam
+        assert get_sync_state(s, job.user_id, "sleep") is None  # tipo falhou
+        assert get_sync_state(s, job.user_id, "hrv") == TODAY  # os demais avançam
         assert _count(s, DailyLoad) == 12  # PMC rodou mesmo com warning
 
 
@@ -454,7 +465,7 @@ def test_predictions_resync_updates_without_duplicates(db, monkeypatch):
 
     first_job = _create_job()
     run_sync(first_job.id)
-    second_job = _create_job()
+    second_job = _create_job(first_job.user_id)
     run_sync(second_job.id)
 
     with SessionLocal() as s:
@@ -509,8 +520,8 @@ def test_budget_exceeded_error_with_calls_stats(db, monkeypatch):
     with SessionLocal() as s:
         assert _count(s, Sleep) == 121  # tipos concluídos antes do teto ficam
         assert _count(s, Stress) == 0
-        assert get_sync_state(s, DEFAULT_USER_ID, "stress") is None
-        assert get_sync_state(s, DEFAULT_USER_ID, "sleep") == TODAY
+        assert get_sync_state(s, job.user_id, "stress") is None
+        assert get_sync_state(s, job.user_id, "sleep") == TODAY
 
 
 def test_health_day_without_data_skipped_silently(db, monkeypatch):
@@ -534,7 +545,7 @@ def test_health_day_without_data_skipped_silently(db, monkeypatch):
             s.execute(select(Hrv).where(Hrv.date == date(2026, 10, 13))).scalar_one_or_none()
             is None
         )
-        assert get_sync_state(s, DEFAULT_USER_ID, "hrv") == TODAY  # tipo concluído
+        assert get_sync_state(s, job.user_id, "hrv") == TODAY  # tipo concluído
 
 
 def test_health_backfill_covers_hrv_band_lookback(db, monkeypatch):
@@ -581,7 +592,10 @@ def test_per_item_progress_during_health_phase(db, monkeypatch):
 
 def test_startup_recovers_orphan_running_job(db):
     """SYNC-02 (T9): job running órfão vira error no startup — nenhum 409 eterno."""
-    job = create_job(db, DEFAULT_USER_ID)
+    user = User(display_name="Corredora")
+    db.add(user)
+    db.flush()
+    job = create_job(db, user.id)
     job.status = "running"  # simula o processo morto no meio do sync
     job.started_at = datetime(2026, 10, 14, 12, 0, 0)
     db.commit()
@@ -595,7 +609,7 @@ def test_startup_recovers_orphan_running_job(db):
     assert reloaded.finished_at is not None
 
     with SessionLocal() as s:  # lock liberado: novo sync é aceito
-        assert create_job(s, DEFAULT_USER_ID).status == "pending"
+        assert create_job(s, user.id).status == "pending"
 
 
 def test_startup_leaves_finished_jobs_untouched(db, monkeypatch):
@@ -605,7 +619,7 @@ def test_startup_leaves_finished_jobs_untouched(db, monkeypatch):
     run_sync(done_job.id)
     done_before = _load_job(done_job.id)
     with SessionLocal() as s:
-        error_job = create_job(s, DEFAULT_USER_ID)
+        error_job = create_job(s, done_job.user_id)
         error_job.status = "error"
         error_job.error = "falha anterior"
         error_job.finished_at = datetime(2026, 10, 13, 8, 0, 0)

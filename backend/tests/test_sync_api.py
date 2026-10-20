@@ -1,5 +1,9 @@
 """Router do sync (T10) — POST cria o job, GETs expõem o estado (SYNC-01/02/05).
 
+User-scope (T5, USR-13/12): o job nasce com o user_id do usuário da
+sessão (``session_client`` — sessão real, sem o override do conftest) e
+os GETs só enxergam jobs do próprio usuário; job alheio -> 404.
+
 TestClient executa o background task de forma síncrona: depois do POST
 o job já terminou `done` com stats (FakeGateway — nenhum Garmin real).
 "Hoje" congelado em 2026-10-14; valores afirmados são literais do
@@ -9,14 +13,13 @@ spec/design (lição L-001).
 from datetime import date, datetime
 
 import pytest
-from fastapi.testclient import TestClient
 
+from app.auth.security import hash_password
 from app.db.engine import SessionLocal
-from app.db.models import DEFAULT_USER_ID, SyncJob
+from app.db.models import SyncJob, User
 from app.garmin import service
 from app.garmin.client import GarminAuthExpiredError
 from app.garmin.service import create_job
-from app.main import app
 from fake_garmin import FakeGateway
 
 TODAY = date(2026, 10, 14)
@@ -46,20 +49,26 @@ def _frozen_today(monkeypatch):
 
 
 @pytest.fixture()
-def client(monkeypatch):
-    """TestClient com FakeGateway — o lifespan recria o schema do teste."""
+def sync_client(monkeypatch, session_client):
+    """session_client (sessão real) com FakeGateway — nenhum Garmin real."""
     monkeypatch.setattr(service, "GarminGateway", FakeGateway)
-    with TestClient(app) as test_client:
-        yield test_client
+    client, user_id = session_client
+    return client, user_id
 
 
-def test_post_creates_job_and_runs_sync_to_done(client):
-    """SYNC-01: 201 {id, status}; o background roda e o job termina done."""
+def test_post_creates_job_for_session_user_and_runs_to_done(sync_client):
+    """SYNC-01 + USR-13: 201 {id, status}; o job nasce com user_id do
+    usuário da sessão e o background termina done."""
+    client, user_id = sync_client
     response = client.post("/api/sync")
     assert response.status_code == 201
     body = response.json()
     assert body["status"] == "pending"
     job_id = body["id"]
+
+    with SessionLocal() as db:
+        job = db.get(SyncJob, job_id)
+        assert job.user_id == user_id  # USR-13: gravou com o dono da sessão
 
     job = client.get(f"/api/sync/jobs/{job_id}").json()
     assert job["id"] == job_id
@@ -73,10 +82,11 @@ def test_post_creates_job_and_runs_sync_to_done(client):
     assert stats["calls_made"] == 499  # inclui a 1 chamada do passo de predições (POT-01)
 
 
-def test_post_conflict_409_with_running_job_state(client):
-    """SYNC-02: job corrente ativo -> 409 com id/status/started_at dele."""
+def test_post_conflict_409_with_running_job_state(sync_client):
+    """SYNC-02: job corrente ativo DO USUÁRIO -> 409 com id/status/started_at dele."""
+    client, user_id = sync_client
     with SessionLocal() as db:
-        active = create_job(db, DEFAULT_USER_ID)
+        active = create_job(db, user_id)
         active.status = "running"
         active.started_at = datetime(2026, 10, 14, 12, 0, 0)
         db.commit()
@@ -90,21 +100,41 @@ def test_post_conflict_409_with_running_job_state(client):
     assert detail["started_at"] == "2026-10-14T12:00:00"
 
 
-def test_get_job_404_when_missing(client):
+def test_get_job_404_when_missing(sync_client):
+    client, _user_id = sync_client
     response = client.get("/api/sync/jobs/9999")
     assert response.status_code == 404
     assert response.json()["detail"] == "job não encontrado"
 
 
-def test_latest_job_null_when_never_synced(client):
+def test_get_job_404_for_other_users_job(sync_client):
+    """USR-12: job de outro usuário -> 404 (nunca vaza a existência nem o estado)."""
+    client, _user_id = sync_client
+    with SessionLocal() as db:
+        other = User(display_name="Outra", email="outro@example.com",
+                     password_hash=hash_password("senha-segura-123"))
+        db.add(other)
+        db.flush()
+        other_job = create_job(db, other.id)
+        db.commit()
+        other_job_id = other_job.id
+
+    response = client.get(f"/api/sync/jobs/{other_job_id}")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "job não encontrado"
+
+
+def test_latest_job_null_when_never_synced(sync_client):
     """Sem sync nenhum: {job: null} — a UI nasce sem estado."""
+    client, _user_id = sync_client
     response = client.get("/api/sync/jobs/latest")
     assert response.status_code == 200
     assert response.json() == {"job": None}
 
 
-def test_latest_returns_last_job_with_stats(client):
+def test_latest_returns_last_job_with_stats(sync_client):
     """Dois syncs: latest é o segundo (incremental), qualquer status serve."""
+    client, _user_id = sync_client
     client.post("/api/sync")
     client.post("/api/sync")
 
@@ -114,10 +144,11 @@ def test_latest_returns_last_job_with_stats(client):
     assert body["job"]["stats"]["activities_updated"] == 4  # janela incremental
 
 
-def test_job_out_and_stats_schema_exact(client):
+def test_job_out_and_stats_schema_exact(sync_client):
     """Design: JobOut {id, status, started_at, finished_at, error, stats} +
     stats_json com todos os contadores, calls_made, duration_s, message,
     warnings e reauth_needed (SYNC-05/06)."""
+    client, _user_id = sync_client
     client.post("/api/sync")
     job = client.get("/api/sync/jobs/latest").json()["job"]
 
@@ -127,7 +158,7 @@ def test_job_out_and_stats_schema_exact(client):
     assert job["stats"]["reauth_needed"] is False
 
 
-def test_error_job_exposed_via_api(client, monkeypatch):
+def test_error_job_exposed_via_api(sync_client, monkeypatch):
     """SYNC-14/05 via API: job error visível com mensagem e stats."""
 
     class FailingActivities(FakeGateway):
@@ -136,6 +167,7 @@ def test_error_job_exposed_via_api(client, monkeypatch):
             raise RuntimeError("atividades indisponíveis (retries esgotados)")
 
     monkeypatch.setattr(service, "GarminGateway", FailingActivities)
+    client, _user_id = sync_client
     job_id = client.post("/api/sync").json()["id"]
 
     job = client.get(f"/api/sync/jobs/{job_id}").json()
@@ -145,7 +177,7 @@ def test_error_job_exposed_via_api(client, monkeypatch):
     assert job["stats"]["reauth_needed"] is False
 
 
-def test_reauth_error_exposed_via_api(client, monkeypatch):
+def test_reauth_error_exposed_via_api(sync_client, monkeypatch):
     """SYNC-25 via API: job error com reauth_needed: true no stats."""
 
     class ReauthGateway(FakeGateway):
@@ -154,6 +186,7 @@ def test_reauth_error_exposed_via_api(client, monkeypatch):
             raise GarminAuthExpiredError("Sessão Garmin expirada (401)")
 
     monkeypatch.setattr(service, "GarminGateway", ReauthGateway)
+    client, _user_id = sync_client
     job_id = client.post("/api/sync").json()["id"]
 
     job = client.get(f"/api/sync/jobs/{job_id}").json()
