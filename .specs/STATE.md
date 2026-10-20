@@ -146,6 +146,14 @@
 - **Date**: 2026-10-19
 - **Status**: active
 
+### AD-019
+- **Decision**: **Evolução de schema = ALTERs idempotentes condicionais no `init_db`** (ao lado do `create_all` e do `setval`): cada feature que altera colunas de tabelas já existentes inclui sua migração idempotente checando `information_schema.columns`; **Alembic fica para a Fase 2.5** (nuvem, se o schema crescer).
+- **Reason**: Emenda UAT (20/10): o `create_all` só cria tabela AUSENTE, nunca altera tabela existente — o banco de dev pré-auth crashou no startup (`UndefinedColumn: users.email`) e a suite não pega porque o conftest derruba o schema a cada teste. Zero-ops do projeto (mesmo espírito do setval da AUTH-27) > introduzir ferramenta de migração no MVP.
+- **Trade-off**: Migração ad hoc por feature (checagem manual da coluna) vs versionamento de schema da Alembic — aceitável num schema pequeno e single-instância; revisitar na 2.5 ou quando houver mais de um ambiente de verdade.
+- **Scope**: `backend/app/db/engine.py`; toda feature futura que altere colunas de tabelas existentes; Fase 2.5 (adotar Alembic).
+- **Date**: 2026-10-20
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: `ai-evaluation` — **concluída com a emenda job validada** (PASS, `c9509a5`): 25/25 ACs, gate 362, sensor 9/9 cumulativo; relatório em `.specs/features/ai-evaluation/validation.md` (histórico: PASS original → UAT pediu job → emenda → PASS)

@@ -28,12 +28,44 @@ def get_db() -> Iterator[Session]:
         db.close()
 
 
+def _migrate_schema() -> None:
+    """Colunas de auth em bases criadas ANTES da feature (emenda UAT, 20/10).
+
+    O ``create_all`` só cria tabela AUSENTE — nunca altera tabela
+    existente. Bancos de dev/produção anteriores à feature auth têm a
+    ``users`` sem ``email``/``password_hash`` e crasham no startup
+    (UndefinedColumn). Migração idempotente no estilo do projeto (mesmo
+    espírito do setval abaixo): zero dependência nova; Alembic fica para
+    a Fase 2.5 se o schema crescer (AD-019). Condicional à coluna: base
+    nova (create_all já criou tudo, inclusive a unique) não ganha índice
+    redundante.
+    """
+    with engine.begin() as conn:
+        columns = {
+            row[0]
+            for row in conn.execute(
+                text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name = 'users'"
+                )
+            )
+        }
+        if "email" in columns:
+            return
+        conn.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR(255)"))
+        conn.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)"))
+        # Múltiplos NULL são permitidos em unique index (Postgres) — o seed
+        # id 1 nasce sem email até o CLI vinculá-lo (AUTH-25)
+        conn.execute(text("CREATE UNIQUE INDEX uq_users_email ON users (email)"))
+
+
 def init_db() -> None:
-    """Cria as tabelas e semeia o usuário default (usuário único na v1)."""
+    """Cria as tabelas, migra esquemas antigos e semeia o usuário default."""
     from app.db import models  # noqa: F401 — registra os modelos no Base
     from app.db.models import DEFAULT_USER_ID, User
 
     Base.metadata.create_all(bind=engine)
+    _migrate_schema()
 
     with SessionLocal() as db:
         if db.get(User, DEFAULT_USER_ID) is None:

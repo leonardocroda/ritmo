@@ -543,6 +543,35 @@ T15 → T16
 
 ---
 
+### T17: Emenda UAT — migração idempotente para bases pré-auth (20/10)
+
+> Emenda descoberta na preparação do UAT (padrão da emenda job do ai-evaluation):
+> o `create_all` só cria tabela AUSENTE — o banco de dev, criado antes da feature,
+> crashou no startup (`UndefinedColumn: users.email`). A suite não pega porque o
+> conftest derruba o schema a cada teste. **Status: completa** (gate Full 412/0).
+
+**What**: `_migrate_schema()` no `init_db` — condicional à coluna (checa
+`information_schema.columns`), adiciona `users.email`/`password_hash` + unique index
+`uq_users_email` em bases pré-auth; base nova (create_all já criou) não ganha índice
+redundante. Decisão de projeto: **AD-019** (ALTERs idempotentes no `init_db`; Alembic
+fica para a Fase 2.5).
+
+**Where**: `backend/app/db/engine.py` (+ teste de regressão em `backend/tests/test_auth_models.py`)
+
+**Done when**:
+
+- [x] Base simulada pré-auth (colunas dropadas) → `init_db` repõe colunas + unique (email duplicado viola de novo)
+- [x] Seed e sequência intactos pós-migração (INSERT sem id avança)
+- [x] Base nova: segunda execução do `init_db` não cria índice duplicado (condicional à coluna)
+- [x] Gate: Full suite verde — 412 passed, 0 failed
+
+**Tests**: integration
+**Gate**: full
+
+**Commit**: `fix(db): idempotent migration adds auth columns to pre-auth databases`
+
+---
+
 ## Phase Execution Map
 
 Visual representation of task ordering. Phases run in sequence, and tasks within a phase run in order:

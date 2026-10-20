@@ -13,9 +13,10 @@ init_db), e o register da T6/T7 já dependerá dela.
 from datetime import datetime
 
 import pytest
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
-from app.db.engine import SessionLocal, init_db
+from app.db.engine import SessionLocal, engine, init_db
 from app.db.models import User, UserSession
 
 # Expiração arbitrária distante — os testes de modelo não dependem do TTL
@@ -84,6 +85,45 @@ def test_user_delete_cascades_sessions(db) -> None:
     db.commit()
 
     assert db.query(UserSession).count() == 0
+
+
+def test_init_db_migrates_pre_auth_schema(db) -> None:
+    """Emenda UAT (AD-019): base criada antes da feature auth tem ``users``
+    sem email/password_hash — o create_all não altera tabela existente e o
+    app crasha no startup (UndefinedColumn). O init_db migra idempotente
+    (ALTER + unique index) sem tocar no seed nem na sequência. Simulação:
+    derruba as colunas e roda init_db de novo."""
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE users DROP COLUMN email"))
+        conn.execute(text("ALTER TABLE users DROP COLUMN password_hash"))
+
+    init_db()
+
+    with engine.begin() as conn:
+        columns = {
+            row[0]
+            for row in conn.execute(
+                text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name = 'users'"
+                )
+            )
+        }
+    assert {"email", "password_hash"} <= columns
+
+    # Unique de volta: email repetido viola (via o índice da migração) —
+    # sem ids explícitos, que dessincronizariam a sequência do setval
+    db.add(User(display_name="A", email="x@example.com"))
+    db.commit()
+    db.add(User(display_name="B", email="x@example.com"))
+    with pytest.raises(IntegrityError):
+        db.commit()
+    db.rollback()
+
+    # Sequência intacta: INSERT sem id continua avançando (setval do init_db)
+    db.add(User(display_name="Pós-migração"))
+    db.commit()
+    assert db.query(User).filter(User.display_name == "Pós-migração").one().id > 1
 
 
 # ---------------------------------------------------------------
