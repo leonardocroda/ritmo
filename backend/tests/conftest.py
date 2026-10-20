@@ -79,20 +79,20 @@ def _make_user(
 def session_client():
     """TestClient com sessão real de um usuário de teste (padrão).
 
-    O lifespan do TestClient roda ``init_db`` (tabelas + usuário 1), cria
-    um User + UserSession no banco e devolve o TestClient com o cookie
-    ``ritmo_session`` já setado. Autocontido: não depende de fixture
-    ``db`` de módulo de teste. Usuários adicionais podem ser criados
-    dentro do teste com ``_make_user`` e o cookie trocado no mesmo
-    client (útil para isolamento A×B na T8).
+    Remove o override global do conftest (usuário 1) para que o endpoint
+    resolva o usuário do cookie real. O lifespan do TestClient roda
+    ``init_db`` (tabelas + usuário 1), cria um User + UserSession no banco
+    e devolve ``(client, user_id)`` para que os testes semeiem linhas com o
+    ``user_id`` do usuário autenticado. Autocontido.
     """
+    app.dependency_overrides.pop(require_session, None)
     with TestClient(app) as client:
         with SessionLocal() as db:
             user = _make_user(db)
             token = create_session(db, user.id)
             db.commit()
         client.cookies.set("ritmo_session", token)
-        yield client
+        yield client, user.id
 
 
 @pytest.fixture()

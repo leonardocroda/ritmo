@@ -1,22 +1,31 @@
 """API de leitura activities (T6/T7) — TestClient + Postgres real.
 
+User-scope (T2, USR-01/02/03/06/07/08): toda query filtra pelo
+``user_id`` do usuário da sessão — os testes usam ``session_client``
+(sessão real por usuário, sem o override do conftest) e semeiam com o
+``user_id`` devolvido; 401 sem sessão e 404 para recurso de outro
+usuário são afirmados aqui.
+
 Os dados são semeados direto no banco (o domínio lê exclusivamente o
 banco próprio — AD-002): nenhuma chamada ao Garmin nos testes. Valores
 afirmados são literais derivados das fixtures com aritmética exata
-(lições L-001/L-002).
+(lições L-001/L-002). Avaliações são semeadas SEM ``user_id`` explícito
+(default 1) — o ``list_evaluations`` segue no interim DEFAULT_USER_ID
+até a T6 migrar o domínio evaluation.
 """
 
 from datetime import date, datetime
 from pathlib import Path
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from app.activities import router as activities_router
 from app.activities import service
+from app.auth.deps import require_session
+from app.auth.security import hash_password
 from app.db.engine import SessionLocal
-from app.db.models import Activity, Evaluation, Hrv, Rhr, Sleep, Split
+from app.db.models import Activity, Evaluation, Hrv, Rhr, Sleep, Split, User
 from app.main import app
 from app.vdot.zones import ZoneConfigError
 
@@ -26,18 +35,13 @@ EASY_PACE_S = 300.0
 REPETITION_PACE_S = 220.0
 
 
-@pytest.fixture()
-def client():
-    """TestClient: o lifespan recria o schema do teste (conftest derruba antes)."""
-    with TestClient(app) as test_client:
-        yield test_client
-
-
-def _seed_activity(db, *, garmin_id: str, start: datetime, activity_type: str = "running",
+def _seed_activity(db, *, user_id: int, garmin_id: str, start: datetime,
+                   activity_type: str = "running",
                    name: str = "Morning Run", distance_m: float = 4000.0,
                    duration_s: float = 1200.0, avg_hr: int | None = 145,
                    evaluated: bool = False, raw_json: dict | None = None) -> Activity:
     activity = Activity(
+        user_id=user_id,
         garmin_id=garmin_id,
         start_time=start,
         activity_type=activity_type,
@@ -73,11 +77,11 @@ def _seed_split(db, activity_id: int, idx: int, *, dist_m: float, duration_s: fl
     )
 
 
-def _seed_easy_run(db, *, garmin_id: str, start: datetime, laps: int = 4,
+def _seed_easy_run(db, *, user_id: int, garmin_id: str, start: datetime, laps: int = 4,
                    evaluated: bool = False) -> Activity:
     """Corrida fácil: voltas de 1km a 5:00/km (zona easy) -> tipo 'facil'."""
     activity = _seed_activity(
-        db, garmin_id=garmin_id, start=start, name="Easy Run",
+        db, user_id=user_id, garmin_id=garmin_id, start=start, name="Easy Run",
         distance_m=1000.0 * laps, duration_s=EASY_PACE_S * laps, evaluated=evaluated,
     )
     for idx in range(1, laps + 1):
@@ -85,10 +89,10 @@ def _seed_easy_run(db, *, garmin_id: str, start: datetime, laps: int = 4,
     return activity
 
 
-def _seed_strides_run(db, *, garmin_id: str, start: datetime) -> Activity:
+def _seed_strides_run(db, *, user_id: int, garmin_id: str, start: datetime) -> Activity:
     """Strides (shape da sonda): 2 grupos de 500m repetition separados por easy."""
     activity = _seed_activity(
-        db, garmin_id=garmin_id, start=start, name="Londrina - Strides",
+        db, user_id=user_id, garmin_id=garmin_id, start=start, name="Londrina - Strides",
         distance_m=1500.0, duration_s=375.0,
     )
     _seed_split(db, activity.id, 1, dist_m=500.0, duration_s=110.0, avg_hr=160)
@@ -97,11 +101,11 @@ def _seed_strides_run(db, *, garmin_id: str, start: datetime) -> Activity:
     return activity
 
 
-def _seed_long_run_with_laps(db, *, garmin_id: str, start: datetime) -> Activity:
+def _seed_long_run_with_laps(db, *, user_id: int, garmin_id: str, start: datetime) -> Activity:
     """Longão 8×1000m com FC e cadência: 1ª metade 5:00/km FC 140 cad 172,
     2ª metade 4:50/km FC 145 cad 170 (valores conferidos à mão no T4)."""
     activity = _seed_activity(
-        db, garmin_id=garmin_id, start=start, name="Long Run",
+        db, user_id=user_id, garmin_id=garmin_id, start=start, name="Long Run",
         distance_m=8000.0, duration_s=2360.0, avg_hr=142,
     )
     for idx in range(1, 5):
@@ -113,26 +117,120 @@ def _seed_long_run_with_laps(db, *, garmin_id: str, start: datetime) -> Activity
     return activity
 
 
+def _make_other_user(db) -> User:
+    """Usuário Y (≠ X, ≠ seed 1) para os testes de isolamento."""
+    other = User(
+        display_name="Outra",
+        email="outro@example.com",
+        password_hash=hash_password("senha-segura-123"),
+    )
+    db.add(other)
+    db.flush()
+    return other
+
+
+# ---------------------------------------------------------------
+# T2 (user-scope) — 401, isolamento A×B, 404 recurso alheio
+# ---------------------------------------------------------------
+
+
+def test_list_401_without_session() -> None:
+    """USR-07: sem sessão válida → 401 JSON sem nenhum dado."""
+    app.dependency_overrides.pop(require_session, None)
+    with TestClient(app) as raw_client:
+        response = raw_client.get("/api/activities")
+        assert response.status_code == 401
+        assert response.json() == {"detail": "não autenticado"}
+
+
+def test_list_returns_only_own_user_activities(session_client) -> None:
+    """USR-01/08: a sessão de X lista só as atividades de X — a corrida de Y
+    (outro usuário, mesmo banco) não aparece nem no total nem nos items."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        _seed_easy_run(db, user_id=user_id, garmin_id="u1a",
+                       start=datetime(2026, 10, 13, 7, 0))
+        other = _make_other_user(db)
+        _seed_easy_run(db, user_id=other.id, garmin_id="u1b",
+                       start=datetime(2026, 10, 14, 7, 0))
+        db.commit()
+        other_id = other.id
+
+    body = client.get("/api/activities").json()
+    assert body["total"] == 1
+    assert len(body["items"]) == 1
+    with SessionLocal() as db:
+        own = db.execute(
+            select(Activity).where(Activity.user_id == user_id)
+        ).scalars().all()
+        assert len(own) == 1
+        assert body["items"][0]["id"] == own[0].id
+        assert own[0].user_id == user_id
+        assert other_id != user_id
+
+
+def test_detail_404_for_other_users_activity(session_client) -> None:
+    """USR-02: atividade com user_id ≠ X → 404 na sessão de X (não 403,
+    não vaza a existência nem o dado)."""
+    client, _user_id = session_client
+    with SessionLocal() as db:
+        other = _make_other_user(db)
+        activity = _seed_activity(db, user_id=other.id, garmin_id="u1c",
+                                  start=datetime(2026, 10, 13, 7, 0))
+        db.commit()
+        activity_id = activity.id
+
+    response = client.get(f"/api/activities/{activity_id}")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "atividade não encontrada"
+
+
+def test_detail_context_isolated_per_user(session_client) -> None:
+    """USR-03 (contexto do detalhe): sono/HRV/RHR de Y na mesma data não
+    vazam para o detalhe de X — cada bloco null."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        activity = _seed_easy_run(db, user_id=user_id, garmin_id="u1d",
+                                  start=datetime(2026, 10, 14, 7, 0))
+        other = _make_other_user(db)
+        db.add(Sleep(user_id=other.id, date=date(2026, 10, 14),
+                     duration_s=28800.0, score=99))
+        db.add(Hrv(user_id=other.id, date=date(2026, 10, 14), value=88.0))
+        db.add(Rhr(user_id=other.id, date=date(2026, 10, 14), value=33))
+        db.commit()
+        activity_id = activity.id
+
+    detail = _get_detail(client, activity_id)
+    assert detail["context"]["sleep"] is None
+    assert detail["context"]["hrv"] is None
+    assert detail["context"]["rhr"] is None
+
+
 # ---------------------------------------------------------------
 # T6 — GET /api/activities
 # ---------------------------------------------------------------
 
 
-def test_list_empty_database_returns_empty_page(client) -> None:
+def test_list_empty_database_returns_empty_page(session_client) -> None:
     """Edge do spec: banco vazio -> 200 com página vazia (sem erro)."""
+    client, _user_id = session_client
     response = client.get("/api/activities")
     assert response.status_code == 200
     assert response.json() == {"items": [], "total": 0, "limit": 30, "offset": 0}
 
 
-def test_list_defaults_to_running_newest_first(client) -> None:
+def test_list_defaults_to_running_newest_first(session_client) -> None:
     """TRN-04: padrão = corridas por start_time DESC; não-corrida fica fora;
     payload do item completo (pace derivado 1200×1000/4000 = 300,0)."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        _seed_easy_run(db, garmin_id="100", start=datetime(2026, 10, 13, 7, 0))
-        _seed_strides_run(db, garmin_id="101", start=datetime(2026, 10, 14, 7, 15))
+        _seed_easy_run(db, user_id=user_id, garmin_id="100",
+                       start=datetime(2026, 10, 13, 7, 0))
+        _seed_strides_run(db, user_id=user_id, garmin_id="101",
+                          start=datetime(2026, 10, 14, 7, 15))
         _seed_activity(
-            db, garmin_id="102", start=datetime(2026, 10, 14, 19, 0),
+            db, user_id=user_id, garmin_id="102",
+            start=datetime(2026, 10, 14, 19, 0),
             activity_type="cycling", name="Bike", distance_m=20000.0, duration_s=3600.0,
         )
         db.commit()
@@ -151,16 +249,20 @@ def test_list_defaults_to_running_newest_first(client) -> None:
     assert first["evaluated"] is False
 
 
-def test_list_activity_type_all_includes_non_running(client) -> None:
+def test_list_activity_type_all_includes_non_running(session_client) -> None:
     """TRN-05: all inclui as demais; não-corrida -> inferred_type=null."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        _seed_easy_run(db, garmin_id="100", start=datetime(2026, 10, 13, 7, 0))
+        _seed_easy_run(db, user_id=user_id, garmin_id="100",
+                       start=datetime(2026, 10, 13, 7, 0))
         _seed_activity(
-            db, garmin_id="102", start=datetime(2026, 10, 14, 19, 0),
+            db, user_id=user_id, garmin_id="102",
+            start=datetime(2026, 10, 14, 19, 0),
             activity_type="cycling", name="Bike", distance_m=20000.0, duration_s=3600.0,
         )
         _seed_activity(
-            db, garmin_id="103", start=datetime(2026, 10, 15, 6, 0),
+            db, user_id=user_id, garmin_id="103",
+            start=datetime(2026, 10, 15, 6, 0),
             activity_type="yoga", name="Ioga", distance_m=0.0, duration_s=2681.52,
         )
         db.commit()
@@ -174,22 +276,26 @@ def test_list_activity_type_all_includes_non_running(client) -> None:
     assert by_type["cycling"]["pace_s"] == 180.0  # 3600×1000/20000 (fórmula do spec)
 
 
-def test_list_pagination_beyond_end_returns_empty_items(client) -> None:
+def test_list_pagination_beyond_end_returns_empty_items(session_client) -> None:
     """Edge do spec: offset além do fim não é erro -> items=[] com total."""
+    client, user_id = session_client
     with SessionLocal() as db:
         for i in range(3):
-            _seed_easy_run(db, garmin_id=f"200{i}", start=datetime(2026, 10, 10 + i, 7, 0))
+            _seed_easy_run(db, user_id=user_id, garmin_id=f"200{i}",
+                           start=datetime(2026, 10, 10 + i, 7, 0))
         db.commit()
 
     body = client.get("/api/activities", params={"offset": 999}).json()
     assert body == {"items": [], "total": 3, "limit": 30, "offset": 999}
 
 
-def test_list_pagination_pages_concatenate_without_duplicates(client) -> None:
+def test_list_pagination_pages_concatenate_without_duplicates(session_client) -> None:
     """Independent Test do spec: 'Carregar mais' anexa a próxima página sem duplicatas."""
+    client, user_id = session_client
     with SessionLocal() as db:
         for i in range(3):
-            _seed_easy_run(db, garmin_id=f"300{i}", start=datetime(2026, 10, 10 + i, 7, 0))
+            _seed_easy_run(db, user_id=user_id, garmin_id=f"300{i}",
+                           start=datetime(2026, 10, 10 + i, 7, 0))
         db.commit()
 
     page1 = client.get("/api/activities", params={"limit": 2, "offset": 0}).json()
@@ -203,11 +309,14 @@ def test_list_pagination_pages_concatenate_without_duplicates(client) -> None:
     assert ids_page1[0] > ids_page1[1]  # mais recente primeiro
 
 
-def test_list_same_start_time_ties_break_by_id_desc(client) -> None:
+def test_list_same_start_time_ties_break_by_id_desc(session_client) -> None:
     """Edge do spec: start_time igual -> desempate id DESC (ordem estável)."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        first = _seed_easy_run(db, garmin_id="400", start=datetime(2026, 10, 14, 7, 0))
-        second = _seed_easy_run(db, garmin_id="401", start=datetime(2026, 10, 14, 7, 0))
+        first = _seed_easy_run(db, user_id=user_id, garmin_id="400",
+                               start=datetime(2026, 10, 14, 7, 0))
+        second = _seed_easy_run(db, user_id=user_id, garmin_id="401",
+                                start=datetime(2026, 10, 14, 7, 0))
         db.commit()
         assert second.id > first.id
 
@@ -215,18 +324,22 @@ def test_list_same_start_time_ties_break_by_id_desc(client) -> None:
     assert [item["id"] for item in body["items"]] == [second.id, first.id]
 
 
-def test_list_invalid_limit_offset_responds_422(client) -> None:
+def test_list_invalid_limit_offset_responds_422(session_client) -> None:
     """TRN-06: limit fora de [1,100] ou offset<0 -> 422 (validação antes da query)."""
+    client, _user_id = session_client
     for params in ({"limit": 0}, {"limit": 101}, {"offset": -1}):
         response = client.get("/api/activities", params=params)
         assert response.status_code == 422, params
 
 
-def test_list_infer_type_from_splits_and_zones(client) -> None:
+def test_list_infer_type_from_splits_and_zones(session_client) -> None:
     """TRN-07: tipo inferido em tempo de leitura — fácil e intervalado (strides)."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        _seed_easy_run(db, garmin_id="500", start=datetime(2026, 10, 13, 7, 0))
-        _seed_strides_run(db, garmin_id="501", start=datetime(2026, 10, 14, 7, 15))
+        _seed_easy_run(db, user_id=user_id, garmin_id="500",
+                       start=datetime(2026, 10, 13, 7, 0))
+        _seed_strides_run(db, user_id=user_id, garmin_id="501",
+                          start=datetime(2026, 10, 14, 7, 15))
         db.commit()
 
     body = client.get("/api/activities").json()
@@ -235,10 +348,12 @@ def test_list_infer_type_from_splits_and_zones(client) -> None:
     assert by_name["Londrina - Strides"]["inferred_type"] == "intervalado"
 
 
-def test_list_evaluated_flag_echoed(client) -> None:
+def test_list_evaluated_flag_echoed(session_client) -> None:
     """TRN-08 (payload): evaluated=true vem no item para o badge 'Avaliado'."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        _seed_easy_run(db, garmin_id="600", start=datetime(2026, 10, 13, 7, 0), evaluated=True)
+        _seed_easy_run(db, user_id=user_id, garmin_id="600",
+                       start=datetime(2026, 10, 13, 7, 0), evaluated=True)
         db.commit()
 
     body = client.get("/api/activities").json()
@@ -268,32 +383,36 @@ def _get_detail(client, activity_id: int) -> dict:
     return response.json()
 
 
-def test_detail_404_unknown_id(client) -> None:
+def test_detail_404_unknown_id(session_client) -> None:
     """TRN-13: id inexistente -> 404."""
+    client, _user_id = session_client
     response = client.get("/api/activities/9999")
     assert response.status_code == 404
     assert response.json()["detail"] == "atividade não encontrada"
 
 
-def test_detail_missing_zones_file_responds_500(client, monkeypatch) -> None:
+def test_detail_missing_zones_file_responds_500(session_client, monkeypatch) -> None:
     """Edge do spec: vdot_zones.json ausente/inválido -> 500 com a mensagem exata."""
     def raise_missing(path):
         raise ZoneConfigError(f"não foi possível carregar {path}")
 
     monkeypatch.setattr(activities_router, "load_zone_config", raise_missing)
+    client, _user_id = session_client
     response = client.get("/api/activities/1")
     assert response.status_code == 500
     assert response.json()["detail"] == "zonas VDOT não configuradas"
 
 
-def test_detail_easy_run_full_payload(client) -> None:
+def test_detail_easy_run_full_payload(session_client) -> None:
     """TRN-19/21/22: longão fácil com consistência completa, zonas e splits.
 
     8×1000m: 5:00/km FC 140 cad 172 -> 4:50/km FC 145 cad 170 (valores do
     T4 conferidos à mão). decoupling = (145/290)/(140/300) - 1 = +7,1%.
     """
+    client, user_id = session_client
     with SessionLocal() as db:
-        activity = _seed_long_run_with_laps(db, garmin_id="700", start=datetime(2026, 10, 13, 7, 0))
+        activity = _seed_long_run_with_laps(db, user_id=user_id, garmin_id="700",
+                                           start=datetime(2026, 10, 13, 7, 0))
         db.commit()
         activity_id = activity.id
 
@@ -356,12 +475,14 @@ def test_detail_easy_run_full_payload(client) -> None:
     assert "temperature_c" not in detail["context"]
 
 
-def test_detail_strides_short_laps_zones_and_km_labels(client) -> None:
+def test_detail_strides_short_laps_zones_and_km_labels(session_client) -> None:
     """TRN-19: voltas curtas (strides da sonda) classificadas em repetition com
     recuperação easy; km acumulado com 1 decimal; consistência null (<8000m)."""
+    client, user_id = session_client
     with SessionLocal() as db:
         activity = _seed_activity(
-            db, garmin_id="701", start=datetime(2026, 10, 14, 7, 15),
+            db, user_id=user_id, garmin_id="701",
+            start=datetime(2026, 10, 14, 7, 15),
             name="Londrina - Strides", distance_m=3600.0, duration_s=1330.0,
         )
         _seed_split(db, activity.id, 1, dist_m=2000.0, duration_s=600.0,
@@ -399,10 +520,12 @@ def test_detail_strides_short_laps_zones_and_km_labels(client) -> None:
     assert detail["consistency"] is None  # 3600m < 8000m (gate do T4)
 
 
-def test_detail_zone_null_when_pace_invalid(client) -> None:
+def test_detail_zone_null_when_pace_invalid(session_client) -> None:
     """Edge do spec: volta com distance=0 -> pace null e zone null; km_label acumula."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        activity = _seed_easy_run(db, garmin_id="702", start=datetime(2026, 10, 13, 7, 0), laps=4)
+        activity = _seed_easy_run(db, user_id=user_id, garmin_id="702",
+                                  start=datetime(2026, 10, 13, 7, 0), laps=4)
         _seed_split(db, activity.id, 5, dist_m=0.0, duration_s=30.0, intensity_type="REST")
         db.commit()
         activity_id = activity.id
@@ -416,11 +539,13 @@ def test_detail_zone_null_when_pace_invalid(client) -> None:
     assert detail["splits"][3]["km_label"] == "4,0"
 
 
-def test_detail_activity_without_splits(client) -> None:
+def test_detail_activity_without_splits(session_client) -> None:
     """Edge do spec (esteira): resumo sem splits, sem consistência, sem estrutura."""
+    client, user_id = session_client
     with SessionLocal() as db:
         activity = _seed_activity(
-            db, garmin_id="703", start=datetime(2026, 10, 13, 6, 30),
+            db, user_id=user_id, garmin_id="703",
+            start=datetime(2026, 10, 13, 6, 30),
             name="Treadmill Run", distance_m=8000.0, duration_s=3000.0,
         )
         db.commit()
@@ -434,17 +559,20 @@ def test_detail_activity_without_splits(client) -> None:
     assert detail["activity"]["pace_s"] == 375.0  # 3000×1000/8000
 
 
-def test_detail_non_running_activity(client) -> None:
+def test_detail_non_running_activity(session_client) -> None:
     """Edge do spec (modo all): não-corrida -> resumo, sem tipo, sem consistência."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        _seed_activity(
-            db, garmin_id="704", start=datetime(2026, 10, 9, 19, 6),
+        activity = _seed_activity(
+            db, user_id=user_id, garmin_id="704",
+            start=datetime(2026, 10, 9, 19, 6),
             activity_type="yoga", name="Ioga", distance_m=0.0, duration_s=2681.52,
             avg_hr=61,
         )
         db.commit()
+        activity_id = activity.id
 
-    response = client.get("/api/activities/1")
+    response = client.get(f"/api/activities/{activity_id}")
     assert response.status_code == 200
     detail = response.json()
     assert detail["activity"]["inferred_type"] is None
@@ -454,11 +582,13 @@ def test_detail_non_running_activity(client) -> None:
     assert detail["consistency"] is None
 
 
-def test_detail_consistency_null_with_8000m_but_3_laps(client) -> None:
+def test_detail_consistency_null_with_8000m_but_3_laps(session_client) -> None:
     """Gate do T4: >=8000m mas <4 voltas -> consistency=null."""
+    client, user_id = session_client
     with SessionLocal() as db:
         activity = _seed_activity(
-            db, garmin_id="705", start=datetime(2026, 10, 13, 7, 0),
+            db, user_id=user_id, garmin_id="705",
+            start=datetime(2026, 10, 13, 7, 0),
             distance_m=9000.0, duration_s=2700.0,
         )
         for idx in range(1, 4):
@@ -470,14 +600,18 @@ def test_detail_consistency_null_with_8000m_but_3_laps(client) -> None:
     assert detail["consistency"] is None
 
 
-def test_detail_context_from_local_start_date(client) -> None:
+def test_detail_context_from_local_start_date(session_client) -> None:
     """TRN-26/27: sono/HRV/RHR da data local de início; temperatura média
     ponderada pela duração das voltas com temperatura ((22×300+24×300)/600 = 23,0)."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        activity = _seed_long_run_with_laps(db, garmin_id="706", start=datetime(2026, 10, 14, 7, 0))
-        db.add(Sleep(date=date(2026, 10, 14), duration_s=28800.0, score=85))
-        db.add(Hrv(date=date(2026, 10, 14), value=48.0, status="BALANCED"))
-        db.add(Rhr(date=date(2026, 10, 14), value=42))
+        activity = _seed_long_run_with_laps(db, user_id=user_id, garmin_id="706",
+                                           start=datetime(2026, 10, 14, 7, 0))
+        db.add(Sleep(user_id=user_id, date=date(2026, 10, 14),
+                     duration_s=28800.0, score=85))
+        db.add(Hrv(user_id=user_id, date=date(2026, 10, 14), value=48.0,
+                   status="BALANCED"))
+        db.add(Rhr(user_id=user_id, date=date(2026, 10, 14), value=42))
         db.commit()
         splits = (
             db.execute(
@@ -501,11 +635,13 @@ def test_detail_context_from_local_start_date(client) -> None:
     assert detail["consistency"] is not None
 
 
-def test_detail_context_null_when_no_health_data_for_date(client) -> None:
+def test_detail_context_null_when_no_health_data_for_date(session_client) -> None:
     """TRN-26: dia sem sono/HRV/RHR -> cada campo null (UI esconde); sem
     temperatura nas voltas -> campo omitido (spec)."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        activity = _seed_easy_run(db, garmin_id="707", start=datetime(2026, 10, 13, 7, 0))
+        activity = _seed_easy_run(db, user_id=user_id, garmin_id="707",
+                                 start=datetime(2026, 10, 13, 7, 0))
         db.commit()
         activity_id = activity.id
 
@@ -519,6 +655,9 @@ def test_detail_context_null_when_no_health_data_for_date(client) -> None:
 
 
 def _seed_evaluation(db, activity_id: int, *, verdict: str, created_at: datetime) -> None:
+    # Interim user-scope: SEM user_id explícito (default 1) — o
+    # list_evaluations segue filtrando DEFAULT_USER_ID até a T6 migrar
+    # o domínio evaluation.
     db.add(
         Evaluation(
             activity_id=activity_id,
@@ -536,10 +675,12 @@ def _seed_evaluation(db, activity_id: int, *, verdict: str, created_at: datetime
     )
 
 
-def test_detail_exposes_evaluations_newest_first(client) -> None:
+def test_detail_exposes_evaluations_newest_first(session_client) -> None:
     """EVAL-17: avaliações do treino no detalhe, mais recente primeiro."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        activity = _seed_easy_run(db, garmin_id="801", start=datetime(2026, 10, 13, 7, 0))
+        activity = _seed_easy_run(db, user_id=user_id, garmin_id="801",
+                                 start=datetime(2026, 10, 13, 7, 0))
         db.flush()
         _seed_evaluation(
             db, activity.id, verdict="too_hard", created_at=datetime(2026, 10, 15, 8, 0, 0)
@@ -563,10 +704,12 @@ def test_detail_exposes_evaluations_newest_first(client) -> None:
     assert newest["verdict_json"] == {"veredito": "on_target"}
 
 
-def test_detail_without_evaluations_returns_empty_list(client) -> None:
+def test_detail_without_evaluations_returns_empty_list(session_client) -> None:
     """EVAL-17: sem avaliações -> lista vazia (estado vazio, não erro)."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        activity = _seed_easy_run(db, garmin_id="802", start=datetime(2026, 10, 13, 7, 0))
+        activity = _seed_easy_run(db, user_id=user_id, garmin_id="802",
+                                 start=datetime(2026, 10, 13, 7, 0))
         db.commit()
         activity_id = activity.id
 
@@ -574,13 +717,16 @@ def test_detail_without_evaluations_returns_empty_list(client) -> None:
     assert detail["evaluations"] == []
 
 
-def test_detail_exposes_activity_type(client) -> None:
+def test_detail_exposes_activity_type(session_client) -> None:
     """Contrato aditivo do ai-evaluation: a UI distingue corrida para
     renderizar o formulário de avaliação (EVAL-10)."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        run = _seed_easy_run(db, garmin_id="803", start=datetime(2026, 10, 13, 7, 0))
+        run = _seed_easy_run(db, user_id=user_id, garmin_id="803",
+                             start=datetime(2026, 10, 13, 7, 0))
         yoga = _seed_activity(
-            db, garmin_id="804", start=datetime(2026, 10, 13, 19, 0),
+            db, user_id=user_id, garmin_id="804",
+            start=datetime(2026, 10, 13, 19, 0),
             activity_type="yoga", name="Ioga", distance_m=0.0, duration_s=2681.0,
             avg_hr=61,
         )

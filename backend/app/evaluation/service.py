@@ -88,7 +88,9 @@ def create_evaluation(
             f"atividade {activity_id} não é corrida ({activity.activity_type})"
         )
 
-    detail = activities_service.get_activity_detail(db, activity.id, zone_config)
+    detail = activities_service.get_activity_detail(
+        db, activity.id, activity.user_id, zone_config
+    )
     payload = build_evaluation_payload(
         db, activity, detail, intent_type, intent_text, settings
     )

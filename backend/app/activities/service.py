@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from app.activities.infer import ClassifiedSplit, derive_structure, infer_type
 from app.activities.metrics import consistency_metrics
 from app.core.config import get_settings
-from app.db.models import DEFAULT_USER_ID, Activity, Hrv, Rhr, Sleep, Split
+from app.db.models import Activity, Hrv, Rhr, Sleep, Split
 from app.vdot.zones import HR_LINE_COLOR, ZoneConfig, load_zone_config
 
 # Vocabulário de corrida do domínio (mesmo conjunto do sync — AD-001/002
@@ -76,15 +76,16 @@ def _inferred_type(
 
 
 def list_activities(
-    db: Session, activity_type: str, limit: int, offset: int
+    db: Session, user_id: int, activity_type: str, limit: int, offset: int
 ) -> dict:
     """Lista paginada {items, total, limit, offset} — corridas por padrão (spec).
 
     Ordenação estável: start_time DESC com desempate id DESC (edge do
-    spec — mesma ordem entre páginas).
+    spec — mesma ordem entre páginas). Filtra exclusivamente por
+    ``user_id`` do usuário autenticado (never ``DEFAULT_USER_ID``).
     """
     zone_config = load_zone_config(get_settings().vdot_zones_path)
-    filters = [Activity.user_id == DEFAULT_USER_ID]
+    filters = [Activity.user_id == user_id]
     if activity_type != "all":
         filters.append(Activity.activity_type.in_(RUNNING_TYPES))
 
@@ -145,20 +146,22 @@ def _weighted_temperature(splits: list[Split]) -> float | None:
     return sum(value * weight for value, weight in weighted) / total_weight
 
 
-def _context(db: Session, activity: Activity, splits: list[Split]) -> dict:
+def _context(
+    db: Session, activity: Activity, splits: list[Split], user_id: int
+) -> dict:
     """Sono/HRV/RHR da data local de início (cada um null quando ausente).
 
     temperature_c só entra no payload quando >=1 volta tem temperatura (spec).
     """
     day = activity.start_time.date()
     sleep = db.execute(
-        select(Sleep).where(Sleep.user_id == DEFAULT_USER_ID, Sleep.date == day)
+        select(Sleep).where(Sleep.user_id == user_id, Sleep.date == day)
     ).scalar_one_or_none()
     hrv = db.execute(
-        select(Hrv).where(Hrv.user_id == DEFAULT_USER_ID, Hrv.date == day)
+        select(Hrv).where(Hrv.user_id == user_id, Hrv.date == day)
     ).scalar_one_or_none()
     rhr = db.execute(
-        select(Rhr).where(Rhr.user_id == DEFAULT_USER_ID, Rhr.date == day)
+        select(Rhr).where(Rhr.user_id == user_id, Rhr.date == day)
     ).scalar_one_or_none()
 
     context = {
@@ -175,13 +178,14 @@ def _context(db: Session, activity: Activity, splits: list[Split]) -> dict:
 
 
 def get_activity_detail(
-    db: Session, activity_id: int, zone_config: ZoneConfig
+    db: Session, activity_id: int, user_id: int, zone_config: ZoneConfig
 ) -> dict | None:
     """Payload do detalhe (design): voltas classificadas, zonas, consistência,
-    contexto e estrutura. None -> 404 no router."""
+    contexto e estrutura. None -> 404 no router. Filtra por ``user_id`` do
+    usuário autenticado (never ``DEFAULT_USER_ID``)."""
     activity = db.execute(
         select(Activity).where(
-            Activity.id == activity_id, Activity.user_id == DEFAULT_USER_ID
+            Activity.id == activity_id, Activity.user_id == user_id
         )
     ).scalar_one_or_none()
     if activity is None:
@@ -245,6 +249,6 @@ def get_activity_detail(
         "zones": [asdict(zone) for zone in zone_config.meta()],
         "hr_color": HR_LINE_COLOR,
         "consistency": consistency_metrics(splits, activity.distance_m),
-        "context": _context(db, activity, splits),
+        "context": _context(db, activity, splits, user_id),
         "evaluations": list_evaluations(db, activity.id),
     }

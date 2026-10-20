@@ -14,8 +14,10 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.activities import service
+from app.auth.deps import require_session
 from app.core.config import get_settings
 from app.db.engine import get_db
+from app.db.models import User
 from app.evaluation.schemas import EvaluationOut
 from app.vdot.zones import ZoneConfig, ZoneConfigError, load_zone_config
 
@@ -105,6 +107,7 @@ def get_zone_config() -> ZoneConfig:
 
 @router.get("")
 def list_activities(
+    user: User = Depends(require_session),
     activity_type: Literal["running", "all"] = "running",
     limit: int = Query(default=30, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
@@ -112,7 +115,7 @@ def list_activities(
 ) -> ActivityListOut:
     """TRN-04/05/06: corridas por padrão; validação 422 antes da query."""
     try:
-        return service.list_activities(db, activity_type, limit, offset)
+        return service.list_activities(db, user.id, activity_type, limit, offset)
     except ZoneConfigError as exc:
         raise HTTPException(
             status_code=500, detail="zonas VDOT não configuradas"
@@ -122,11 +125,12 @@ def list_activities(
 @router.get("/{activity_id}")
 def get_activity(
     activity_id: int,
+    user: User = Depends(require_session),
     db: Session = Depends(get_db),
     zone_config: ZoneConfig = Depends(get_zone_config),
 ) -> ActivityDetailOut:
     """TRN-13/19: 404 para id inexistente; 500 quando o arquivo de zonas falha."""
-    detail = service.get_activity_detail(db, activity_id, zone_config)
+    detail = service.get_activity_detail(db, activity_id, user.id, zone_config)
     if detail is None:
         raise HTTPException(status_code=404, detail="atividade não encontrada")
     return detail

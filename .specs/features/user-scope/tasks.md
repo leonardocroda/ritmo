@@ -421,7 +421,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | Task | Status | Commit |
 | ---- | ------ | ------ |
 | T1 | ✅ Complete | refactor(test): add session_client fixture for real user sessions |
-| T2 | Pending | - |
+| T2 | ✅ Complete | feat(user-scope): activities reads by session user_id |
 | T3 | Pending | - |
 | T4 | Pending | - |
 | T5 | Pending | - |

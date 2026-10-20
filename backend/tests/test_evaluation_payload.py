@@ -122,7 +122,7 @@ def _seed_day(db) -> None:
 
 def _payload(db, activity, settings, zone_config, *, intent_type: str,
              intent_text: str | None = None) -> dict:
-    detail = service.get_activity_detail(db, activity.id, zone_config)
+    detail = service.get_activity_detail(db, activity.id, activity.user_id, zone_config)
     return build_evaluation_payload(db, activity, detail, intent_type, intent_text, settings)
 
 
