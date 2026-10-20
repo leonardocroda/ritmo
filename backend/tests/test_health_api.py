@@ -1,5 +1,11 @@
 """Painel Saúde — service direto (T3) + HTTP (T4), no Postgres real.
 
+User-scope (T3, USR-03/06): toda leitura filtra pelo ``user_id`` do
+usuário da sessão — os testes diretos criam um usuário próprio e o
+passam ao service; os HTTP usam ``session_client`` (sessão real por
+usuário, sem o override do conftest) e semeiam com o ``user_id``
+devolvido.
+
 T3: chamadas diretas a `get_health` com seeds ORM (o domínio lê
 exclusivamente o banco próprio — AD-002; nenhuma chamada Garmin). T4:
 TestClient cobrindo a superfície HTTP (422/blocos null/fallback de tz).
@@ -18,13 +24,12 @@ from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 import pytest
-from fastapi.testclient import TestClient
 
+from app.auth.security import hash_password
 from app.db.engine import SessionLocal, init_db
 from app.db.models import Activity, DailyLoad, Hrv, Rhr, Sleep, Stress, User
 from app.health import router as health_router
 from app.health import service
-from app.main import app
 
 SAO_PAULO = ZoneInfo("America/Sao_Paulo")
 
@@ -42,13 +47,6 @@ def db():
 
 
 @pytest.fixture()
-def client():
-    """TestClient: o lifespan recria o schema do teste (conftest derruba antes)."""
-    with TestClient(app) as test_client:
-        yield test_client
-
-
-@pytest.fixture()
 def fixed_today(monkeypatch):
     """Lifestyle determinístico: `_today` injetado (dias relativos a hoje
     não são pináveis com datas fixas)."""
@@ -56,10 +54,23 @@ def fixed_today(monkeypatch):
     return TODAY
 
 
-def _seed_sleep(db, day, duration_s, score=70, rem_pct=14.0, deep_pct=25.0,
-                light_pct=61.0, awakenings=2, bed=None, wake=None):
+def _new_user(db, email: str = "corredora@example.com") -> User:
+    """Usuário de teste para os testes diretos do service (id via sequência)."""
+    user = User(
+        display_name="Corredora",
+        email=email,
+        password_hash=hash_password("senha-segura-123"),
+    )
+    db.add(user)
+    db.flush()
+    return user
+
+
+def _seed_sleep(db, user_id: int, day, duration_s, score=70, rem_pct=14.0,
+                deep_pct=25.0, light_pct=61.0, awakenings=2, bed=None, wake=None):
     db.add(
         Sleep(
+            user_id=user_id,
             date=day,
             duration_s=duration_s,
             score=score,
@@ -73,26 +84,27 @@ def _seed_sleep(db, day, duration_s, score=70, rem_pct=14.0, deep_pct=25.0,
     )
 
 
-def _seed_hrv(db, day, value, status="BALANCED"):
-    db.add(Hrv(date=day, value=value, status=status))
+def _seed_hrv(db, user_id: int, day, value, status="BALANCED"):
+    db.add(Hrv(user_id=user_id, date=day, value=value, status=status))
 
 
-def _seed_rhr(db, day, value):
-    db.add(Rhr(date=day, value=value))
+def _seed_rhr(db, user_id: int, day, value):
+    db.add(Rhr(user_id=user_id, date=day, value=value))
 
 
-def _seed_stress(db, day, avg):
-    db.add(Stress(date=day, avg=avg))
+def _seed_stress(db, user_id: int, day, avg):
+    db.add(Stress(user_id=user_id, date=day, avg=avg))
 
 
-def _seed_load(db, day, ctl, atl, tsb, acwr=None):
+def _seed_load(db, user_id: int, day, ctl, atl, tsb, acwr=None):
     """Linha de `load` (PMC do sync) — acwr null = janela 28d incompleta."""
-    db.add(DailyLoad(date=day, ctl=ctl, atl=atl, tsb=tsb, acwr=acwr))
+    db.add(DailyLoad(user_id=user_id, date=day, ctl=ctl, atl=atl, tsb=tsb, acwr=acwr))
 
 
-def _seed_activity(db, garmin_id, start, activity_type, name="Treino"):
+def _seed_activity(db, user_id: int, garmin_id, start, activity_type, name="Treino"):
     db.add(
         Activity(
+            user_id=user_id,
             garmin_id=garmin_id,
             start_time=start,
             activity_type=activity_type,
@@ -113,28 +125,30 @@ NIGHTS = [
 ]
 
 
-def _seed_full_health(db) -> None:
+def _seed_full_health(db, user_id: int) -> None:
     for day, duration_s, score, hrv, bed, wake in NIGHTS:
-        _seed_sleep(db, day, duration_s, score=score, bed=bed, wake=wake)
-        _seed_hrv(db, day, hrv)
-    _seed_rhr(db, date(2026, 10, 13), 45)
-    _seed_rhr(db, date(2026, 10, 14), 44)
-    _seed_rhr(db, date(2026, 10, 15), 43)
-    _seed_stress(db, date(2026, 10, 13), 25)
-    _seed_stress(db, date(2026, 10, 14), None)  # dia sem avg -> fora da série
-    _seed_stress(db, date(2026, 10, 15), 23)
+        _seed_sleep(db, user_id, day, duration_s, score=score, bed=bed, wake=wake)
+        _seed_hrv(db, user_id, day, hrv)
+    _seed_rhr(db, user_id, date(2026, 10, 13), 45)
+    _seed_rhr(db, user_id, date(2026, 10, 14), 44)
+    _seed_rhr(db, user_id, date(2026, 10, 15), 43)
+    _seed_stress(db, user_id, date(2026, 10, 13), 25)
+    _seed_stress(db, user_id, date(2026, 10, 14), None)  # dia sem avg -> fora da série
+    _seed_stress(db, user_id, date(2026, 10, 15), 23)
     # Força: 4 semanas completas (streak 4) + 1 sessão na corrente;
     # janela de 60d (17/08..16/10) contém as 4 semanas batidas
     strength_days = [date(2026, 9, 15), date(2026, 9, 17), date(2026, 9, 22),
                      date(2026, 9, 24), date(2026, 9, 29), date(2026, 10, 1),
                      date(2026, 10, 6), date(2026, 10, 8), date(2026, 10, 13)]
     for i, day in enumerate(strength_days):
-        _seed_activity(db, f"s{i}", datetime(day.year, day.month, day.day, 7, 0),
+        _seed_activity(db, user_id, f"s{i}",
+                       datetime(day.year, day.month, day.day, 7, 0),
                        "strength_training", "Força")
     # Yoga: 3 na janela + 1 antes dela (01/08 < 17/08)
     for i, day in enumerate((date(2026, 8, 1), date(2026, 9, 23),
                              date(2026, 10, 7), date(2026, 10, 14))):
-        _seed_activity(db, f"y{i}", datetime(day.year, day.month, day.day, 6, 0),
+        _seed_activity(db, user_id, f"y{i}",
+                       datetime(day.year, day.month, day.day, 6, 0),
                        "yoga", "Yoga")
 
 
@@ -147,10 +161,11 @@ def test_get_health_full_payload_from_seeds(db, fixed_today) -> None:
     """Done-when T3: os 6 blocos montados a partir do banco — pontos de
     sono com fases + horários locais (GMT naive nunca exposto), dose
     pina o contraste, lifestyle com streak/janela/corrente."""
-    _seed_full_health(db)
+    user = _new_user(db)
+    _seed_full_health(db, user.id)
     db.commit()
 
-    payload = service.get_health(db, 60, SAO_PAULO)
+    payload = service.get_health(db, user.id, 60, SAO_PAULO)
 
     sleep = payload["sleep"]
     assert sleep["days"] == 60
@@ -231,11 +246,12 @@ def test_get_health_full_payload_from_seeds(db, fixed_today) -> None:
 def test_sleep_window_limits_series_and_keeps_asc(db) -> None:
     """Done-when T3: janela pedida corta as noites mais antigas e devolve
     ASC (mais antiga primeiro — padrão do painel Performance)."""
+    user = _new_user(db)
     for day, duration_s, *_ in NIGHTS:
-        _seed_sleep(db, day, duration_s)
+        _seed_sleep(db, user.id, day, duration_s)
     db.commit()
 
-    payload = service.get_health(db, 2, SAO_PAULO)
+    payload = service.get_health(db, user.id, 2, SAO_PAULO)
     assert payload["sleep"]["days"] == 2
     assert [p["date"] for p in payload["sleep"]["points"]] == [
         date(2026, 10, 14), date(2026, 10, 15),
@@ -245,7 +261,10 @@ def test_sleep_window_limits_series_and_keeps_asc(db) -> None:
 def test_empty_series_yield_null_blocks_with_honest_zeros(db, fixed_today) -> None:
     """Done-when T3 (HLT-11): banco vazio -> sono/HRV/RHR/estresse null;
     dose_response e lifestyle presentes com zeros (estado vazio, não erro)."""
-    payload = service.get_health(db, 60, SAO_PAULO)
+    user = _new_user(db)
+    db.commit()
+
+    payload = service.get_health(db, user.id, 60, SAO_PAULO)
 
     assert payload["sleep"] is None
     assert payload["hrv"] is None
@@ -267,21 +286,22 @@ def test_regularity_null_without_bed_wake_times(db) -> None:
     """Edge do spec: noite sem bed_time/wake_time entra nos gráficos, mas
     fica fora da regularity (nenhum horário inventado) e expõe null nos
     pontos."""
-    _seed_sleep(db, date(2026, 10, 14), 21000)  # sem horários
-    _seed_sleep(db, date(2026, 10, 15), 23400,
+    user = _new_user(db)
+    _seed_sleep(db, user.id, date(2026, 10, 14), 21000)  # sem horários
+    _seed_sleep(db, user.id, date(2026, 10, 15), 23400,
                 bed=datetime(2026, 10, 15, 1, 16), wake=datetime(2026, 10, 15, 8, 2))
     db.commit()
 
-    payload = service.get_health(db, 60, SAO_PAULO)
+    payload = service.get_health(db, user.id, 60, SAO_PAULO)
     assert payload["sleep"]["regularity"] == {"avg_bed_min": 1336.0, "avg_wake_min": 302.0}
     assert payload["sleep"]["points"][0]["bed_local"] is None
     assert payload["sleep"]["points"][0]["wake_local"] is None
 
     # nenhuma noite com horário -> regularity null, bloco segue de pé
     db.query(Sleep).delete()
-    _seed_sleep(db, date(2026, 10, 14), 21000)
+    _seed_sleep(db, user.id, date(2026, 10, 14), 21000)
     db.commit()
-    payload = service.get_health(db, 60, SAO_PAULO)
+    payload = service.get_health(db, user.id, 60, SAO_PAULO)
     assert payload["sleep"]["regularity"] is None
     assert payload["sleep"]["points"][0]["bed_local"] is None
 
@@ -289,16 +309,17 @@ def test_regularity_null_without_bed_wake_times(db) -> None:
 def test_stress_null_avg_rows_excluded(db) -> None:
     """Design §Riscos: dia sem avg fica fora da série; janela só com dias
     sem avg -> bloco null (não lista vazia)."""
-    _seed_stress(db, date(2026, 10, 14), None)
-    _seed_stress(db, date(2026, 10, 15), None)
+    user = _new_user(db)
+    _seed_stress(db, user.id, date(2026, 10, 14), None)
+    _seed_stress(db, user.id, date(2026, 10, 15), None)
     db.commit()
-    assert service.get_health(db, 60, SAO_PAULO)["stress"] is None
+    assert service.get_health(db, user.id, 60, SAO_PAULO)["stress"] is None
 
     db.query(Stress).delete()
-    _seed_stress(db, date(2026, 10, 14), 24)
-    _seed_stress(db, date(2026, 10, 15), None)
+    _seed_stress(db, user.id, date(2026, 10, 14), 24)
+    _seed_stress(db, user.id, date(2026, 10, 15), None)
     db.commit()
-    payload = service.get_health(db, 60, SAO_PAULO)
+    payload = service.get_health(db, user.id, 60, SAO_PAULO)
     assert payload["stress"]["points"] == [{"date": date(2026, 10, 14), "avg": 24}]
     assert payload["stress"]["avg_window"] == 24.0
 
@@ -306,12 +327,13 @@ def test_stress_null_avg_rows_excluded(db) -> None:
 def test_dose_response_crosses_hrv_of_same_date_only(db) -> None:
     """Premissa do spec (HRV da mesma noite): noite curta sem HRV na
     mesma data sai da comparação — HRV de datas vizinhas não vira par."""
-    _seed_sleep(db, date(2026, 10, 14), 21500, score=60)  # 5,97h — curta
-    _seed_hrv(db, date(2026, 10, 13), 90.0)  # véspera
-    _seed_hrv(db, date(2026, 10, 15), 70.0)  # dia seguinte
+    user = _new_user(db)
+    _seed_sleep(db, user.id, date(2026, 10, 14), 21500, score=60)  # 5,97h — curta
+    _seed_hrv(db, user.id, date(2026, 10, 13), 90.0)  # véspera
+    _seed_hrv(db, user.id, date(2026, 10, 15), 70.0)  # dia seguinte
     db.commit()
 
-    dose = service.get_health(db, 60, SAO_PAULO)["dose_response"]
+    dose = service.get_health(db, user.id, 60, SAO_PAULO)["dose_response"]
     assert dose == {
         "short": {"nights": 0, "avg_hrv": None, "avg_score": None},
         "adequate": {"nights": 0, "avg_hrv": None, "avg_score": None},
@@ -320,25 +342,20 @@ def test_dose_response_crosses_hrv_of_same_date_only(db) -> None:
 
 
 def test_other_users_rows_never_leak_into_panel(db, fixed_today) -> None:
-    """Fix 1 do Verifier (sensor M3) + convenção AD-001: linhas de outro
-    usuário nunca vazam para nenhum bloco — o usuário 1 tem as 3 noites
-    canônicas (e nenhum RHR/estresse/atividade), o outro usuário tem uma
-    noite de 4h com HRV, RHR/estresse alheios e 3 forças + yoga. Sem o
-    filtro `user_id`, TODOS os blocos mudariam."""
-    # id explícito: o init_db insere o usuário 1 com id explícito, o que
-    # não avança a sequência do Postgres (insert sem id colidiria com o
-    # pkey 1 — pendência da Fase 2.5 anotada no context.md). O flush
-    # ordena o insert: sem relationship() entre os mappers, o flush não
-    # garante users antes das FKs (user 1 não sofre — já vem commitado
-    # do init_db; o 2 nasce nesta sessão).
-    other = User(id=2, display_name="Convidado")
-    db.add(other)
+    """Fix 1 do Verifier (sensor M3) + convenção AD-001 + user-scope
+    (USR-08): linhas de outro usuário nunca vazam para nenhum bloco — o
+    usuário X tem as 3 noites canônicas (e nenhum RHR/estresse/
+    atividade), o usuário Y tem uma noite de 4h com HRV, RHR/estresse
+    alheios e 3 forças + yoga. Sem o filtro ``user_id``, TODOS os blocos
+    mudariam."""
+    user = _new_user(db)  # X — dono da sessão
+    other = _new_user(db, email="outro@example.com")  # Y — dados alheios
     db.flush()
     stranger_day = date(2026, 10, 12)
 
     for day, duration_s, score, hrv, bed, wake in NIGHTS:
-        _seed_sleep(db, day, duration_s, score=score, bed=bed, wake=wake)
-        _seed_hrv(db, day, hrv)
+        _seed_sleep(db, user.id, day, duration_s, score=score, bed=bed, wake=wake)
+        _seed_hrv(db, user.id, day, hrv)
     # Dados alheios que mudariam cada bloco se vazassem: sono de 4h
     # (cairia no bucket short com HRV 40), RHR 99, estresse 90 e
     # forças que virariam streak (2 na semana completa 05-11/10 + 1 na
@@ -358,9 +375,9 @@ def test_other_users_rows_never_leak_into_panel(db, fixed_today) -> None:
                         name="Alheio", distance_m=0.0, duration_s=3600.0))
     db.commit()
 
-    payload = service.get_health(db, 60, SAO_PAULO)
+    payload = service.get_health(db, user.id, 60, SAO_PAULO)
 
-    # Sono: só as 3 noites do usuário 1; a noite alheia de 4h não entra
+    # Sono: só as 3 noites de X; a noite alheia de 4h não entra
     # nos pontos, no below_floor (2 noites, não 3) nem no dose (a noite
     # alheia faria short = 2 noites, avg_hrv 54,0, avg_score 45,0).
     assert [p["date"] for p in payload["sleep"]["points"]] == [
@@ -374,9 +391,9 @@ def test_other_users_rows_never_leak_into_panel(db, fixed_today) -> None:
     }
     # HRV alheia ausente do modelo (lição L-005): a noite alheia de 12/10
     # (valor 40) não vira value nem alimenta a média 7d daquele dia; o
-    # current continua sendo a última noite do usuário 1
+    # current continua sendo a última noite de X
     hrv = payload["hrv"]
-    assert len(hrv["points"]) == 60  # dias corridos da janela do usuário 1
+    assert len(hrv["points"]) == 60  # dias corridos da janela de X
     by_day = {p["date"]: p for p in hrv["points"]}
     assert by_day[date(2026, 10, 12)] == {
         "date": date(2026, 10, 12), "value": None, "avg7": None,
@@ -386,11 +403,11 @@ def test_other_users_rows_never_leak_into_panel(db, fixed_today) -> None:
         "date": date(2026, 10, 15), "value": 75.0, "avg7": 75.0,
         "band_low": None, "band_high": None, "status": None,
     }
-    # Usuário 1 não tem RHR/estresse: bloco null — a linha alheia
+    # X não tem RHR/estresse: bloco null — a linha alheia
     # (RHR 99 / estresse 90) tornaria os blocos não-null.
     assert payload["rhr"] is None
     assert payload["stress"] is None
-    # Atividades alheias não viram streak/yoga do usuário 1
+    # Atividades alheias não viram streak/yoga de X
     assert payload["lifestyle"]["strength"] == {
         "streak_weeks": 0, "weeks_hit": 0, "weeks_total": 9,
         "current_week_sessions": 0,
@@ -410,13 +427,14 @@ def test_hrv_band_slides_day_by_day_with_full_history(db, fixed_today) -> None:
     70,1667, DP √(5/3) -> banda 69,2/71,1) difere do último (80,0
     chapada). A média 7d do primeiro dia usa noites de FORA da janela de
     exibição (6×70 + 1×80 = 71,4 — sem lookback seria 80,0)."""
+    user = _new_user(db)
     day = date(2026, 6, 19)
     while day <= date(2026, 10, 15):
-        _seed_hrv(db, day, 70.0 if day < date(2026, 8, 17) else 80.0)
+        _seed_hrv(db, user.id, day, 70.0 if day < date(2026, 8, 17) else 80.0)
         day += timedelta(days=1)
     db.commit()
 
-    hrv = service.get_health(db, 60, SAO_PAULO)["hrv"]
+    hrv = service.get_health(db, user.id, 60, SAO_PAULO)["hrv"]
 
     assert len(hrv["points"]) == 60
     assert hrv["points"][0]["date"] == date(2026, 8, 17)
@@ -434,17 +452,18 @@ def test_hrv_status_unbalanced_after_recent_suppression(db, fixed_today) -> None
     """HRV-06/05: queda recente (14 dias a 80 e 7 a 20) — média 7d 20
     abaixo da banda (60 ± 0,75√840 -> 38,3/81,7) -> UNBALANCED no card;
     dias com janela vazia ficam sem banda (threshold por dia)."""
+    user = _new_user(db)
     day = date(2026, 9, 25)
     while day <= date(2026, 10, 8):
-        _seed_hrv(db, day, 80.0)
+        _seed_hrv(db, user.id, day, 80.0)
         day += timedelta(days=1)
     day = date(2026, 10, 9)
     while day <= date(2026, 10, 15):
-        _seed_hrv(db, day, 20.0)
+        _seed_hrv(db, user.id, day, 20.0)
         day += timedelta(days=1)
     db.commit()
 
-    hrv = service.get_health(db, 60, SAO_PAULO)["hrv"]
+    hrv = service.get_health(db, user.id, 60, SAO_PAULO)["hrv"]
 
     assert hrv["points"][0]["date"] == date(2026, 8, 17)
     assert hrv["points"][0]["band_low"] is None  # janela sem valor nenhum
@@ -458,13 +477,14 @@ def test_hrv_short_window_keeps_sixty_day_band_lookback(db, fixed_today) -> None
     """HRV-15 (efeito de leitura) + design §Riscos: days=7 exibe 7 pontos
     mas a banda continua com a janela de 60 dias — o lookback de 65 dias
     (12/08..15/10, tudo 80) sustenta banda mesmo no primeiro dia exibido."""
+    user = _new_user(db)
     day = date(2026, 8, 12)
     while day <= date(2026, 10, 15):
-        _seed_hrv(db, day, 80.0)
+        _seed_hrv(db, user.id, day, 80.0)
         day += timedelta(days=1)
     db.commit()
 
-    hrv = service.get_health(db, 7, SAO_PAULO)["hrv"]
+    hrv = service.get_health(db, user.id, 7, SAO_PAULO)["hrv"]
 
     assert len(hrv["points"]) == 7
     assert hrv["points"][0]["date"] == date(2026, 10, 9)
@@ -480,16 +500,17 @@ def test_lifestyle_streak_exceeds_window(db, fixed_today) -> None:
     janela — janela de 19d (28/09..16/10: semanas 28/09, 05/10 e
     corrente) com 5 semanas batidas seguidas; weeks_hit mostra só as 2
     inteiramente dentro dela."""
+    user = _new_user(db)
     for week_start in (date(2026, 9, 7), date(2026, 9, 14), date(2026, 9, 21),
                        date(2026, 9, 28), date(2026, 10, 5)):
         for offset in (1, 3):
             day = date.fromordinal(week_start.toordinal() + offset)
-            _seed_activity(db, f"s{day.isoformat()}",
+            _seed_activity(db, user.id, f"s{day.isoformat()}",
                            datetime(day.year, day.month, day.day, 7, 0),
                            "strength_training")
     db.commit()
 
-    lifestyle = service.get_health(db, 19, SAO_PAULO)["lifestyle"]
+    lifestyle = service.get_health(db, user.id, 19, SAO_PAULO)["lifestyle"]
     assert lifestyle["strength"] == {"streak_weeks": 5, "weeks_hit": 2,
                                      "weeks_total": 3, "current_week_sessions": 0}
 
@@ -505,10 +526,11 @@ def test_health_payload_omits_pmc_even_with_load_rows(db) -> None:
     banco a chave continua ausente — a curva mora no payload de
     /api/potential (test_potential_api). Ordem das chaves pinada — o
     espelho do router e do cliente seguem a mesma posição."""
-    _seed_load(db, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
+    user = _new_user(db)
+    _seed_load(db, user.id, date(2026, 10, 15), 22.0, 28.0, -6.0, 1.42)
     db.commit()
 
-    payload = service.get_health(db, 60, SAO_PAULO)
+    payload = service.get_health(db, user.id, 60, SAO_PAULO)
     assert list(payload.keys()) == [
         "sleep", "hrv", "rhr", "stress", "dose_response", "lifestyle",
     ]
@@ -532,12 +554,13 @@ def test_health_domain_never_imports_garmin_gateway() -> None:
 # ---------------------------------------------------------------
 
 
-def test_api_happy_path_200_full_payload(client, fixed_today) -> None:
+def test_api_happy_path_200_full_payload(session_client, fixed_today) -> None:
     """HLT-01/02: 200 com o payload completo em JSON — datas ISO,
     horários locais como "HH:MM", default days=60 e os pins do design
-    atravessando o HTTP."""
+    atravessando o HTTP (sessão real do usuário da session_client)."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        _seed_full_health(db)
+        _seed_full_health(db, user_id)
         db.commit()
 
     response = client.get("/api/health/summary")
@@ -580,25 +603,28 @@ def test_api_happy_path_200_full_payload(client, fixed_today) -> None:
     }
 
 
-def test_api_days_out_of_range_responds_422(client) -> None:
+def test_api_days_out_of_range_responds_422(session_client) -> None:
     """HLT-03: days fora de [7, 365] -> 422 antes de qualquer query."""
+    client, _user_id = session_client
     for params in ({"days": 6}, {"days": 366}, {"days": 0}, {"days": -1}):
         response = client.get("/api/health/summary", params=params)
         assert response.status_code == 422, params
 
 
-def test_api_days_boundaries_respond_200(client) -> None:
+def test_api_days_boundaries_respond_200(session_client) -> None:
     """HLT-02/03: os extremos do intervalo são válidos (7 e 365 -> 200);
     sem dados, os blocos de série já atravessam como null."""
+    client, _user_id = session_client
     for params in ({"days": 7}, {"days": 365}):
         response = client.get("/api/health/summary", params=params)
         assert response.status_code == 200, params
         assert response.json()["sleep"] is None
 
 
-def test_api_null_blocks_traverse_http_with_honest_zeros(client, fixed_today) -> None:
+def test_api_null_blocks_traverse_http_with_honest_zeros(session_client, fixed_today) -> None:
     """HLT-11 via HTTP (done-when T4): banco vazio -> sono/HRV/RHR/
     estresse null no JSON; dose_response e lifestyle presentes com zeros."""
+    client, _user_id = session_client
     response = client.get("/api/health/summary")
     assert response.status_code == 200
     body = response.json()
@@ -615,12 +641,13 @@ def test_api_null_blocks_traverse_http_with_honest_zeros(client, fixed_today) ->
     assert body["lifestyle"]["strength"]["streak_weeks"] == 0
 
 
-def test_api_window_cuts_oldest_points(client) -> None:
+def test_api_window_cuts_oldest_points(session_client) -> None:
     """HLT-02 (edge do spec): janela pedida corta as noites mais antigas —
     8 noites semeadas, days=7 devolve as 7 mais recentes em ASC."""
+    client, user_id = session_client
     with SessionLocal() as db:
         for offset in range(8):
-            _seed_sleep(db, date(2026, 10, 8 + offset), 22000)
+            _seed_sleep(db, user_id, date(2026, 10, 8 + offset), 22000)
         db.commit()
 
     response = client.get("/api/health/summary", params={"days": 7})
@@ -632,15 +659,16 @@ def test_api_window_cuts_oldest_points(client) -> None:
     ]
 
 
-def test_api_invalid_app_timezone_falls_back_with_warning(client, monkeypatch, caplog) -> None:
+def test_api_invalid_app_timezone_falls_back_with_warning(session_client, monkeypatch, caplog) -> None:
     """Edge do spec (HLT-05): APP_TIMEZONE inválida -> fallback
     America/Sao_Paulo com warning log, sem crash — 22:16 local, nunca o
     GMT de 01:16."""
+    client, user_id = session_client
     monkeypatch.setattr(
         health_router, "get_settings", lambda: SimpleNamespace(app_timezone="Mars/Phobos")
     )
     with SessionLocal() as db:
-        _seed_sleep(db, date(2026, 10, 15), 23400,
+        _seed_sleep(db, user_id, date(2026, 10, 15), 23400,
                     bed=datetime(2026, 10, 15, 1, 16), wake=datetime(2026, 10, 15, 8, 2))
         db.commit()
 
@@ -659,14 +687,15 @@ def test_api_invalid_app_timezone_falls_back_with_warning(client, monkeypatch, c
 # ---------------------------------------------------------------
 
 
-def test_api_health_payload_omits_pmc_even_with_load(client) -> None:
+def test_api_health_payload_omits_pmc_even_with_load(session_client) -> None:
     """AD-017 via HTTP: banco com `load` -> payload sem a chave `pmc`
     (a exclusão é do contrato, não do dado vazio — a curva mora no
     /api/potential agora); ordem das chaves pinada. O resto do payload
     intacto (HLT-03 segue verde: days fora de [7, 365] continua 422
     antes da query)."""
+    client, user_id = session_client
     with SessionLocal() as db:
-        _seed_load(db, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
+        _seed_load(db, user_id, date(2026, 10, 14), 21.0, 27.0, -6.0, 1.40)
         db.commit()
 
     response = client.get("/api/health/summary", params={"days": 60})

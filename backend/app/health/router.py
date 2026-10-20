@@ -16,8 +16,10 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.auth.deps import require_session
 from app.core.config import get_settings
 from app.db.engine import get_db
+from app.db.models import User
 from app.health import service
 
 logger = logging.getLogger(__name__)
@@ -169,11 +171,13 @@ def _resolve_tz() -> ZoneInfo:
 
 @router.get("/summary")
 def get_health_summary(
+    user: User = Depends(require_session),
     days: int = Query(default=60, ge=7, le=365),
     db: Session = Depends(get_db),
 ) -> HealthSummaryOut:
     """O painel inteiro em 1 payload (design §Contrato).
 
     `days` fora de [7, 365] -> 422 antes de qualquer query (HLT-03,
-    padrão POT-16)."""
-    return service.get_health(db, days, _resolve_tz())
+    padrão POT-16). Toda leitura filtra pelo usuário da sessão
+    (user-scope)."""
+    return service.get_health(db, user.id, days, _resolve_tz())

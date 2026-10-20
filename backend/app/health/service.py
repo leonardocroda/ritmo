@@ -16,7 +16,6 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import (
-    DEFAULT_USER_ID,
     Activity,
     Hrv,
     Rhr,
@@ -48,14 +47,15 @@ def _today(tz: ZoneInfo) -> date:
     return datetime.now(tz).date()
 
 
-def _series(db: Session, model, days: int) -> list:
-    """Janela da série: últimas `days` linhas, mais antiga primeiro
-    (padrão do painel Performance). Janela maior que o histórico devolve
-    as linhas disponíveis (edge do spec — a pedida, não uma inventada)."""
+def _series(db: Session, model, days: int, user_id: int) -> list:
+    """Janela da série: últimas `days` linhas do usuário, mais antiga
+    primeiro (padrão do painel Performance). Janela maior que o
+    histórico devolve as linhas disponíveis (edge do spec — a pedida,
+    não uma inventada)."""
     rows = (
         db.execute(
             select(model)
-            .where(model.user_id == DEFAULT_USER_ID)
+            .where(model.user_id == user_id)
             .order_by(model.date.desc())
             .limit(days)
         )
@@ -113,12 +113,12 @@ def _sleep_block(sleep_rows: list[Sleep], nights: list[dict], days: int) -> dict
     }
 
 
-def _hrv_history(db: Session, days: int) -> list[Hrv]:
+def _hrv_history(db: Session, days: int, user_id: int) -> list[Hrv]:
     """Janela do modelo de HRV (hrv-baseline, design §Components.2):
     exibição de `days` dias corridos + lookback de banda de 59 — todas
     as linhas do usuário a partir de L−(days+58), ASC. Sem linhas -> []."""
     latest = db.execute(
-        select(func.max(Hrv.date)).where(Hrv.user_id == DEFAULT_USER_ID)
+        select(func.max(Hrv.date)).where(Hrv.user_id == user_id)
     ).scalar()
     if latest is None:
         return []
@@ -126,7 +126,7 @@ def _hrv_history(db: Session, days: int) -> list[Hrv]:
     return (
         db.execute(
             select(Hrv)
-            .where(Hrv.user_id == DEFAULT_USER_ID, Hrv.date >= start)
+            .where(Hrv.user_id == user_id, Hrv.date >= start)
             .order_by(Hrv.date.asc())
         )
         .scalars()
@@ -214,7 +214,7 @@ def _lifestyle_block(activities: list[Activity], today: date, window_start: date
     }
 
 
-def get_health(db: Session, days: int, tz: ZoneInfo) -> dict:
+def get_health(db: Session, user_id: int, days: int, tz: ZoneInfo) -> dict:
     """Payload completo do painel — os 6 blocos do design §Contrato.
 
     Sem `pmc`: a curva de carga voltou ao painel Performance (AD-017
@@ -222,13 +222,14 @@ def get_health(db: Session, days: int, tz: ZoneInfo) -> dict:
     AD-009). `days` já validado (7–365) pelo router; a matemática vive
     em calc.py (pura, AD-003) — aqui é leitura e montagem. Séries vazias
     -> bloco null (HLT-11); `dose_response`/`lifestyle` sempre presentes,
-    com zeros honestos."""
-    sleep_rows = _series(db, Sleep, days)
-    hrv_rows = _series(db, Hrv, days)
-    rhr_rows = _series(db, Rhr, days)
-    stress_rows = _series(db, Stress, days)
+    com zeros honestos. Toda leitura filtra pelo ``user_id`` do usuário
+    da sessão (user-scope, USR-03/06)."""
+    sleep_rows = _series(db, Sleep, days, user_id)
+    hrv_rows = _series(db, Hrv, days, user_id)
+    rhr_rows = _series(db, Rhr, days, user_id)
+    stress_rows = _series(db, Stress, days, user_id)
     activities = (
-        db.execute(select(Activity).where(Activity.user_id == DEFAULT_USER_ID))
+        db.execute(select(Activity).where(Activity.user_id == user_id))
         .scalars()
         .all()
     )
@@ -241,7 +242,7 @@ def get_health(db: Session, days: int, tz: ZoneInfo) -> dict:
 
     return {
         "sleep": _sleep_block(sleep_rows, nights, days),
-        "hrv": _hrv_block(_hrv_history(db, days), days),
+        "hrv": _hrv_block(_hrv_history(db, days, user_id), days),
         "rhr": _rhr_block(rhr_rows),
         "stress": _stress_block(stress_rows),
         "dose_response": dose_response(nights),

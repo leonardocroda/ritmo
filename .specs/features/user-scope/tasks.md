@@ -422,7 +422,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | ---- | ------ | ------ |
 | T1 | ✅ Complete | refactor(test): add session_client fixture for real user sessions |
 | T2 | ✅ Complete | feat(user-scope): activities reads by session user_id |
-| T3 | Pending | - |
+| T3 | ✅ Complete | feat(user-scope): health reads by session user_id |
 | T4 | Pending | - |
 | T5 | Pending | - |
 | T6 | Pending | - |
