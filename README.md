@@ -5,7 +5,7 @@ Plataforma pessoal de corrida: sync do Garmin, painéis que importam
 
 > Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
 >
-> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-017) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-016 — volta pós-08/11, redesenhado com uso real) · **Fase 1.5 em andamento** (AD-012..015): **auth próprio + convite ✅** (login, sessão sliding 30d, Sair no header, bootstrap por CLI — §Login e acesso) · **user-scope ✅** (toda query por usuário da sessão + isolamento A×B) · zonas/LTHR no banco, cofre de tokens Garmin criptografado e `/perfil` a seguir.
+> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-017) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-016 — volta pós-08/11, redesenhado com uso real) · **Fase 1.5 em andamento** (AD-012..015): **auth próprio + convite ✅** (login, sessão sliding 30d, Sair no header, bootstrap por CLI — §Login e acesso) · **user-scope ✅** (toda query por usuário da sessão + isolamento A×B) · **zonas de FC (hr-zones) ✅** (métricas com histórico effective-dated, fase physio no sync, tela `/perfil` — §Zonas de FC no /perfil) · cofre de tokens Garmin criptografado a seguir.
 
 ## Estrutura
 
@@ -81,9 +81,11 @@ Dentro do compose nada muda (o backend usa o hostname `postgres`); apenas o
 
 O botão **Puxar do Garmin** (header global, visível de qualquer painel) roda
 um job sequencial que popula o banco: atividades + splits, sono, HRV, RHR,
-body battery, stress, recordes de corrida e a série de carga
+body battery, stress, recordes de corrida, a série de carga
 (CTL/ATL/TSB/ACWR, calculada localmente a partir do `training_load` — zero
-chamadas extras à API).
+chamadas extras à API) e as métricas fisiológicas das zonas (FC máxima e
+LTHR detectados pelo relógio, FC de repouso derivada — §Zonas de FC no
+/perfil).
 
 - **Primeira sync (backfill)**: 180 dias de atividades + 60 dias de saúde +
   recordes. São ~400 chamadas sequenciais (1 por segundo, nunca em paralelo) —
@@ -326,12 +328,64 @@ treino…" → card do veredito quando pronto.
   ela o botão responde 503), `NVIDIA_MODEL` (default `z-ai/glm-5.3`;
   o flash `z-ai/glm-5.3-flash` é a opção rápida para o dia a dia),
   `NVIDIA_TIMEOUT_S` (default 420 — o glm-5.3 raciocina além de 120s),
-  `LTHR_BPM` (default 177 — a recalibração sobrepõe por env).
+  `LTHR_BPM` (fallback — default 177; a avaliação usa o LTHR do perfil
+  quando existe, §Zonas de FC no /perfil).
 
 Validação (18/10/2026): suite com 362 testes no Postgres do compose —
 NIM 100% mockada nos testes, nenhum teste chama a API real. UAT aprovado
 no celular via LAN: glm-5.3 (thinking) e flash testados com treino real;
 HTTP 429 virou linha de erro com motivo — a emenda job nasceu desse UAT.
+
+## Zonas de FC no /perfil
+
+`/perfil` (o seu nome no header vira o link) nasce com a tela de zonas de
+frequência cardíaca — o eixo de FC ganha dono e método próprios (decisão
+20/10: as zonas VDOT de **pace** seguem no `vdot_zones.json`, adiado).
+Três seções no padrão de clareza AD-009:
+
+- **1. Valores** — FC máxima, FC de repouso e LTHR com badge de fonte
+  (Garmin/Manual) e vigência. Salvar cria linha manual nova e **vence o
+  sync para sempre**; valor igual ao vigente não cria linha
+  (idempotente). Limites e coerência validados na API (422 aponta o
+  campo, em PT-BR).
+- **2. Método e zonas** — três métodos de cálculo com defaults
+  pré-carregados e percentuais editáveis por zona: **LTHR%**
+  (65/80/89/95/100 — tabela própria, Z5 aberta sem teto), **reserva
+  cardíaca/Karvonen** (50/60/70/80/90) e **FC máx%** (50/60/70/80/90,
+  Z5 fecha em 100%). Guardrails na API: cadeia ascendente, zonas com
+  ≥1 ponto, Z5 conforme o método — o 422 aponta a zona exata. Salvar
+  recalcula as zonas em bpm na hora; sem a métrica exigida pelo
+  método, a tela mostra orientação em vez de erro.
+- **3. Histórico** — timeline das mudanças de valores e configs, mais
+  recente primeiro, com data e fonte.
+
+**Histórico effective-dated (padrão Strava)**: cada mudança vira linha
+nova com `valid_from` — nada é sobrescrito, corrigir é salvar valor novo.
+Um treino antigo é lido com as métricas e a config vigentes **na data
+dele**: a avaliação IA usa o LTHR da época e o tempo por zona de FC sai
+com as zonas da época. Mudanças valem dali em diante; o passado nunca é
+reclassificado.
+
+**Sync traz as métricas** (fase physio no fim de cada sync, +3 chamadas:
+1 de user settings + 2 do LTHR): `fcmax` do `userData.maxHeartRate` e
+`fclthr` do LTHR detectado pelo relógio; `fcrest` = mínimo dos últimos 7
+dias da série `rhr` já sincronizada (zero chamadas extras). Valor ausente
+pula a métrica sem erro; valor vigente manual → nenhuma linha
+(manual-wins); valor idêntico → nenhuma linha. **Nada é seedado**: o
+banco nasce vazio de métricas (só a config lthr default do usuário 1) —
+elas vêm do primeiro sync ou da edição manual.
+
+**`LTHR_BPM` vira fallback**: o payload da avaliação usa o `fclthr`
+vigente do perfil na data do treino; sem a métrica, cai no `LTHR_BPM` do
+env (default 177). Convidado sem valores ainda avalia — números menos
+pessoais, mas honestos.
+
+**Pendente de UAT**: o primeiro sync real confirma as chaves do Garmin
+(`userData.maxHeartRate`, LTHR detectado) — spike runtime: os endpoints
+`get_user_settings`/`get_lactate_threshold` estão verificados na lib
+0.3.2 instalada, mas a presença dos valores na conta real só se confere
+rodando. Se o relógio nunca detectou LTHR, `fclthr` fica só manual e o
+payload segue no fallback do env.
 
 ## Workflow de desenvolvimento — spec-driven
 

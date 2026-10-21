@@ -448,10 +448,10 @@ T12 → T13
 
 **Done when**:
 
-- [ ] README documenta a tela, os métodos, o comportamento do sync e o fallback do env
-- [ ] `.env.example` coerente com `core/config.py`
-- [ ] Gate check passes: Build+Full final — `cd backend && uv run pytest` + `cd frontend && npm run lint && npm run build`
-- [ ] Test count: suite inteira verde (~486)
+- [x] README documenta a tela, os métodos, o comportamento do sync e o fallback do env
+- [x] `.env.example` coerente com `core/config.py`
+- [x] Gate check passes: Build+Full final — `cd backend && uv run pytest` + `cd frontend && npm run lint && npm run build`
+- [x] Test count: suite inteira verde (~486)
 
 **Tests**: none
 **Gate**: build+full
@@ -574,4 +574,4 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T10 | ✅ Complete | feat(frontend): hr zones api helpers and profile entry |
 | T11 | ✅ Complete | feat(frontend): profile page with hr values editing |
 | T12 | ✅ Complete | feat(frontend): zone method config and history sections |
-| T13 | Pending | - |
+| T13 | ✅ Complete | docs(hr-zones): document hr zones sync and profile screen |
