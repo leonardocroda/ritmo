@@ -281,15 +281,19 @@ tempo por zona de FC so that o veredito reflita minhas zonas, não as de outro u
 
 ## Success Criteria
 
-- [ ] Usuário 1 roda o sync pós-feature: fclthr e fcmax chegam do Garmin (auto-detectados),
+- [x] Usuário 1 roda o sync pós-feature: fclthr e fcmax chegam do Garmin (auto-detectados),
       fcrest do mínimo-7d — e as zonas LTHR aparecem na tela `/perfil` no celular (390px),
-      editáveis (percentuais mudam as zonas na hora)
-- [ ] Até o primeiro sync popular `fclthr`, o payload da avaliação usa o fallback do env
-      (177); depois, o LTHR do perfil
-- [ ] Editar um valor manualmente e rodar o sync: o valor manual permanece (badge
-      "Manual"), o histórico registra só mudanças reais
-- [ ] Avaliação IA de um treino com FC traz `lthr_bpm` do perfil e tempo por zona de FC;
-      treino sem FC omite o bloco
-- [ ] Treino de um mês atrás é lido com as zonas vigentes naquela data (effective-dating)
-- [ ] Suite completa verde no Postgres do compose (backend) + build do frontend sem erros
-- [ ] `GET /api/profile/hr-zones` sem sessão → 401 (padrão user-scope)
+      editáveis (percentuais mudam as zonas na hora) — **UAT 21/10/2026: jobs 18/19 + teste
+      do ciclo manual no celular (fcmax 199 do heartRateZones v2, fclthr 182, fcrest 42)**
+- [x] Até o primeiro sync popular `fclthr`, o payload da avaliação usa o fallback do env
+      (177); depois, o LTHR do perfil — pinado nos dois ramos (suite)
+- [x] Editar um valor manualmente e rodar o sync: o valor manual permanece (badge
+      "Manual"), o histórico registra só mudanças reais — **UAT 21/10/2026: fclthr 177
+      manual segurou o sync; "Voltar a puxar do Garmin" reassumiu com flip (182 garmin)**
+- [x] Avaliação IA de um treino com FC traz `lthr_bpm` do perfil e tempo por zona de FC;
+      treino sem FC omite o bloco (pinado na suite — HRZ-17/18/19)
+- [x] Treino de um mês atrás é lido com as zonas vigentes naquela data (effective-dating,
+      HRZ-12 — suite)
+- [x] Suite completa verde no Postgres do compose (backend 508/508) + build do frontend
+      sem erros
+- [x] `GET /api/profile/hr-zones` sem sessão → 401 (padrão user-scope)

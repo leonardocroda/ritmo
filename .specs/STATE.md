@@ -192,18 +192,16 @@
   README + `.env.example`. SPEC_DEVIATION 1 (justificada na validação): lib 0.3.2 expõe
   user settings como `get_user_profile` — gateway mantém o nome do design.
 - **In-progress**: none
-- **Next step**: UAT runtime — item (1) **RESOLVIDO**: re-sync pós-fix
-  (job 19) confirmou as 3 métricas do Garmin — fcmax 199, fclthr 182, fcrest 42,
-  todas `source=garmin`, zero warnings, 26 chamadas (fonte do fcmax corrigida no
-  `fb98bbc`: `heartRateZones/v2` `maxHeartRateUsed` RUNNING — o perfil não tem
-  `maxHeartRate`; lição L-016 candidate). Emenda HRZ-20/21/22 implementada
-  ("voltar a puxar do Garmin" por métrica: prefs em `user_hr_sync_prefs`, PUT
-  `sync_modes`, botão no /perfil; suite 508). Resta o item (2): `/perfil` no
-  celular 390px (badges, troca de método prefilla defaults, zonas mudam na
-  hora, 422 inline, histórico) + manual-wins ponta a ponta com o caminho de
-  volta (editar → sync segura → botão → sync reassume). Hardening opcional: 1
-  teste da fcrest com série RHR não uniforme (discrimina mínimo E janela-7d).
-  Depois: `garmin-tokens-db` → `user-profile`.
+- **Next step**: `hr-zones` **100% entregue e UAT-confirmada (21/10/2026)**: sync real
+  trouxe as 3 métricas (fcmax 199 do heartRateZones v2, fclthr 182, fcrest 42 — jobs
+  18/19, zero warnings); ciclo manual completo no celular (editar → sync segura → botão
+  "Voltar a puxar do Garmin" → sync reassumiu com flip 177 manual → 182 garmin; pref
+  `user_hr_sync_prefs.fclthr = garmin`). Todos os Success Criteria do spec marcados.
+  Próxima feature da fila: `garmin-tokens-db` → `user-profile`. Hardening opcional
+  (sem pressa): 1 teste da fcrest com série RHR não uniforme (discrimina mínimo E
+  janela-7d). Pendências menores vivas: CLI `set_password` sem política de senha ≥8; 2
+  docstrings de teste defasadas (cosmético); decisão aberta de produto: NVIDIA_MODEL
+  default no `.env`
   Pendências menores vivas: CLI `set_password` sem política de senha ≥8; 2 docstrings de
   teste defasadas (cosmético); decisão aberta de produto: NVIDIA_MODEL default no `.env`
 - **Blockers**: none
