@@ -174,32 +174,32 @@
 
 ## Handoff
 
-- **Feature**: `user-scope` — **concluída e validada (PASS, 20/10/2026)**: 19/19 ACs com
-  evidência spec-anchored (USR-05 teve o texto emendado — citava um endpoint `sync_state`
-  que nunca existiu como rota HTTP), sensor 3/3 mutantes mortas, `validate_state.py` exit 0;
-  relatório em `.specs/features/user-scope/validation.md`
-- **Phase / Task**: Execute concluído — 8 tasks (T1 fixture `session_client`/`login_client`
-  `67bac81` → T2 activities `97f0368` → T3 health `f4a428b` → T4 potential `1d0ccff` →
-  T5 garmin `7f825b5` → T6 evaluation `f44d75c` → T7 override global removido `736706e`
-  → T8 isolamento A×B `233e51f`)
-- **Completed**: toda query de leitura e gravação usa o user_id do usuário da sessão —
-  activities/health/potential/garmin/evaluation filtram por `user.id` via
-  `Depends(require_session)`; `create_job(db, user_id)` sem default; job/avaliação/atividade
-  alheios → 404; conftest sem override global (testes com sessão real via `session_client`);
-  `test_user_isolation.py` com 7 testes A×B ponta a ponta; lições: L-015 (candidate) sobre
-  AC citar endpoint inexistente
-- **In-progress**: `hr-zones` (renomeada de `zones-db`, AD-021) — spec confirmado pelo usuário
-  (20 ACs HRZ-01..20) + design completo (`.specs/features/hr-zones/design.md`); falta
-  tasks + execute. Escopo: métricas fcmax/fcrest/fclthr effective-dated, config de zonas
-  por método (lthr/fcr/fcmax) com percentuais editáveis, zonas derivadas vigentes-na-data,
-  tela `/perfil`, sync read-only com manual-wins, payload IA com `zonas_fc`.
-- **Next step**: "tasks hr-zones" (quebrar em tasks atômicas) → execute. Depois:
-  `garmin-tokens-db` → `user-profile`. Pendências menores
-  vivas: CLI `set_password` não aplica política de senha ≥8 (API aplica; trocar a senha
-  "test" por uma real antes de convidar); 2 docstrings de teste defasadas (cosmético —
-  `test_activities_api.py:12-14`, `test_auth_api.py:3-4`); convite pode ser ligado
-  (`INVITE_CODE`) — o user-scope está no ar; decisão aberta de produto: NVIDIA_MODEL
-  default no `.env`
+- **Feature**: `hr-zones` — **concluída e validada (PASS, 21/10/2026)**: 19/19 ACs com
+  evidência spec-anchored `file:line`, sensor 5/5 mutantes mortas (effective-dating,
+  tie-break, manual-wins, fronteira de zona, guard de omissão), suite 493/493 verde
+  (+66 vs 427), frontend lint+build OK, `validate_state.py` exit 0; relatório em
+  `.specs/features/hr-zones/validation.md`
+- **Phase / Task**: Execute concluído — 13 tasks em 3 batches de sub-agents (Batch 1:
+  T1 models `c7a27dd` → T2 calc `2e20377` → T3 seed `60868f7` → T4 service `e49e26f` →
+  T5 API `008456b`; Batch 2: T6 gateway `8c344fd` → T7 upsert `24fc4d5` → T8 sync
+  `202ddfa` → T9 payload `ffc65c3`; Batch 3: T10 helpers `33f5970` → T11 página
+  `094d84b` → T12 método/histórico `13f87d1` → T13 docs `223e914`)
+- **Completed**: séries effective-dated append-only (`user_hr_metrics`, `hr_zone_configs`),
+  calc puro (3 métodos com defaults + guardrails), service com manual-wins/idempotência
+  num lugar só (`set_metric`), 3 endpoints `/api/profile/hr-zones*` com user-scope,
+  fase physio no sync (+3 chamadas, warning tolerante), payload IA com `lthr_bpm`
+  vigente-na-data + fallback env e bloco `zonas_fc`, tela `/perfil` (3 seções AD-009),
+  README + `.env.example`. SPEC_DEVIATION 1 (justificada na validação): lib 0.3.2 expõe
+  user settings como `get_user_profile` — gateway mantém o nome do design.
+- **In-progress**: none
+- **Next step**: UAT runtime com o usuário (3 itens pendentes, não são falhas):
+  (1) primeiro sync real — spike confirma `userData.maxHeartRate` + LTHR detectado;
+  (2) `/perfil` no celular 390px (badges, troca de método prefilla defaults, zonas mudam
+  na hora, 422 inline, histórico); (3) manual-wins ponta a ponta (editar valor → sync →
+  badge "Manual" persiste). Hardening opcional: 1 teste da fcrest com série RHR não
+  uniforme (discrimina mínimo E janela-7d). Depois: `garmin-tokens-db` → `user-profile`.
+  Pendências menores vivas: CLI `set_password` sem política de senha ≥8; 2 docstrings de
+  teste defasadas (cosmético); decisão aberta de produto: NVIDIA_MODEL default no `.env`
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main (commits locais; push só com go-ahead do usuário)

@@ -125,16 +125,19 @@ de treino — e um treino antigo seja lido com as zonas da época.
    z2.low < … < z5.low`, zona <1 ponto, `z1.low ≤ 0`, upper em Z5 do LTHR) THEN o sistema
    SHALL responder 422 com o primeiro ponto inválido  <!-- complex -->
 10. WHILE as métricas exigidas pelo método existem THEN o sistema SHALL derivar as zonas
-    em bpm na leitura (lthr: `round(pct × fclthr)`; fcr: `fcrest + round(pct × (fcmax −
-    fcrest))`; fcmax: `round(pct × fcmax)`), com `low ≤ FC < high` e Z5 do LTHR aberta  <!-- state-driven -->
+    em bpm na leitura (lthr: `round(pct × fclthr / 100)`; fcr: `fcrest + round(pct ×
+    (fcmax − fcrest) / 100)`; fcmax: `round(pct × fcmax / 100)` — pct em pontos
+    percentuais), com `low ≤ FC < high` e Z5 do LTHR aberta  <!-- state-driven -->
 11. IF uma métrica exigida pelo método não existe (ex.: fcr sem fcrest) THEN o sistema
     SHALL devolver zonas null (estado vazio honesto que orienta configurar, não erro)  <!-- unwanted-behavior -->
 12. WHEN uma leitura em data D resolve as zonas (tela ou payload) THEN o sistema SHALL
     usar a métrica e a config vigentes em D — treino antigo é lido com as zonas da época  <!-- event-driven -->
 
-**Independent Test**: PUT método=lthr com fclthr 177 → zonas [115, 141, 156, 168, 177+];
-PUT método=fcr sem fcrest → zonas null com orientação; PUT bounds 64/79/88/94/99 no lthr →
-zonas recalculadas; treino de 30 dias atrás → zonas da config daquela data.
+**Independent Test**: PUT método=lthr com fclthr 177 → zonas [115, 142, 158, 168, 177+]
+(valores derivados da fórmula do AC-10 — emenda da validação: o exemplo original citava
+[115, 141, 156, …], não derivável); PUT método=fcr sem fcrest → zonas null com orientação;
+PUT bounds 64/79/88/94/99 no lthr → zonas recalculadas; treino de 30 dias atrás → zonas da
+config daquela data.
 
 ---
 
@@ -215,25 +218,25 @@ tempo por zona de FC so that o veredito reflita minhas zonas, não as de outro u
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| HRZ-01 | P1: Métricas com histórico | Design | ✅ Implemented |
-| HRZ-02 | P1: Métricas com histórico | Design | ✅ Implemented |
-| HRZ-03 | P1: Métricas com histórico | Design | ✅ Implemented |
-| HRZ-04 | P1: Métricas com histórico | Design | ✅ Implemented |
-| HRZ-05 | P1: Métricas com histórico | Design | ✅ Implemented |
-| HRZ-06 | P1: Métricas com histórico | Design | ✅ Implemented |
-| HRZ-07 | P1: Métricas com histórico | Design | ✅ Implemented |
-| HRZ-08 | P1: Config de método e zonas | Design | ✅ Implemented |
-| HRZ-09 | P1: Config de método e zonas | Design | ✅ Implemented |
-| HRZ-10 | P1: Config de método e zonas | Design | ✅ Implemented |
-| HRZ-11 | P1: Config de método e zonas | Design | ✅ Implemented |
-| HRZ-12 | P1: Config de método e zonas | Design | ✅ Implemented |
-| HRZ-13 | P1: Tela de zonas no /perfil | Design | ✅ Implemented |
-| HRZ-14 | P1: Tela de zonas no /perfil | Design | ✅ Implemented |
-| HRZ-15 | P1: Tela de zonas no /perfil | Design | ✅ Implemented |
-| HRZ-16 | P1: Tela de zonas no /perfil | Design | ✅ Implemented |
-| HRZ-17 | P1: Consumo na avaliação IA | Design | ✅ Implemented |
-| HRZ-18 | P1: Consumo na avaliação IA | Design | ✅ Implemented |
-| HRZ-19 | P1: Consumo na avaliação IA | Design | ✅ Implemented |
+| HRZ-01 | P1: Métricas com histórico | Design | ✅ Verified |
+| HRZ-02 | P1: Métricas com histórico | Design | ✅ Verified |
+| HRZ-03 | P1: Métricas com histórico | Design | ✅ Verified |
+| HRZ-04 | P1: Métricas com histórico | Design | ✅ Verified |
+| HRZ-05 | P1: Métricas com histórico | Design | ✅ Verified (sub-cláusula mín-7d da fcrest implementada mas não discriminada por teste — flag da validação) |
+| HRZ-06 | P1: Métricas com histórico | Design | ✅ Verified |
+| HRZ-07 | P1: Métricas com histórico | Design | ✅ Verified |
+| HRZ-08 | P1: Config de método e zonas | Design | ✅ Verified |
+| HRZ-09 | P1: Config de método e zonas | Design | ✅ Verified |
+| HRZ-10 | P1: Config de método e zonas | Design | ✅ Verified (exemplo ilustrativo do spec contradizia a própria fórmula — emendado 21/10; implementação/testes seguem a fórmula) |
+| HRZ-11 | P1: Config de método e zonas | Design | ✅ Verified |
+| HRZ-12 | P1: Config de método e zonas | Design | ✅ Verified (service + payload + tie-break) |
+| HRZ-13 | P1: Tela de zonas no /perfil | Design | ✅ Verified (code + build; render em runtime pendente de UAT) |
+| HRZ-14 | P1: Tela de zonas no /perfil | Design | ✅ Verified (code + build; interação pendente de UAT — frontend sem test runner por padrão do projeto) |
+| HRZ-15 | P1: Tela de zonas no /perfil | Design | ✅ Verified (API exata; render frontend pendente de UAT) |
+| HRZ-16 | P1: Tela de zonas no /perfil | Design | ✅ Verified (401 exato na API + prefixo do proxy; redirect pendente de UAT) |
+| HRZ-17 | P1: Consumo na avaliação IA | Design | ✅ Verified (ambos os ramos pinados) |
+| HRZ-18 | P1: Consumo na avaliação IA | Design | ✅ Verified (aritmética exata + denominador + zonas da época) |
+| HRZ-19 | P1: Consumo na avaliação IA | Design | ✅ Verified (bloco omitido em todos os ramos sem dado) |
 
 **Coverage:** 19 total, 0 mapped to tasks, 19 unmapped ⚠️
 
