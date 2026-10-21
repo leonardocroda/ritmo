@@ -315,13 +315,27 @@ def _sync_predictions(db, gateway, job, stats, user_id) -> None:
         _save_stats(db, job, stats)
 
 
+def _fcmax_from_zones(zones: object) -> int | None:
+    """maxHeartRateUsed do esporte RUNNING (fallback DEFAULT) — fcmax
+    auto-detectado pela Garmin (HRZ-05). None quando ausente: a fase
+    pula a métrica sem warning (extração resiliente)."""
+    if not isinstance(zones, list):
+        return None
+    by_sport = {z.get("sport"): z for z in zones if isinstance(z, dict)}
+    entry = by_sport.get("RUNNING") or by_sport.get("DEFAULT")
+    value = (entry or {}).get("maxHeartRateUsed")
+    return value if isinstance(value, int) else None
+
+
 def _sync_physio(db, gateway, job, stats, user_id) -> None:
-    """Fase physio (HRZ-05/06): fcmax do user settings (userData
-    .maxHeartRate), fclthr do LTHR latest (speed_and_heart_rate
-    .heartRate) e fcrest do mínimo dos últimos 7 dias da série `rhr` já
-    sincronizada (query local, zero chamadas). Valor ausente pula a
-    métrica sem warning; falha -> warning `{tipo: "physio"}` e o sync
-    segue até done (SYNC-20) — update-if-changed/manual-wins vivem no
+    """Fase physio (HRZ-05/06): fcmax do endpoint de zonas de FC
+    (heartRateZones v2, `maxHeartRateUsed` do esporte RUNNING — a Garmin
+    auto-detecta como o LTHR; user settings NÃO tem maxHeartRate em
+    runtime), fclthr do LTHR latest (speed_and_heart_rate.heartRate) e
+    fcrest do mínimo dos últimos 7 dias da série `rhr` já sincronizada
+    (query local, zero chamadas). Valor ausente pula a métrica sem
+    warning; falha -> warning `{tipo: "physio"}` e o sync segue até done
+    (SYNC-20) — update-if-changed/manual-wins vivem no
     `update_physio_metrics`.
     """
     stats["step"] = "physio"
@@ -329,8 +343,8 @@ def _sync_physio(db, gateway, job, stats, user_id) -> None:
     stats["calls_made"] = gateway.calls_made
     _save_stats(db, job, stats)
     try:
-        user_settings = gateway.get_user_settings()
-        fcmax = (user_settings or {}).get("userData", {}).get("maxHeartRate")
+        zones = gateway.get_heart_rate_zones()
+        fcmax = _fcmax_from_zones(zones)
         lthr = gateway.get_lactate_threshold()
         fclthr = (lthr or {}).get("speed_and_heart_rate", {}).get("heartRate")
         fcrest = db.execute(

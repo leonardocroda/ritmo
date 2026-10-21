@@ -32,7 +32,12 @@ from app.db.models import (
 )
 from app.garmin import service
 from app.garmin.client import GarminAuthExpiredError, SyncBudgetExceededError
-from app.garmin.service import JobConflictError, create_job, run_sync
+from app.garmin.service import (
+    JobConflictError,
+    _fcmax_from_zones,
+    create_job,
+    run_sync,
+)
 from app.garmin.upserts import get_sync_state
 from app.main import app
 from fake_garmin import CYCLING_ID, FakeGateway
@@ -648,7 +653,7 @@ def test_startup_leaves_finished_jobs_untouched(db, monkeypatch):
 
 def test_sync_physio_phase_creates_three_garmin_metrics(db, monkeypatch):
     """HRZ-05: fase physio cria fcmax/fclthr/fcrest source=garmin e
-    consome +3 chamadas (1 user settings + 2 internas do LTHR)."""
+    consome +3 chamadas (1 das zonas de FC + 2 internas do LTHR)."""
     monkeypatch.setattr(service, "GarminGateway", FakeGateway)
     job = _create_job()
     run_sync(job.id)
@@ -659,7 +664,7 @@ def test_sync_physio_phase_creates_three_garmin_metrics(db, monkeypatch):
     assert stats["calls_made"] == 502  # 499 das fases anteriores + 3 da physio
     assert stats["warnings"] == []
     fake = FakeGateway.last
-    assert fake.calls["user_settings"] == [()]
+    assert fake.calls["heart_rate_zones"] == [()]
     assert fake.calls["lactate_threshold"] == [()]
 
     with SessionLocal() as s:
@@ -794,9 +799,9 @@ def test_sync_physio_failure_warns_and_job_done(db, monkeypatch):
     done, fases anteriores intactas e nenhuma métrica gravada."""
 
     class FailingPhysio(FakeGateway):
-        def get_user_settings(self):
-            self._record("user_settings")
-            raise RuntimeError("settings fora do ar")
+        def get_heart_rate_zones(self):
+            self._record("heart_rate_zones")
+            raise RuntimeError("zonas fora do ar")
 
     monkeypatch.setattr(service, "GarminGateway", FailingPhysio)
     job = _create_job()
@@ -806,7 +811,7 @@ def test_sync_physio_failure_warns_and_job_done(db, monkeypatch):
     assert finished.status == "done"
     assert finished.error is None
     stats = finished.stats_json
-    assert stats["warnings"] == [{"tipo": "physio", "erro": "settings fora do ar"}]
+    assert stats["warnings"] == [{"tipo": "physio", "erro": "zonas fora do ar"}]
     with SessionLocal() as s:
         assert _count(s, Activity) == 12  # fases anteriores intactas
         assert _count(s, RacePrediction) == 4
@@ -815,13 +820,19 @@ def test_sync_physio_failure_warns_and_job_done(db, monkeypatch):
 
 
 def test_sync_physio_max_hr_absent_skips_fcmax(db, monkeypatch):
-    """Extração resiliente: userData sem maxHeartRate -> fcmax pulada
+    """Extração resiliente: zonas sem maxHeartRateUsed -> fcmax pulada
     sem warning; fclthr/fcrest chegam normalmente."""
 
     class NoMaxHr(FakeGateway):
-        def get_user_settings(self):
-            self._record("user_settings")
-            return {"userData": {"measurementSystem": "METRIC"}}
+        def get_heart_rate_zones(self):
+            self._record("heart_rate_zones")
+            return [
+                {
+                    "trainingMethod": "LACTATE_THRESHOLD",
+                    "sport": "RUNNING",
+                    "changeState": "UNCHANGED",
+                }
+            ]
 
     monkeypatch.setattr(service, "GarminGateway", NoMaxHr)
     job = _create_job()
@@ -839,3 +850,33 @@ def test_sync_physio_max_hr_absent_skips_fcmax(db, monkeypatch):
             .all()
         )
         assert set(kinds) == {"fcrest", "fclthr"}  # fcmax não chegou — pulei
+
+
+def test_fcmax_from_zones_prefers_running_sport():
+    """Fix UAT (HRZ-05): fcmax vem do maxHeartRateUsed do esporte
+    RUNNING — a entry CYCLING (método HR_RESERVE, max 191) é ignorada."""
+    zones = [
+        {"sport": "DEFAULT", "maxHeartRateUsed": 190},
+        {"sport": "RUNNING", "maxHeartRateUsed": 199},
+        {"sport": "CYCLING", "maxHeartRateUsed": 191},
+    ]
+    assert _fcmax_from_zones(zones) == 199
+
+
+def test_fcmax_from_zones_falls_back_to_default():
+    """Fix UAT (HRZ-05): conta sem entry RUNNING -> usa a entry DEFAULT."""
+    zones = [
+        {"sport": "DEFAULT", "maxHeartRateUsed": 190},
+        {"sport": "CYCLING", "maxHeartRateUsed": 191},
+    ]
+    assert _fcmax_from_zones(zones) == 190
+
+
+def test_fcmax_from_zones_absent_or_malformed_returns_none():
+    """Fix UAT (HRZ-05): extração resiliente — sem maxHeartRateUsed, valor
+    não-inteiro ou payload inesperado -> None (métrica pulada, sem erro)."""
+    assert _fcmax_from_zones([{"sport": "RUNNING"}]) is None
+    assert _fcmax_from_zones([{"sport": "RUNNING", "maxHeartRateUsed": None}]) is None
+    assert _fcmax_from_zones([]) is None
+    assert _fcmax_from_zones(None) is None
+    assert _fcmax_from_zones({"sport": "RUNNING", "maxHeartRateUsed": 199}) is None

@@ -367,8 +367,10 @@ com as zonas da época. Mudanças valem dali em diante; o passado nunca é
 reclassificado.
 
 **Sync traz as métricas** (fase physio no fim de cada sync, +3 chamadas:
-1 de user settings + 2 do LTHR): `fcmax` do `userData.maxHeartRate` e
-`fclthr` do LTHR detectado pelo relógio; `fcrest` = mínimo dos últimos 7
+1 das zonas de FC + 2 do LTHR): `fcmax` do `maxHeartRateUsed` do esporte
+RUNNING no endpoint `heartRateZones/v2` — a FC máx **auto-detectada** pela
+Garmin (o perfil não armazena FC máx; fix do UAT 21/10/2026) — e `fclthr`
+do LTHR detectado pelo relógio; `fcrest` = mínimo dos últimos 7
 dias da série `rhr` já sincronizada (zero chamadas extras). Valor ausente
 pula a métrica sem erro; valor vigente manual → nenhuma linha
 (manual-wins); valor idêntico → nenhuma linha. **Nada é seedado**: o
@@ -380,12 +382,12 @@ vigente do perfil na data do treino; sem a métrica, cai no `LTHR_BPM` do
 env (default 177). Convidado sem valores ainda avalia — números menos
 pessoais, mas honestos.
 
-**Pendente de UAT**: o primeiro sync real confirma as chaves do Garmin
-(`userData.maxHeartRate`, LTHR detectado) — spike runtime: os endpoints
-`get_user_settings`/`get_lactate_threshold` estão verificados na lib
-0.3.2 instalada, mas a presença dos valores na conta real só se confere
-rodando. Se o relógio nunca detectou LTHR, `fclthr` fica só manual e o
-payload segue no fallback do env.
+**UAT 21/10/2026 (spike runtime)**: o primeiro sync real confirmou o LTHR
+detectado (`latestLactateThreshold`, 182) e revelou que `userData` NÃO tem
+`maxHeartRate` — a fonte correta do fcmax é o endpoint de zonas de FC
+(`/biometric-service/heartRateZones/v2`, `maxHeartRateUsed`: 199
+auto-detectado vs 192 pela fórmula da idade). Se o relógio nunca detectou
+LTHR, `fclthr` fica só manual e o payload segue no fallback do env.
 
 ## Workflow de desenvolvimento — spec-driven
 

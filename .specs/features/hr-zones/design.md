@@ -29,7 +29,7 @@ graph TD
     R --> S["app/profile/service.py"]
     S --> M["tabelas user_hr_metrics / hr_zone_configs (append-only)"]
     S --> C["app/profile/calc.py (funções puras)"]
-    SYNC["sync garmin"] -->|"fase physio: fcmax (user settings) + fclthr (latestLactateThreshold) + fcrest (mín-7d da série rhr)"| S
+    SYNC["sync garmin"] -->|"fase physio: fcmax (heartRateZones v2, maxHeartRateUsed RUNNING) + fclthr (latestLactateThreshold) + fcrest (mín-7d da série rhr)"| S
     EVAL["payload avaliação IA"] -->|"zones_on(data do treino) + tempo por zona"| S
     RHR["tabela rhr (série sincronizada)"] -->|"min-7d → fcrest"| SYNC
 ```
@@ -44,7 +44,7 @@ graph TD
 | --- | --- | --- |
 | Padrão service/router/calc por domínio | `app/health/`, `app/potential/` | Mesma divisão: `calc.py` puro (AD-003), service leitura/montagem, router com modelos inline |
 | `require_session` → `user.id` | `app/auth/deps.py` | Endpoints do router `/api/profile` (padrão user-scope) |
-| `_call()` do gateway | `app/garmin/client.py:74` | Novos métodos `get_user_settings`/`get_lactate_threshold` passam pelo mesmo contador/teto/intervalo |
+| `_call()` do gateway | `app/garmin/client.py:74` | Novos métodos `get_heart_rate_zones`/`get_lactate_threshold` passam pelo mesmo contador/teto/intervalo |
 | Fase de sync tolerante a falha | `app/garmin/service.py` (padrão SYNC-20 de saúde) | Fase physio: warning + job segue `done` |
 | `build_evaluation_payload` já recebe `user_id` | `app/evaluation/payload.py` (T6) | Injeção do bloco `zonas_fc` e do `lthr_bpm` por métrica — sem mudança de assinatura |
 | Seed idempotente no `init_db` | `app/db/engine.py` (padrão AD-019) | Seed do usuário 1 (fclthr do env, config lthr default) com guarda de existência |
@@ -55,9 +55,9 @@ graph TD
 
 | System | Integration Method |
 | --- | --- |
-| Lib `garminconnect` 0.3.2 | `get_user_settings()` (`/userprofile-service/userprofile/user-settings`, userData) e `get_lactate_threshold(latest=True)` (`/biometric-service/biometric/latestLactateThreshold`) — **verificados no código da lib instalada** |
+| Lib `garminconnect` 0.3.2 | `get_heart_rate_zones()` (`/biometric-service/heartRateZones/v2` via `connectapi`, `maxHeartRateUsed`) e `get_lactate_threshold(latest=True)` (`/biometric-service/biometric/latestLactateThreshold`) — **confirmados no spike runtime de UAT (21/10/2026)** |
 | Série `rhr` própria | `fcrest` derivada do mínimo-7d a cada sync (zero chamadas novas) |
-| Sync existente | Nova fase após predições: 3 chamadas (1 user settings + 2 internas do LTHR), falha → warning |
+| Sync existente | Nova fase após predições: 3 chamadas (1 zonas de FC + 2 internas do LTHR), falha → warning |
 
 ---
 
@@ -109,7 +109,7 @@ graph TD
 
 - **Purpose**: leitura das fontes Garmin, contadas pelo `_call` (orçamento único AD-002).
 - **Interfaces**:
-  - `get_user_settings() -> dict` — `self._call(self._garmin.get_user_settings)`
+  - `get_heart_rate_zones() -> list` — `self._call(lambda: self._garmin.connectapi("/biometric-service/heartRateZones/v2?generateDefaults=false"))` — **fonte do fcmax auto-detectado** (`maxHeartRateUsed` do esporte RUNNING, fallback DEFAULT); a 0.3.2 não envelopa o endpoint (leitura via `connectapi`). **Emenda UAT 21/10/2026**: o design original apontava `userData.maxHeartRate` (user settings) — o payload real da conta não tem essa chave; a Garmin não armazena FC máx no perfil, ela a detecta como o LTHR e a expõe nas zonas de FC
   - `get_lactate_threshold() -> dict` — `self._call(lambda: self._garmin.get_lactate_threshold(latest=True))` — **custa 2 chamadas internas da lib** (power + HR; documentado)
 - **Dependencies**: lib pinada 0.3.2.
 - **Reuses**: `_call` com teto/retry/intervalo.
@@ -117,7 +117,8 @@ graph TD
 ### `app/garmin/service.py` + `upserts.py` — fase physio do sync
 
 - **Purpose**: fase final do sync (após predições): atualiza as **três métricas** a partir
-  das fontes automáticas (HRZ-05) — `fcmax` do `userData.maxHeartRate` (user settings),
+  das fontes automáticas (HRZ-05) — `fcmax` do `maxHeartRateUsed` do esporte RUNNING no
+  endpoint de zonas de FC (heartRateZones v2 — auto-detectado, como o LTHR),
   `fclthr` do `speed_and_heart_rate.heartRate` (latestLactateThreshold; None → pula) e
   `fcrest` do mínimo dos últimos 7 dias da tabela `rhr` (zero chamadas novas) — criando
   linha `source=garmin` só quando o valor difere do vigente e a vigente não é manual
@@ -199,7 +200,7 @@ config e vice-versa — edge do spec). Zonas em bpm **não são persistidas** (d
 | Bounds inválidos (cadeia, <1pp, z1.low ≤ 0, high no lthr-Z5) | 422 com o primeiro ponto inválido (HRZ-09) | Erro inline na zona apontada |
 | PUT sem nenhum campo | 422 "nada para atualizar" | — |
 | Garmin indisponível na fase physio | warning no stats + job `done` (padrão SYNC-20) | Histórico sem update; tela segue com vigentes |
-| `userData` sem `maxHeartRate` / LTHR `heartRate: None` (nunca detectado) | Fase pula a métrica (sem linha, sem warning) | Tela mostra "nunca configurado" + orientação |
+| Zonas sem `maxHeartRateUsed` / LTHR `heartRate: None` (nunca detectado) | Fase pula a métrica (sem linha, sem warning) | Tela mostra "nunca configurado" + orientação |
 | Métrica exigida pelo método ausente | GET devolve `zones: null` (HRZ-11) | Tela orienta configurar o valor faltante |
 | Sem sessão | 401 JSON (user-scope, padrão) | Redirect `/login` |
 | Voltas sem FC no payload | Bloco `zonas_fc` omitido (HRZ-19) | Avaliação sem o bloco — honesto |
@@ -211,9 +212,9 @@ config e vice-versa — edge do spec). Zonas em bpm **não são persistidas** (d
 | Concern | Location (file:line) | Impact | Mitigation |
 | --- | --- | --- | --- |
 | `get_lactate_threshold(latest=True)` faz **2 chamadas internas** (power + HR) | lib `__init__.py:1187,1195` | +2 chamadas por sync (23→26 no incremental) | Documentado no gateway; orçamento 1500 folgado; power ignorado na extração |
-| Chave `userData.maxHeartRate` não confirmada em runtime | lib lê `settings["userData"]` no login (`__init__.py:513-532`) | fcmax pode não chegar na primeira versão | Task de spike com dump real; extração resiliente (ausente → pula, sem warning-spam); seed manual cobre o user 1 |
+| Chave `userData.maxHeartRate` não confirmada em runtime | lib lê `settings["userData"]` no login (`__init__.py:513-532`) | fcmax pode não chegar na primeira versão | **RESOLVIDO no UAT (21/10/2026): a chave não existe** — a Garmin não armazena FC máx no perfil; a fonte correta passou a ser o endpoint de zonas de FC (`heartRateZones/v2`, `maxHeartRateUsed` do esporte RUNNING, 199 auto-detectado); extração resiliente mantida (ausente → pula, sem warning-spam) |
 | LTHR nunca detectado pelo relógio (`heartRate: None`) | lib `__init__.py:1207-1227` | `fclthr` não chega pelo sync → zonas lthr ficam null até edição manual | Fase pula a métrica sem warning; tela orienta ("configure o LTHR"); payload cai no fallback do env; o spike revela se o relógio do dono detecta |
-| `get_user_settings` é o endpoint que o app GRAVA nas configs do Garmin (se algum dia escrevermos) | `/userprofile-service/userprofile/user-settings` | Risco de sobrescrever o perfil Garmin | Design é **read-only** — nenhum endpoint de escrita no gateway |
+| `update_user_settings` é o endpoint que o app GRAVA nas configs do Garmin (se algum dia escrevermos) | `/userprofile-service/userprofile/user-settings` | Risco de sobrescrever o perfil Garmin | Design é **read-only** — nenhum endpoint de escrita no gateway |
 | fcrest derivada da série pode não existir antes do primeiro sync | `rhr` table | Seed sem dado | Guarda de existência; P2 botão sugere quando a série aparecer |
 | Esquecer `/perfil` no matcher do proxy | `frontend/src/proxy.ts` | Tela renderiza shell sem dados (401 no fetch) | Task explícita + teste do UAT |
 | Payload da avaliação cresce (bloco `zonas_fc`) | `evaluation/payload.py` | +tokens por avaliação | Bloco pequeno (5 zonas + 5 contagens); custo marginal |
@@ -231,7 +232,7 @@ config e vice-versa — edge do spec). Zonas em bpm **não são persistidas** (d
 | PUT único | `metrics? + method? + bounds?` em um endpoint | Contrato pequeno; cada mudança = linha(s) nova(s) com mesmo `valid_from` (época coerente) |
 | Defaults no GET | Campo `defaults` (os 3 métodos) | UI prefilla sem duplicar constantes no frontend |
 | Seed só do usuário 1 | Guarda `user_id == 1` no init_db; **apenas a config lthr (defaults)** — nenhuma métrica | Convidado nasce vazio (sync/tela configuram); métrica manual seedada bloquearia o Garmin para sempre (manual-wins) |
-| Fontes no gateway | `get_user_settings` + `get_lactate_threshold` (read-only) | Verificado na lib 0.3.2 instalada; nenhum endpoint de escrita |
+| Fontes no gateway | `get_heart_rate_zones` (heartRateZones v2 via `connectapi`) + `get_lactate_threshold` (read-only) | Confirmado no spike runtime de UAT (21/10/2026); nenhum endpoint de escrita |
 
 > **Project-level decision**: registrado como **AD-021** (supersede parcialmente a AD-015
 > para LTHR/FC; zonas VDOT por usuário seguem planejadas, adiado).

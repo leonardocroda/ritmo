@@ -24,15 +24,54 @@ from helpers import (
 TREADMILL_ID = 98765432101  # corrida sem splits (esteira — edge do spec)
 CYCLING_ID = 55500000001  # não é corrida: nunca pede splits (SYNC-12)
 
-# Fase physio (hr-zones): user settings (userData.maxHeartRate) e LTHR
-# latest (speed_and_heart_rate.heartRate) — shapes da lib 0.3.2
-USER_SETTINGS_PAYLOAD = {
-    "userData": {
-        "displayName": "Corredora",
-        "measurementSystem": "METRIC",
-        "maxHeartRate": 190,
+# Fase physio (hr-zones): zonas de FC v2 (maxHeartRateUsed = fcmax
+# auto-detectado da Garmin, esporte RUNNING; fallback DEFAULT) e LTHR
+# latest (speed_and_heart_rate.heartRate) — shapes reais confirmados no
+# spike de UAT (21/10/2026) e da lib 0.3.2
+HEART_RATE_ZONES_PAYLOAD = [
+    {
+        "trainingMethod": "LACTATE_THRESHOLD",
+        "restingHeartRateUsed": 44,
+        "lactateThresholdHeartRateUsed": 172,
+        "zone1Floor": 118,
+        "zone2Floor": 146,
+        "zone3Floor": 162,
+        "zone4Floor": 173,
+        "zone5Floor": 182,
+        "maxHeartRateUsed": 190,
+        "restingHrAutoUpdateUsed": True,
+        "sport": "DEFAULT",
+        "changeState": "UNCHANGED",
     },
-}
+    {
+        "trainingMethod": "LACTATE_THRESHOLD",
+        "restingHeartRateUsed": 44,
+        "lactateThresholdHeartRateUsed": 172,
+        "zone1Floor": 118,
+        "zone2Floor": 146,
+        "zone3Floor": 162,
+        "zone4Floor": 173,
+        "zone5Floor": 182,
+        "maxHeartRateUsed": 190,
+        "restingHrAutoUpdateUsed": True,
+        "sport": "RUNNING",
+        "changeState": "UNCHANGED",
+    },
+    {
+        "trainingMethod": "HR_RESERVE",
+        "restingHeartRateUsed": 44,
+        "lactateThresholdHeartRateUsed": 175,
+        "zone1Floor": 118,
+        "zone2Floor": 131,
+        "zone3Floor": 142,
+        "zone4Floor": 162,
+        "zone5Floor": 175,
+        "maxHeartRateUsed": 191,
+        "restingHrAutoUpdateUsed": True,
+        "sport": "CYCLING",
+        "changeState": "UNCHANGED",
+    },
+]
 
 LACTATE_THRESHOLD_PAYLOAD = {
     "speed_and_heart_rate": {
@@ -197,9 +236,9 @@ class FakeGateway:
         self._record("race_predictions")
         return RACE_PREDICTIONS_PAYLOAD
 
-    def get_user_settings(self) -> dict:
-        self._record("user_settings")
-        return USER_SETTINGS_PAYLOAD
+    def get_heart_rate_zones(self) -> list:
+        self._record("heart_rate_zones")
+        return HEART_RATE_ZONES_PAYLOAD
 
     def get_lactate_threshold(self) -> dict:
         # 1 `_call` que custa 2 chamadas internas na lib (power + HR) —

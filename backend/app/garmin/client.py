@@ -10,7 +10,11 @@ Fatos verificados da lib (garminconnect==0.3.2, pinada no pyproject):
   entre páginas (rajada) — por isso `get_activities` pagina por conta
   própria via `connectapi`, com 1 contagem + 1 sleep por página;
 - `get_user_settings` não existe nesta versão: o endpoint user-settings
-  (payload `userData`, fonte do maxHeartRate) é o `get_user_profile`;
+  (payload `userData`) é o `get_user_profile` — e, constatado em UAT real
+  (21/10/2026), `userData` NÃO traz `maxHeartRate` (a Garmin não o armazena
+  no perfil); a FC máx auto-detectada vive no endpoint de zonas de FC
+  `/biometric-service/heartRateZones/v2` (chave `maxHeartRateUsed` do
+  esporte RUNNING), lido aqui via `connectapi` genérico;
 - `get_lactate_threshold(latest=True)` faz 2 requests internos (power +
   HR) — o orçamento conta os dois (fase physio do hr-zones).
 """
@@ -180,16 +184,22 @@ class GarminGateway:
         """Preditor de prova (snapshot latest) — 1 chamada (POT-01)."""
         return self._call(self._garmin.get_race_predictions)
 
-    # SPEC_DEVIATION: o design nomeia a leitura de user settings como
-    # `get_user_settings`, método que não existe na lib 0.3.2 — o endpoint
-    # user-settings (/userprofile-service/userprofile/user-settings, payload
-    # `userData`) é exposto como `get_user_profile`.
-    # Reason: nome verificado no código da lib instalada; endpoint e chave
-    # userData.maxHeartRate são exatamente os do design (leitura read-only).
-    def get_user_settings(self) -> dict:
-        """User settings do perfil — userData.maxHeartRate é a fonte do
-        fcmax (fase physio do hr-zones)."""
-        return self._call(self._garmin.get_user_profile)
+    # SPEC_DEVIATION (fix UAT 21/10/2026): o design apontava o fcmax em
+    # `userData.maxHeartRate` (user settings) — o payload real da conta NÃO
+    # tem essa chave (a Garmin não armazena FC máx no perfil; calcula). A
+    # FC máx auto-detectada (como o LTHR) vive no endpoint de zonas de FC
+    # `/biometric-service/heartRateZones/v2` (`maxHeartRateUsed` do esporte
+    # RUNNING; confirmado em runtime: 199 detectado, 220-idade daria 192).
+    # A lib 0.3.2 não envelopa o endpoint — leitura via `connectapi`.
+    def get_heart_rate_zones(self) -> list:
+        """Zonas de FC v2 do perfil — `maxHeartRateUsed` do esporte RUNNING
+        (fallback DEFAULT) é a fonte do fcmax auto-detectado (fase physio
+        do hr-zones). Read-only, como o resto do gateway."""
+        return self._call(
+            lambda: self._garmin.connectapi(
+                "/biometric-service/heartRateZones/v2?generateDefaults=false"
+            )
+        )
 
     def get_lactate_threshold(self) -> dict:
         """LTHR auto-detectado (latest) — 1 `_call` que na API custa 2
