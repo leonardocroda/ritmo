@@ -221,12 +221,12 @@ T12 → T13
 
 **Done when**:
 
-- [ ] GET com sessão devolve o shape completo; métricas ausentes → null; zonas null sem config/métrica exigida
-- [ ] PUT de métrica cria linha manual (idempotente no repetido); PUT de método cria config com defaults; PUT de bounds inválidos → 422 com o ponto inválido; PUT vazio → 422
-- [ ] History DESC com data e fonte (HRZ-15)
-- [ ] Sem sessão → 401 nos 3 endpoints; usuário A não lê métricas/config de B (isolamento)
-- [ ] Gate check passes: `uv run pytest tests/test_hr_zones_api.py` + Full suite verde
-- [ ] Test count: ~9 novos + existentes
+- [x] GET com sessão devolve o shape completo; métricas ausentes → null; zonas null sem config/métrica exigida
+- [x] PUT de métrica cria linha manual (idempotente no repetido); PUT de método cria config com defaults; PUT de bounds inválidos → 422 com o ponto inválido; PUT vazio → 422
+- [x] History DESC com data e fonte (HRZ-15)
+- [x] Sem sessão → 401 nos 3 endpoints; usuário A não lê métricas/config de B (isolamento)
+- [x] Gate check passes: `uv run pytest tests/test_hr_zones_api.py` + Full suite verde
+- [x] Test count: ~9 novos + existentes
 
 **Tests**: integration
 **Gate**: quick + full
@@ -566,7 +566,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T2 | ✅ Complete | feat(hr-zones): pure zone math with method defaults and bounds validation |
 | T3 | ✅ Complete | feat(db): seed default lthr zone config for user 1 |
 | T4 | ✅ Complete | feat(hr-zones): effective-dated metric and config resolution service |
-| T5 | Pending | - |
+| T5 | ✅ Complete | feat(hr-zones): profile hr-zones endpoints |
 | T6 | Pending | - |
 | T7 | Pending | - |
 | T8 | Pending | - |

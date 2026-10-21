@@ -23,6 +23,7 @@ from app.garmin.router import router as sync_router
 from app.garmin.service import recover_stale_jobs
 from app.health.router import router as health_router
 from app.potential.router import router as potential_router
+from app.profile.router import router as profile_router
 
 settings = get_settings()
 
@@ -60,6 +61,7 @@ app.include_router(activities_router, dependencies=[Depends(require_session)])
 app.include_router(evaluation_router, dependencies=[Depends(require_session)])
 app.include_router(potential_router, dependencies=[Depends(require_session)])
 app.include_router(health_router, dependencies=[Depends(require_session)])
+app.include_router(profile_router, dependencies=[Depends(require_session)])
 
 
 @app.get("/api/health")
