@@ -18,7 +18,19 @@ from sqlalchemy import select
 from app.activities import service
 from app.core.config import Settings
 from app.db.engine import SessionLocal, init_db
-from app.db.models import Activity, DailyLoad, Hrv, Pattern, PersonalRecord, Rhr, Sleep, Split, User
+from app.db.models import (
+    Activity,
+    DailyLoad,
+    HrZoneConfig,
+    Hrv,
+    Pattern,
+    PersonalRecord,
+    Rhr,
+    Sleep,
+    Split,
+    User,
+    UserHrMetric,
+)
 from app.evaluation.payload import build_evaluation_payload
 from app.vdot.zones import load_zone_config
 
@@ -321,3 +333,147 @@ def test_payload_nao_importa_gateway_garmin() -> None:
     source = Path("app/evaluation/payload.py").read_text(encoding="utf-8")
     assert "app.garmin" not in source
     assert "garminconnect" not in source
+
+
+# ---------------------------------------------------------------
+# hr-zones T9 — lthr do perfil + bloco zonas_fc (HRZ-17/18/19)
+# ---------------------------------------------------------------
+
+# Defaults lthr do spec (HRZ-08) — literais do teste (L-001)
+LTHR_BOUNDS = [
+    {"low": 65, "high": 80},
+    {"low": 80, "high": 89},
+    {"low": 89, "high": 95},
+    {"low": 95, "high": 100},
+    {"low": 100, "high": None},
+]
+
+
+def _seed_fclthr(db, user_id: int, value: int, valid_from: date) -> None:
+    """Linha de métrica fclthr (série effective-dated do hr-zones)."""
+    db.add(
+        UserHrMetric(
+            user_id=user_id, kind="fclthr", value_bpm=value,
+            source="manual", valid_from=valid_from,
+        )
+    )
+
+
+def _seed_lthr_config(db, user_id: int) -> None:
+    """Config de zonas lthr com os defaults, vigente antes do treino."""
+    db.add(
+        HrZoneConfig(
+            user_id=user_id, method="lthr",
+            bounds={"zones": LTHR_BOUNDS}, valid_from=date(2024, 1, 1),
+        )
+    )
+
+
+def test_lthr_bpm_da_metrica_vigente_na_data_do_treino(db, settings, zone_config) -> None:
+    """HRZ-17/12: lthr_bpm vem da métrica fclthr vigente NA DATA do
+    treino — mudança posterior não muda o treino antigo."""
+    activity = _seed_activity(db)
+    _seed_fclthr(db, activity.user_id, 172, date(2024, 1, 1))
+    _seed_fclthr(db, activity.user_id, 185, date(2024, 2, 1))
+    db.commit()
+
+    payload = _payload(db, activity, settings, zone_config, intent_type="facil")
+    assert payload["lthr_bpm"] == 172  # vigente em 2024-01-15, não a de fevereiro
+
+
+def test_lthr_bpm_fallback_do_env_sem_metrica(db, zone_config) -> None:
+    """HRZ-17: sem métrica fclthr, o fallback é o env (LTHR_BPM) —
+    ramo pinado com valor distinto do default."""
+    custom = Settings(_env_file=None, lthr_bpm=181)
+    activity = _seed_activity(db)
+    db.commit()
+
+    payload = _payload(db, activity, custom, zone_config, intent_type="facil")
+    assert payload["lthr_bpm"] == 181
+
+
+def test_zonas_fc_tempo_por_zona_exato(db, settings, zone_config) -> None:
+    """HRZ-18: bloco zonas_fc com as zonas em bpm e tempo/pct por zona
+    exatos — denominador único = duração das voltas COM FC (a volta sem
+    FC fica fora, mesma convenção do bloco de pace)."""
+    activity = _seed_activity(db)
+    _seed_lthr_config(db, activity.user_id)
+    _seed_fclthr(db, activity.user_id, 172, date(2024, 1, 1))
+    # fclthr 172 nos defaults lthr -> 112/138/153/163/172 (Z5 aberta)
+    _seed_split(db, activity.id, 1, duration_s=300.0, avg_hr=130)  # Z1
+    _seed_split(db, activity.id, 2, duration_s=300.0, avg_hr=145)  # Z2
+    _seed_split(db, activity.id, 3, duration_s=300.0, avg_hr=155)  # Z3
+    _seed_split(db, activity.id, 4, duration_s=120.0, avg_hr=165)  # Z4
+    _seed_split(db, activity.id, 5, duration_s=60.0, avg_hr=180)  # Z5 aberta
+    _seed_split(db, activity.id, 6, duration_s=60.0, avg_hr=None)  # sem FC: fora
+    db.commit()
+
+    payload = _payload(db, activity, settings, zone_config, intent_type="facil")
+    # 1080s de voltas com FC (3×300 + 120 + 60): 300/1080=27,8 · 120/1080=11,1 · 60/1080=5,6
+    assert payload["zonas_fc"] == {
+        "zonas": [
+            {"n": 1, "low": 112, "high": 138},
+            {"n": 2, "low": 138, "high": 153},
+            {"n": 3, "low": 153, "high": 163},
+            {"n": 4, "low": 163, "high": 172},
+            {"n": 5, "low": 172, "high": None},
+        ],
+        "tempo_por_zona": [
+            {"zona": 1, "segundos": 300.0, "pct": 27.8},
+            {"zona": 2, "segundos": 300.0, "pct": 27.8},
+            {"zona": 3, "segundos": 300.0, "pct": 27.8},
+            {"zona": 4, "segundos": 120.0, "pct": 11.1},
+            {"zona": 5, "segundos": 60.0, "pct": 5.6},
+        ],
+    }
+
+
+def test_zonas_fc_usa_zonas_da_epoca_do_treino(db, settings, zone_config) -> None:
+    """HRZ-12 no payload: métrica mudada DEPOIS do treino não reclassifica
+    o treino antigo — zonas da época (fclthr 172, não a de depois)."""
+    activity = _seed_activity(db)
+    _seed_lthr_config(db, activity.user_id)
+    _seed_fclthr(db, activity.user_id, 172, date(2024, 1, 1))
+    _seed_fclthr(db, activity.user_id, 180, date(2024, 2, 1))
+    _seed_split(db, activity.id, 1, avg_hr=130)  # Z1 com fclthr 172
+    db.commit()
+
+    payload = _payload(db, activity, settings, zone_config, intent_type="facil")
+    zonas_fc = payload["zonas_fc"]
+    assert zonas_fc["zonas"][0] == {"n": 1, "low": 112, "high": 138}  # 172, não 180
+    assert zonas_fc["tempo_por_zona"][0] == {"zona": 1, "segundos": 300.0, "pct": 100.0}
+    assert payload["lthr_bpm"] == 172
+
+
+def test_zonas_fc_omitido_sem_fc_nas_voltas(db, settings, zone_config) -> None:
+    """HRZ-19: nenhuma volta com FC -> bloco zonas_fc omitido (nenhum
+    número inventado — mesma postura do bloco de pace)."""
+    activity = _seed_activity(db)
+    _seed_lthr_config(db, activity.user_id)
+    _seed_fclthr(db, activity.user_id, 172, date(2024, 1, 1))
+    _seed_split(db, activity.id, 1, avg_hr=None)
+    _seed_split(db, activity.id, 2, avg_hr=None)
+    db.commit()
+
+    payload = _payload(db, activity, settings, zone_config, intent_type="facil")
+    assert "zonas_fc" not in payload
+    assert payload["lthr_bpm"] == 172  # o lthr chega mesmo sem o bloco
+
+
+def test_zonas_fc_omitido_sem_config_ou_sem_metrica(db, settings, zone_config) -> None:
+    """HRZ-19/11: zonas inexistentes (sem config, ou config sem a métrica
+    exigida pelo método) -> bloco omitido."""
+    # sem config nenhuma (usuário novo não tem hr_zone_configs)
+    activity = _seed_activity(db)
+    _seed_split(db, activity.id, 1)
+    db.commit()
+    payload = _payload(db, activity, settings, zone_config, intent_type="facil")
+    assert "zonas_fc" not in payload
+
+    # com config lthr mas sem fclthr: zonas null (HRZ-11) -> bloco omitido
+    activity2 = _seed_activity(db, name="Com Config", distance_m=6000.0)
+    _seed_lthr_config(db, activity2.user_id)
+    _seed_split(db, activity2.id, 1)
+    db.commit()
+    payload2 = _payload(db, activity2, settings, zone_config, intent_type="facil")
+    assert "zonas_fc" not in payload2

@@ -336,11 +336,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] `lthr_bpm` = fclthr vigente na data do treino; sem métrica → fallback do env (pinado nos dois ramos)
-- [ ] Bloco `zonas_fc` com tempo/percentual por zona exato (aritmética das voltas com FC); zonas da ÉPOCA do treino (métrica antiga → zonas antigas, HRZ-12 no payload)
-- [ ] Nenhuma volta com FC → bloco ausente; zonas inexistentes (sem config/métrica) → bloco ausente
-- [ ] Gate check passes: `uv run pytest tests/test_evaluation_payload.py` + Full suite verde
-- [ ] Test count: ~6 novos + existentes
+- [x] `lthr_bpm` = fclthr vigente na data do treino; sem métrica → fallback do env (pinado nos dois ramos)
+- [x] Bloco `zonas_fc` com tempo/percentual por zona exato (aritmética das voltas com FC); zonas da ÉPOCA do treino (métrica antiga → zonas antigas, HRZ-12 no payload)
+- [x] Nenhuma volta com FC → bloco ausente; zonas inexistentes (sem config/métrica) → bloco ausente
+- [x] Gate check passes: `uv run pytest tests/test_evaluation_payload.py` + Full suite verde
+- [x] Test count: ~6 novos + existentes
 
 **Tests**: integration
 **Gate**: quick + full
@@ -570,7 +570,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T6 | ✅ Complete | feat(garmin): user settings and lactate threshold gateway reads |
 | T7 | ✅ Complete | feat(hr-zones): physio metrics upsert with manual-wins |
 | T8 | ✅ Complete | feat(hr-zones): sync physio phase updates fc metrics |
-| T9 | Pending | - |
+| T9 | ✅ Complete | feat(hr-zones): evaluation payload lthr from profile and hr zones block |
 | T10 | Pending | - |
 | T11 | Pending | - |
 | T12 | Pending | - |

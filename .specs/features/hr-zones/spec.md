@@ -231,9 +231,9 @@ tempo por zona de FC so that o veredito reflita minhas zonas, não as de outro u
 | HRZ-14 | P1: Tela de zonas no /perfil | Design | Pending |
 | HRZ-15 | P1: Tela de zonas no /perfil | Design | ✅ Implemented |
 | HRZ-16 | P1: Tela de zonas no /perfil | Design | Pending |
-| HRZ-17 | P1: Consumo na avaliação IA | Design | Pending |
-| HRZ-18 | P1: Consumo na avaliação IA | Design | Pending |
-| HRZ-19 | P1: Consumo na avaliação IA | Design | Pending |
+| HRZ-17 | P1: Consumo na avaliação IA | Design | ✅ Implemented |
+| HRZ-18 | P1: Consumo na avaliação IA | Design | ✅ Implemented |
+| HRZ-19 | P1: Consumo na avaliação IA | Design | ✅ Implemented |
 
 **Coverage:** 19 total, 0 mapped to tasks, 19 unmapped ⚠️
 

@@ -16,6 +16,8 @@ from sqlalchemy.orm import Session
 
 from app.core.config import Settings
 from app.db.models import Activity, DailyLoad, Pattern, PersonalRecord
+from app.profile.calc import classify
+from app.profile.service import metric_on, zones_on
 
 # Zonas alvo por intenção (assumption do spec): facil→easy;
 # tempo/limiar→threshold; intervalado→interval; longao→easy∪marathon;
@@ -237,6 +239,51 @@ def _padroes(db: Session, user_id: int) -> list[dict] | None:
     ]
 
 
+def _lthr_bpm(db: Session, activity: Activity, user_id: int, settings: Settings) -> int:
+    """HRZ-17: LTHR da métrica `fclthr` do usuário vigente na data do
+    treino; sem métrica, fallback do env (`LTHR_BPM`)."""
+    row = metric_on(db, user_id, "fclthr", activity.start_time.date())
+    if row is not None:
+        return row.value_bpm
+    return settings.lthr_bpm
+
+
+def _zonas_fc(db: Session, activity: Activity, user_id: int, detail: dict) -> dict | None:
+    """HRZ-18/19: tempo por zona de FC com as zonas vigentes na data do
+    treino (HRZ-12). Denominador único = duração das voltas com FC
+    classificável — mesma convenção do bloco de pace (volta sem FC/duração
+    ou abaixo da Z1 fica fora); sem zonas ou sem volta com FC -> bloco
+    omitido, nenhum número inventado."""
+    _config, zones = zones_on(db, user_id, activity.start_time.date())
+    if zones is None:
+        return None
+    durations = {zone["n"]: 0.0 for zone in zones}
+    total = 0.0
+    for split in detail["splits"]:
+        hr = split.get("avg_hr")
+        duration = split.get("duration_s") or 0
+        if hr is None or duration <= 0:
+            continue
+        n = classify(hr, zones)
+        if n is None:
+            continue
+        durations[n] += duration
+        total += duration
+    if total <= 0:
+        return None
+    return {
+        "zonas": zones,
+        "tempo_por_zona": [
+            {
+                "zona": zone["n"],
+                "segundos": durations[zone["n"]],
+                "pct": round(durations[zone["n"]] / total * 100, 1),
+            }
+            for zone in zones
+        ],
+    }
+
+
 def build_evaluation_payload(
     db: Session,
     activity: Activity,
@@ -262,7 +309,8 @@ def build_evaluation_payload(
         "carga_do_dia": _carga_do_dia(db, activity, user_id),
         "zonas": _zonas_meta(detail),
         "vdot": _vdot_block(settings),
-        "lthr_bpm": settings.lthr_bpm,
+        "lthr_bpm": _lthr_bpm(db, activity, user_id, settings),
+        "zonas_fc": _zonas_fc(db, activity, user_id, detail),
         "prs": _prs(db, user_id),
         "padroes": _padroes(db, user_id),
     }
