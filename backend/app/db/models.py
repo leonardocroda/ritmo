@@ -343,3 +343,44 @@ class SyncState(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), default=DEFAULT_USER_ID, index=True)
     data_type: Mapped[str] = mapped_column(String(40))  # activities|sleep|hrv|rhr|stress|body_battery|records
     last_date: Mapped[date] = mapped_column(Date)  # fim da última janela concluída com sucesso
+
+
+class UserHrMetric(Base):
+    """Métrica fisiológica do corredor (feature hr-zones) — série
+    effective-dated append-only: uma linha por mudança, nunca update.
+
+    A vigente em D é a de maior (valid_from, id) com valid_from ≤ D;
+    SEM unique de valid_from — duas mudanças no mesmo dia são duas
+    linhas legítimas, resolvidas pelo tie-break id DESC."""
+
+    __tablename__ = "user_hr_metrics"
+    __table_args__ = (
+        Index("ix_userhrmetrics_user_kind_valid_from", "user_id", "kind", "valid_from"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), default=DEFAULT_USER_ID, index=True)
+    kind: Mapped[str] = mapped_column(String(10))  # fcmax | fcrest | fclthr
+    value_bpm: Mapped[int] = mapped_column(Integer)
+    source: Mapped[str] = mapped_column(String(10))  # garmin | manual
+    valid_from: Mapped[date] = mapped_column(Date)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
+class HrZoneConfig(Base):
+    """Config de zonas de FC — método + percentuais por zona, série
+    effective-dated independente das métricas (edge do spec: mudar
+    métrica não cria config e vice-versa). Zonas em bpm são derivadas
+    na leitura, nunca persistidas."""
+
+    __tablename__ = "hr_zone_configs"
+    __table_args__ = (
+        Index("ix_hrzoneconfigs_user_valid_from", "user_id", "valid_from"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), default=DEFAULT_USER_ID, index=True)
+    method: Mapped[str] = mapped_column(String(10))  # lthr | fcr | fcmax
+    bounds: Mapped[dict] = mapped_column(JSON)  # {"zones": [{"low", "high"} ×5]}
+    valid_from: Mapped[date] = mapped_column(Date)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)

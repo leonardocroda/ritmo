@@ -108,10 +108,10 @@ T12 → T13
 
 **Done when**:
 
-- [ ] `UserHrMetric` com índice composto e sem unique de valid_from; `HrZoneConfig` com `bounds` JSON
-- [ ] Testes: insert das duas linhas no mesmo dia (mesma kind) funciona; FK em `user_id` impede usuário inexistente
-- [ ] Gate check passes: `uv run pytest tests/test_hr_zones_models.py` + Full suite verde
-- [ ] Test count: ~2 novos + 427 existentes (no silent deletions)
+- [x] `UserHrMetric` com índice composto e sem unique de valid_from; `HrZoneConfig` com `bounds` JSON
+- [x] Testes: insert das duas linhas no mesmo dia (mesma kind) funciona; FK em `user_id` impede usuário inexistente
+- [x] Gate check passes: `uv run pytest tests/test_hr_zones_models.py` + Full suite verde
+- [x] Test count: ~2 novos + 427 existentes (no silent deletions)
 
 **Tests**: integration
 **Gate**: quick + full
@@ -562,7 +562,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 
 | Task | Status | Commit |
 | ---- | ------ | ------ |
-| T1 | Pending | - |
+| T1 | ✅ Complete | feat(db): add user hr metrics and zone configs tables |
 | T2 | Pending | - |
 | T3 | Pending | - |
 | T4 | Pending | - |

@@ -215,8 +215,8 @@ tempo por zona de FC so that o veredito reflita minhas zonas, não as de outro u
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| HRZ-01 | P1: Métricas com histórico | Design | Pending |
-| HRZ-02 | P1: Métricas com histórico | Design | Pending |
+| HRZ-01 | P1: Métricas com histórico | Design | ✅ Implemented |
+| HRZ-02 | P1: Métricas com histórico | Design | ✅ Implemented |
 | HRZ-03 | P1: Métricas com histórico | Design | Pending |
 | HRZ-04 | P1: Métricas com histórico | Design | Pending |
 | HRZ-05 | P1: Métricas com histórico | Design | Pending |
