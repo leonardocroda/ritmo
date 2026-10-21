@@ -5,12 +5,14 @@ específico de dialeto. Config 100% via DATABASE_URL (requisito travado).
 """
 
 from collections.abc import Iterator
+from datetime import date
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import get_settings
 from app.db.base import Base
+from app.profile.calc import DEFAULT_BOUNDS
 
 settings = get_settings()
 
@@ -62,7 +64,7 @@ def _migrate_schema() -> None:
 def init_db() -> None:
     """Cria as tabelas, migra esquemas antigos e semeia o usuário default."""
     from app.db import models  # noqa: F401 — registra os modelos no Base
-    from app.db.models import DEFAULT_USER_ID, User
+    from app.db.models import DEFAULT_USER_ID, HrZoneConfig, User
 
     Base.metadata.create_all(bind=engine)
     _migrate_schema()
@@ -70,6 +72,27 @@ def init_db() -> None:
     with SessionLocal() as db:
         if db.get(User, DEFAULT_USER_ID) is None:
             db.add(User(id=DEFAULT_USER_ID, display_name="Leonardo"))
+            db.commit()
+
+        # HRZ-07: o usuário 1 nasce com a config de zonas (lthr +
+        # defaults, valid_from hoje) — NENHUMA métrica é seedada: vêm do
+        # sync (HRZ-05) ou da edição manual; métrica manual seedada
+        # bloquearia o auto-update para sempre (manual-wins). Guarda de
+        # existência (padrão AD-019): re-executar não duplica.
+        if (
+            db.query(HrZoneConfig)
+            .filter(HrZoneConfig.user_id == DEFAULT_USER_ID)
+            .first()
+            is None
+        ):
+            db.add(
+                HrZoneConfig(
+                    user_id=DEFAULT_USER_ID,
+                    method="lthr",
+                    bounds={"zones": DEFAULT_BOUNDS["lthr"]},
+                    valid_from=date.today(),
+                )
+            )
             db.commit()
 
         # AUTH-27: o seed com id explícito não avança a sequência — sem o

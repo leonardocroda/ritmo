@@ -129,3 +129,28 @@ def test_user_id_fk_blocks_nonexistent_user(db) -> None:
 
     assert db.query(UserHrMetric).filter(UserHrMetric.user_id == 999).count() == 0
     assert db.query(HrZoneConfig).filter(HrZoneConfig.user_id == 999).count() == 0
+
+
+# ---------------------------------------------------------------
+# T3 — seed da config lthr do usuário 1 no init_db (HRZ-07)
+# ---------------------------------------------------------------
+
+
+def test_init_db_seeds_only_lthr_config_for_user_1_once(db) -> None:
+    """HRZ-07 (done-when T3): o init_db semeia APENAS a config de zonas
+    do usuário 1 (lthr + defaults, valid_from hoje) — nenhuma métrica é
+    seedada (vêm do sync, HRZ-05, ou da edição manual; seed manual
+    bloquearia o auto-update para sempre). Guarda de existência:
+    re-executar o init_db não cria linha nova."""
+    configs = db.query(HrZoneConfig).order_by(HrZoneConfig.id).all()
+    assert len(configs) == 1
+    cfg = configs[0]
+    assert cfg.user_id == 1
+    assert cfg.method == "lthr"
+    assert cfg.bounds == LTHR_BOUNDS
+    assert cfg.valid_from == date.today()
+    assert db.query(UserHrMetric).count() == 0  # nenhuma métrica seedada
+
+    init_db()  # segunda execução: guarda de existência, sem duplicar
+    assert db.query(HrZoneConfig).count() == 1
+    assert db.query(UserHrMetric).count() == 0

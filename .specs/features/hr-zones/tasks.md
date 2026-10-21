@@ -164,11 +164,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] init_db cria config lthr/defaults para o usuário 1 uma única vez (re-executar não duplica)
-- [ ] Nenhuma linha em `user_hr_metrics` é criada pelo init_db
-- [ ] Testes: seed idempotente; segundo init não cria linha nova
-- [ ] Gate check passes: `uv run pytest tests/test_hr_zones_models.py` + Full suite verde (o init roda em todo lifespan)
-- [ ] Test count: ~1 novo + existentes
+- [x] init_db cria config lthr/defaults para o usuário 1 uma única vez (re-executar não duplica)
+- [x] Nenhuma linha em `user_hr_metrics` é criada pelo init_db
+- [x] Testes: seed idempotente; segundo init não cria linha nova
+- [x] Gate check passes: `uv run pytest tests/test_hr_zones_models.py` + Full suite verde (o init roda em todo lifespan)
+- [x] Test count: ~1 novo + existentes
 
 **Tests**: integration
 **Gate**: quick + full
@@ -564,7 +564,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | ---- | ------ | ------ |
 | T1 | ✅ Complete | feat(db): add user hr metrics and zone configs tables |
 | T2 | ✅ Complete | feat(hr-zones): pure zone math with method defaults and bounds validation |
-| T3 | Pending | - |
+| T3 | ✅ Complete | feat(db): seed default lthr zone config for user 1 |
 | T4 | Pending | - |
 | T5 | Pending | - |
 | T6 | Pending | - |
