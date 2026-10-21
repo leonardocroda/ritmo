@@ -661,23 +661,27 @@ export type HrZoneConfig = {
 export type HrZone = { n: number; low: number; high: number | null };
 
 /** Espelho do `HrZonesOut` (GET e resposta do PUT): métricas vigentes
- * por kind, config, zonas derivadas em bpm (null sem config ou sem a
- * métrica exigida — HRZ-11, estado vazio honesto) e os defaults dos 3
- * métodos para prefill (HRZ-08). */
+ * por kind, preferência de posse por kind (HRZ-20/21/22 — `garmin` =
+ * o sync manda; `manual` = edição vence), config, zonas derivadas em
+ * bpm (null sem config ou sem a métrica exigida — HRZ-11, estado vazio
+ * honesto) e os defaults dos 3 métodos para prefill (HRZ-08). */
 export type HrZonesOut = {
   metrics: Record<"fcmax" | "fcrest" | "fclthr", HrMetric | null>;
+  modes: Record<"fcmax" | "fcrest" | "fclthr", "garmin" | "manual">;
   config: HrZoneConfig | null;
   zones: HrZone[] | null;
   defaults: Record<HrZoneMethod, HrZoneBound[]>;
 };
 
-/** Corpo do PUT (HRZ-02/08/09): métricas e/ou método e/ou bounds —
- * método sem bounds aplica os defaults; bounds sem método herdam o
- * método vigente. */
+/** Corpo do PUT (HRZ-02/08/09 + HRZ-20/21): métricas e/ou método e/ou
+ * bounds e/ou preferências de posse — método sem bounds aplica os
+ * defaults; bounds sem método herdam o método vigente; `sync_modes`
+ * com "garmin" devolve a métrica ao sync (o próximo sync reassume). */
 export type HrZonesUpdate = {
   metrics?: { fcmax?: number; fcrest?: number; fclthr?: number };
   method?: HrZoneMethod;
   bounds?: { zones: HrZoneBound[] };
+  sync_modes?: Partial<Record<"fcmax" | "fcrest" | "fclthr", "garmin" | "manual">>;
 };
 
 /** Linha do histórico de métricas (HRZ-15) — DESC por (valid_from, id). */

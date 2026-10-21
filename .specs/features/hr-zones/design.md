@@ -173,6 +173,21 @@ created_at: datetime
 # resolução usa tie-break (valid_from DESC, id DESC)
 ```
 
+### `UserHrSyncPref` (tabela `user_hr_sync_prefs`) — emenda 21/10/2026
+
+```python
+id: int (PK)
+user_id: int (FK users.id, index)
+kind: str(10)          # fcmax | fcrest | fclthr
+mode: str(10)          # garmin | manual
+updated_at: datetime
+# UNIQUE (user_id, kind): preferência é CONFIG, não histórico —
+# update-in-place; ausente = default `garmin` (o sync manda).
+# Editar manualmente (PUT) registra `manual` (HRZ-20); "voltar a puxar
+# do Garmin" registra `garmin` e o próximo sync reassume com flip de
+# posse — linha source=garmin mesmo com valor igual (HRZ-21).
+```
+
 ### `HrZoneConfig` (tabela `hr_zone_configs`)
 
 ```python

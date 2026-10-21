@@ -1,8 +1,9 @@
 """Router do perfil — zonas de FC (feature hr-zones), user-scope.
 
 Padrão do health/potential (modelos de saída inline + require_session):
-GET resolve métricas/config/zonas vigentes hoje; PUT é a única escrita
-(valores e/ou método e/ou bounds, `source=manual`) com resposta no
+GET resolve métricas/config/zonas vigentes hoje (+ preferência de posse
+por métrica); PUT é a única escrita (valores e/ou método e/ou bounds e/
+ou preferências de posse, `source=manual` nas métricas) com resposta no
 shape do GET — 422 por campo apontando o motivo (HRZ-04) e 422 com o
 primeiro ponto inválido nos bounds (HRZ-09); history lista as séries
 DESC por (valid_from, id) com data e fonte (HRZ-15). O commit é único
@@ -44,6 +45,7 @@ class ZoneOut(BaseModel):
 
 class HrZonesOut(BaseModel):
     metrics: dict[str, MetricOut | None]
+    modes: dict[str, str]
     config: ConfigOut | None
     zones: list[ZoneOut] | None
     defaults: dict[str, list[dict]]
@@ -72,6 +74,7 @@ class HrZonesUpdate(BaseModel):
     metrics: MetricsIn | None = None
     method: Literal["lthr", "fcr", "fcmax"] | None = None
     bounds: BoundsIn | None = None
+    sync_modes: dict[str, Literal["garmin", "manual"]] | None = None
 
 
 class MetricHistoryOut(BaseModel):
@@ -95,7 +98,8 @@ class HrZonesHistoryOut(BaseModel):
 def _hr_zones_payload(db: Session, user_id: int) -> HrZonesOut:
     """Monta o shape completo (GET e resposta do PUT) a partir das
     séries vigentes hoje: métricas {value, source, valid_from}|null por
-    kind, config|null, zonas derivadas|null e defaults dos 3 métodos."""
+    kind, preferência de posse por kind (HRZ-22), config|null, zonas
+    derivadas|null e defaults dos 3 métodos."""
     today = date.today()
     metrics = service.metrics_on(db, user_id, today)
     config = service.config_on(db, user_id, today)
@@ -117,6 +121,7 @@ def _hr_zones_payload(db: Session, user_id: int) -> HrZonesOut:
             )
             for kind, row in metrics.items()
         },
+        modes={kind: service.sync_mode(db, user_id, kind) for kind in service.METRIC_KINDS},
         config=(
             ConfigOut(
                 method=config.method, bounds=config.bounds, valid_from=config.valid_from
@@ -146,10 +151,13 @@ def put_hr_zones(
     user: User = Depends(require_session),
     db: Session = Depends(get_db),
 ) -> HrZonesOut:
-    """HRZ-02/03/04/08/09: a única escrita — métricas (merge validado,
-    linhas manuais), método (sem bounds -> defaults do método) e/ou
-    bounds custom (método herdado da config vigente). Escrita toda com
-    `source=manual` e valid_from = hoje; resposta no shape do GET."""
+    """HRZ-02/03/04/08/09 + HRZ-20/21: a única escrita — métricas (merge
+    validado, linhas manuais que registram a preferência `manual`),
+    método (sem bounds -> defaults do método), bounds custom (método
+    herdado da config vigente) e/ou preferências de posse (`sync_modes`:
+    "voltar a puxar do Garmin" registra `garmin`; o próximo sync
+    reassume). Escrita toda com valid_from = hoje; resposta no shape do
+    GET."""
     today = date.today()
     updates: dict[str, int] = {}
     if payload.metrics is not None:
@@ -164,9 +172,18 @@ def put_hr_zones(
         if payload.bounds is not None
         else None
     )
+    sync_modes = payload.sync_modes or None  # {} = nada (422 abaixo)
 
-    if not updates and method is None and bounds is None:
+    if not updates and method is None and bounds is None and sync_modes is None:
         raise HTTPException(status_code=422, detail="nada para atualizar")
+
+    if sync_modes is not None:
+        for kind, mode in sync_modes.items():
+            if kind not in service.METRIC_KINDS:
+                raise HTTPException(
+                    status_code=422, detail=f"{kind}: métrica desconhecida"
+                )
+            service.set_sync_mode(db, user.id, kind, mode)  # HRZ-20/21
 
     if updates:
         current = service.metrics_on(db, user.id, today)

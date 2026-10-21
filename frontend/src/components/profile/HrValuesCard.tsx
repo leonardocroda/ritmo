@@ -1,14 +1,17 @@
 "use client";
 
-// Seção 1 "Valores" do /perfil (feature hr-zones — HRZ-01/13/14): as
-// três métricas fisiológicas (FC máxima, FC de repouso, LTHR) com
+// Seção 1 "Valores" do /perfil (feature hr-zones — HRZ-01/13/14/21):
+// as três métricas fisiológicas (FC máxima, FC de repouso, LTHR) com
 // input numérico, badge de fonte (Garmin/Manual) e vigência. Salvar →
 // PUT updateHrZones({metrics}) com os campos preenchidos — a página
 // re-renderiza da resposta (a fonte vira Manual, HRZ-02); valor igual
 // ao vigente não cria linha (HRZ-03, idempotente). O 422 do backend
 // chega "campo: motivo" em PT-BR e vira erro inline no input
 // correspondente (HRZ-14); estado vazio é honesto — "nunca
-// configurado" + orientação (sync preenche, ou digite e salve).
+// configurado" + orientação (sync preenche, ou digite e salve). Métrica
+// com fonte Manual e preferência `manual` mostra "Voltar a puxar do
+// Garmin" (HRZ-21): registra a preferência `garmin` e o próximo sync
+// reassume.
 
 import { useState, type FormEvent } from "react";
 
@@ -46,9 +49,11 @@ function metricToStrings(metrics: HrZonesOut["metrics"]): Record<MetricKind, str
 
 export default function HrValuesCard({
   metrics,
+  modes,
   onSaved,
 }: {
   metrics: HrZonesOut["metrics"];
+  modes: HrZonesOut["modes"];
   onSaved: (out: HrZonesOut) => void;
 }) {
   const [values, setValues] = useState<Record<MetricKind, string>>(() =>
@@ -57,9 +62,29 @@ export default function HrValuesCard({
   const [errors, setErrors] = useState<Partial<Record<MetricKind, string>>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [releasing, setReleasing] = useState<MetricKind | null>(null);
 
   const hasAnyInput =
     values.fcmax !== "" || values.fcrest !== "" || values.fclthr !== "";
+
+  async function handleRelease(kind: MetricKind) {
+    // HRZ-21: "voltar a puxar do Garmin" — registra a preferência
+    // `garmin`; o PRÓXIMO sync reassume a métrica (flip de posse).
+    setGeneralError(null);
+    setReleasing(kind);
+    try {
+      const out = await updateHrZones({ sync_modes: { [kind]: "garmin" } });
+      onSaved(out);
+    } catch (err) {
+      setGeneralError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível voltar ao Garmin. Tente de novo.",
+      );
+    } finally {
+      setReleasing(null);
+    }
+  }
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -148,6 +173,20 @@ export default function HrValuesCard({
                   O primeiro sync preenche sozinho — ou digite o valor e salve.
                 </p>
               )}
+              {metric !== null &&
+                metric.source === "manual" &&
+                modes[field.kind] === "manual" && (
+                  <button
+                    type="button"
+                    onClick={() => handleRelease(field.kind)}
+                    disabled={releasing !== null}
+                    className="mt-2 w-full rounded-lg border border-white/10 px-2 py-1.5 text-xs text-muted hover:text-foreground hover:border-accent/50 disabled:opacity-60"
+                  >
+                    {releasing === field.kind
+                      ? "Liberando…"
+                      : "Voltar a puxar do Garmin"}
+                  </button>
+                )}
             </div>
           );
         })}

@@ -46,6 +46,7 @@ from app.garmin.upserts import (
     upsert_records,
     upsert_splits,
 )
+from app.profile.service import set_metric, set_sync_mode
 from helpers import (
     BATTERY_ROWS,
     GARMIN_ACTIVITY_PAYLOAD,
@@ -517,14 +518,10 @@ def test_update_physio_metrics_same_value_idempotent(db):
 
 
 def test_update_physio_metrics_manual_wins_vigente(db):
-    """HRZ-06: vigente manual nunca é sobrescrita pelo sync (a regra
-    vive no set_metric — o upsert só delega); as demais kinds criam."""
-    db.add(
-        UserHrMetric(
-            user_id=1, kind="fclthr", value_bpm=185,
-            source="manual", valid_from=date(2026, 10, 10),
-        )
-    )
+    """HRZ-06: vigente manual (preferência `manual`, como o PUT registra)
+    nunca é sobrescrita pelo sync (a regra vive no set_metric — o upsert
+    só delega); as demais kinds criam."""
+    set_metric(db, 1, "fclthr", 185, "manual", on_date=date(2026, 10, 10))
     db.commit()
 
     assert update_physio_metrics(db, 1, fcmax=190, fclthr=172, fcrest=42) == 2
@@ -536,6 +533,26 @@ def test_update_physio_metrics_manual_wins_vigente(db):
     assert len(lthr_rows) == 1
     assert lthr_rows[0].value_bpm == 185
     assert lthr_rows[0].source == "manual"
+
+
+def test_update_physio_metrics_reclaim_flip_when_equal(db):
+    """HRZ-21 (e2e do upsert): preferência voltou a `garmin` e o valor do
+    sync é IGUAL ao manual vigente → flip cria a linha `source=garmin`
+    mesmo assim (evento de posse, não ruído)."""
+    set_metric(db, 1, "fcrest", 42, "manual", on_date=date(2026, 10, 10))
+    set_sync_mode(db, 1, "fcrest", "garmin")
+    db.commit()
+
+    assert update_physio_metrics(db, 1, fcmax=190, fclthr=172, fcrest=42) == 3
+    db.commit()
+
+    fcrest_rows = db.execute(
+        select(UserHrMetric).where(UserHrMetric.kind == "fcrest")
+    ).scalars().all()
+    assert [(row.value_bpm, row.source) for row in fcrest_rows] == [
+        (42, "manual"),
+        (42, "garmin"),
+    ]
 
 
 def test_update_physio_metrics_none_skips_metric_silently(db):
@@ -572,13 +589,9 @@ def test_update_physio_metrics_changed_value_creates_new_row(db):
 
 def test_update_physio_metrics_mixed_outcomes_count_only_new(db):
     """Retorno = nº exato de linhas NOVAS com desfechos mistos: nova +
-    manual-wins + igual -> 1 (a contagem não conta as puladas)."""
-    db.add(
-        UserHrMetric(
-            user_id=1, kind="fclthr", value_bpm=185,
-            source="manual", valid_from=date(2026, 10, 10),
-        )
-    )
+    manual-wins (preferência `manual`, como o PUT registra) + igual ->
+    1 (a contagem não conta as puladas)."""
+    set_metric(db, 1, "fclthr", 185, "manual", on_date=date(2026, 10, 10))
     db.commit()
     assert update_physio_metrics(db, 1, fcrest=42) == 1
     db.commit()

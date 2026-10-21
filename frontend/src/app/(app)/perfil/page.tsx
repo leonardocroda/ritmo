@@ -76,10 +76,11 @@ export default function PerfilPage() {
           <PanelSection
             index={1}
             title="Valores"
-            subtitle="Quais são os seus números? FC máxima, FC de repouso e LTHR — a matéria-prima das zonas. O sync do Garmin preenche os três (a FC de repouso vem do mínimo dos últimos 7 dias); a edição manual aqui vence e nunca é sobrescrita."
+            subtitle="Quais são os seus números? FC máxima, FC de repouso e LTHR — a matéria-prima das zonas. O sync do Garmin preenche os três (a FC de repouso vem do mínimo dos últimos 7 dias); a edição manual aqui vence até você mandar voltar a puxar do Garmin."
           >
             <HrValuesCard
               metrics={state.data.metrics}
+              modes={state.data.modes}
               onSaved={handleSaved}
             />
           </PanelSection>

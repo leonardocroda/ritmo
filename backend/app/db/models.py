@@ -384,3 +384,21 @@ class HrZoneConfig(Base):
     bounds: Mapped[dict] = mapped_column(JSON)  # {"zones": [{"low", "high"} ×5]}
     valid_from: Mapped[date] = mapped_column(Date)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
+class UserHrSyncPref(Base):
+    """Preferência de posse por métrica (HRZ-20/21, emenda 21/10/2026) —
+    config, não histórico: uma linha por (user, kind), update-in-place.
+    Ausente = default `garmin` (o sync manda); `manual` = a edição do
+    usuário vence e o sync não sobrescreve (HRZ-06)."""
+
+    __tablename__ = "user_hr_sync_prefs"
+    __table_args__ = (
+        UniqueConstraint("user_id", "kind", name="uq_usershrsyncprefs_user_kind"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), default=DEFAULT_USER_ID, index=True)
+    kind: Mapped[str] = mapped_column(String(10))  # fcmax | fcrest | fclthr
+    mode: Mapped[str] = mapped_column(String(10))  # garmin | manual
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)

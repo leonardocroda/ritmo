@@ -13,7 +13,7 @@ import pytest
 
 from app.auth.security import hash_password
 from app.db.engine import SessionLocal, init_db
-from app.db.models import HrZoneConfig, User, UserHrMetric
+from app.db.models import HrZoneConfig, User, UserHrMetric, UserHrSyncPref
 from app.profile import service
 from app.profile.calc import DEFAULT_BOUNDS
 
@@ -315,3 +315,81 @@ def test_zones_on_pairs_config_with_derived_zones(db) -> None:
     config, zones = service.zones_on(db, other.id, D21)
     assert config.method == "lthr"
     assert zones is None
+
+
+# ---------------------------------------------------------------
+# Preferência de posse: voltar a puxar do Garmin (HRZ-20/21/22)
+# ---------------------------------------------------------------
+
+
+def test_sync_mode_defaults_to_garmin(db) -> None:
+    """HRZ-22: sem preferência registrada, a métrica é `garmin` — o sync
+    manda (comportamento original de hoje)."""
+    user = _new_user(db)
+    assert service.sync_mode(db, user.id, "fclthr") == "garmin"
+
+
+def test_manual_write_registers_manual_pref(db) -> None:
+    """HRZ-20: a edição manual registra a preferência `manual` — edição e
+    hold são um ato só."""
+    user = _new_user(db)
+    assert service.set_metric(db, user.id, "fclthr", 177, "manual")
+    db.commit()
+    assert service.sync_mode(db, user.id, "fclthr") == "manual"
+
+
+def test_manual_equal_value_leaves_pref_unchanged(db) -> None:
+    """HRZ-20 (done-when): PUT igual ao vigente garmin → sem linha E a
+    preferência fica como está (no-op total — HRZ-03/20)."""
+    user = _new_user(db)
+    assert service.set_metric(db, user.id, "fclthr", 177, "garmin")
+    db.commit()
+    assert service.sync_mode(db, user.id, "fclthr") == "garmin"
+
+    assert service.set_metric(db, user.id, "fclthr", 177, "manual") is False
+    db.commit()
+    assert service.sync_mode(db, user.id, "fclthr") == "garmin"
+    assert db.query(UserHrMetric).count() == 1
+
+
+def test_garmin_flip_reclaims_manual_even_with_equal_value(db) -> None:
+    """HRZ-21: preferência `garmin` + vigente manual → o sync reassume
+    criando linha `source=garmin` MESMO com valor igual (flip de posse,
+    uma vez — depois o update-if-changed normal retoma)."""
+    user = _new_user(db)
+    assert service.set_metric(db, user.id, "fclthr", 177, "manual")  # pref manual
+    db.commit()
+    service.set_sync_mode(db, user.id, "fclthr", "garmin")  # "voltar a puxar"
+    db.commit()
+
+    assert service.set_metric(db, user.id, "fclthr", 177, "garmin") is True
+    db.commit()
+    row = service.metric_on(db, user.id, "fclthr", date.today())
+    assert (row.value_bpm, row.source) == (177, "garmin")
+    # uma vez só: o sync seguinte com o mesmo valor é idempotente (HRZ-03)
+    assert service.set_metric(db, user.id, "fclthr", 177, "garmin") is False
+    db.commit()
+    assert db.query(UserHrMetric).count() == 2
+
+
+def test_garmin_held_when_pref_manual_even_with_new_value(db) -> None:
+    """HRZ-06 sob a preferência: pref manual + valor novo → False sem
+    linha (a edição manual nunca é sobrescrita pelo sync)."""
+    user = _new_user(db)
+    assert service.set_metric(db, user.id, "fcrest", 45, "manual")
+    db.commit()
+    assert service.set_metric(db, user.id, "fcrest", 44, "garmin") is False
+    db.commit()
+    assert db.query(UserHrMetric).count() == 1
+
+
+def test_set_sync_mode_upsert_single_row_per_kind(db) -> None:
+    """HRZ-20/21: a preferência é config, não histórico — update-in-place
+    (uma linha por (user, kind)), com o último valor registrado."""
+    user = _new_user(db)
+    service.set_sync_mode(db, user.id, "fcmax", "manual")
+    service.set_sync_mode(db, user.id, "fcmax", "garmin")
+    db.commit()
+    prefs = db.query(UserHrSyncPref).all()
+    assert len(prefs) == 1
+    assert (prefs[0].kind, prefs[0].mode) == ("fcmax", "garmin")

@@ -4,17 +4,20 @@ Métricas e configs são séries effective-dated append-only (HRZ-12): a
 vigente em D é a de maior (valid_from, id) com valid_from ≤ D — duas
 mudanças no mesmo dia são legítimas, resolvidas pelo tie-break id
 DESC. Escritas são idempotentes (valor igual ao vigente → sem linha
-nova, HRZ-03) e o manual-wins vive AQUI (HRZ-06): garmin nunca cria
-linha quando a vigente é manual — sync e router herdam a regra.
-Validação cross-field (HRZ-04) carrega campo e motivo exatos; o
-router só mapeia para 422. Quem chama controla o commit.
+nova, HRZ-03) e a posse vive AQUI (HRZ-06/20/21): o sync não sobrescreve
+enquanto a preferência da métrica for `manual`; preferência `garmin`
+(padrão ou "voltar a puxar") reassume com flip de posse — linha nova
+mesmo com valor igual, uma vez. Editar manualmente registra a
+preferência `manual` (um ato só). Validação cross-field (HRZ-04) carrega
+campo e motivo exatos; o router só mapeia para 422. Quem chama controla
+o commit.
 """
 
 from datetime import date
 
 from sqlalchemy.orm import Session
 
-from app.db.models import HrZoneConfig, UserHrMetric
+from app.db.models import HrZoneConfig, UserHrMetric, UserHrSyncPref
 from app.profile.calc import zones_bpm
 
 # As 3 métricas fisiológicas da feature (spec P1)
@@ -88,6 +91,32 @@ def zones_on(
     return config, zones_bpm(config.method, config.bounds["zones"], values)
 
 
+def sync_mode(db: Session, user_id: int, kind: str) -> str:
+    """Preferência de posse da métrica (HRZ-22) — `garmin` quando não
+    registrada (default: o sync manda); `manual` = edição vence (HRZ-06)."""
+    row = (
+        db.query(UserHrSyncPref)
+        .filter(UserHrSyncPref.user_id == user_id, UserHrSyncPref.kind == kind)
+        .first()
+    )
+    return row.mode if row is not None else "garmin"
+
+
+def set_sync_mode(db: Session, user_id: int, kind: str, mode: str) -> None:
+    """Registra a preferência de posse (HRZ-20/21) — update-in-place
+    (config, não histórico): upsert por (user_id, kind)."""
+    row = (
+        db.query(UserHrSyncPref)
+        .filter(UserHrSyncPref.user_id == user_id, UserHrSyncPref.kind == kind)
+        .first()
+    )
+    if row is None:
+        db.add(UserHrSyncPref(user_id=user_id, kind=kind, mode=mode))
+    else:
+        row.mode = mode
+    db.flush()
+
+
 def set_metric(
     db: Session,
     user_id: int,
@@ -98,17 +127,23 @@ def set_metric(
 ) -> bool:
     """Insere mudança de métrica (HRZ-02) — append-only, nunca update.
 
-    False sem linha nova quando: valor igual ao vigente em on_date
-    (HRZ-03, idempotente — o check precede o manual-wins) ou a escrita
-    é garmin e a vigente é manual (HRZ-06 — manual-wins). True cria a
-    linha com valid_from = on_date (default hoje)."""
+    Regras de posse: escrita garmin com vigente manual é bloqueada pela
+    preferência `manual` (HRZ-06); com preferência `garmin` o sync
+    reassume — flip de posse com linha nova MESMO com valor igual
+    (HRZ-21, uma vez; depois a vigente é garmin e o update-if-changed
+    normal retoma). Escrita manual com valor igual ao vigente é
+    idempotente e não muda a preferência (HRZ-03/20); criando linha,
+    registra a preferência `manual` (edição e hold são um ato só)."""
     on_date = on_date or date.today()
     current = metric_on(db, user_id, kind, on_date)
     if current is not None:
-        if current.value_bpm == value:
-            return False
         if source == "garmin" and current.source == "manual":
+            if sync_mode(db, user_id, kind) == "manual":
+                return False
+        elif current.value_bpm == value:
             return False
+    if source == "manual":
+        set_sync_mode(db, user_id, kind, "manual")
     db.add(
         UserHrMetric(
             user_id=user_id, kind=kind, value_bpm=value, source=source,

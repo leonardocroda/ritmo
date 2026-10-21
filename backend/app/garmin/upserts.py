@@ -143,9 +143,10 @@ def update_physio_metrics(
 ) -> int:
     """Métricas fisiológicas do sync (HRZ-05) — cada valor não-None vira
     uma escrita `set_metric(source="garmin")`; ausente (None) pula a
-    métrica sem erro. Idempotência (valor igual) e manual-wins vivem no
-    `set_metric` (HRZ-03/06) — a regra não se duplica aqui. Retorna o
-    número de linhas NOVAS; não comita (padrão do módulo)."""
+    métrica sem erro. Idempotência (valor igual), manual-wins e flip de
+    posse vivem no `set_metric` (HRZ-03/06/20/21) — a regra não se
+    duplica aqui. Retorna o número de linhas NOVAS; não comita (padrão
+    do módulo)."""
     created = 0
     for kind, value in (("fcmax", fcmax), ("fclthr", fclthr), ("fcrest", fcrest)):
         if value is None:

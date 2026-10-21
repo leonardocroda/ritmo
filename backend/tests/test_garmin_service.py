@@ -38,6 +38,7 @@ from app.garmin.service import (
     create_job,
     run_sync,
 )
+from app.profile import service as profile_service
 from app.garmin.upserts import get_sync_state
 from app.main import app
 from fake_garmin import CYCLING_ID, FakeGateway
@@ -709,16 +710,16 @@ def test_sync_physio_lthr_none_skips_fclthr_without_warning(db, monkeypatch):
 
 
 def test_sync_physio_manual_wins_and_repeat_sync_no_new_rows(db, monkeypatch):
-    """HRZ-06 ponta a ponta: vigente manual não é sobrescrita pelo sync;
-    2º sync com os mesmos valores não cria linha nenhuma (HRZ-03)."""
+    """HRZ-06 ponta a ponta: vigente manual (preferência `manual`, como o
+    PUT registra) não é sobrescrita pelo sync; 2º sync com os mesmos
+    valores não cria linha nenhuma (HRZ-03)."""
     monkeypatch.setattr(service, "GarminGateway", FakeGateway)
     job = _create_job()
     with SessionLocal() as s:
-        s.add(
-            UserHrMetric(
-                user_id=job.user_id, kind="fclthr", value_bpm=185,
-                source="manual", valid_from=date(2026, 10, 10),
-            )
+        # o estado manual da produção nasce do set_metric (PUT) — que
+        # registra a preferência `manual` junto (HRZ-20)
+        profile_service.set_metric(
+            s, job.user_id, "fclthr", 185, "manual", on_date=date(2026, 10, 10)
         )
         s.commit()
     run_sync(job.id)
@@ -744,6 +745,50 @@ def test_sync_physio_manual_wins_and_repeat_sync_no_new_rows(db, monkeypatch):
     run_sync(second_job.id)
     with SessionLocal() as s:
         assert _count(s, UserHrMetric) == 3  # valores iguais: nada novo
+
+
+def test_sync_physio_reclaim_after_release_flips_ownership(db, monkeypatch):
+    """HRZ-21 ponta a ponta: depois do 'voltar a puxar do Garmin' (a
+    preferência volta a `garmin`), o PRÓXIMO sync reassume a métrica —
+    linha `source=garmin` com o valor do sync; os syncs seguintes ficam
+    no update-if-changed normal."""
+    monkeypatch.setattr(service, "GarminGateway", FakeGateway)
+    job = _create_job()
+    with SessionLocal() as s:
+        profile_service.set_metric(
+            s, job.user_id, "fclthr", 185, "manual", on_date=date(2026, 10, 10)
+        )
+        s.commit()
+    run_sync(job.id)  # manual-wins: held
+    with SessionLocal() as s:
+        profile_service.set_sync_mode(s, job.user_id, "fclthr", "garmin")
+        s.commit()
+
+    second_job = _create_job(job.user_id)
+    run_sync(second_job.id)
+    with SessionLocal() as s:
+        lthr_rows = (
+            s.execute(
+                select(UserHrMetric).where(
+                    UserHrMetric.user_id == job.user_id,
+                    UserHrMetric.kind == "fclthr",
+                )
+                .order_by(UserHrMetric.id)
+            )
+            .scalars()
+            .all()
+        )
+        # flip de posse: 185 manual + 172 garmin (valor do sync)
+        assert [(row.value_bpm, row.source) for row in lthr_rows] == [
+            (185, "manual"),
+            (172, "garmin"),
+        ]
+        assert _count(s, UserHrMetric) == 4  # + fcmax + fcrest
+
+    third_job = _create_job(job.user_id)
+    run_sync(third_job.id)
+    with SessionLocal() as s:
+        assert _count(s, UserHrMetric) == 4  # retoma o update-if-changed
 
 
 def test_sync_physio_fcrest_follows_min_7d_of_rhr_series(db, monkeypatch):

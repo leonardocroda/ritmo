@@ -50,7 +50,7 @@ per-user da AD-015 fica adiado).
 | Zonas VDOT de pace | Seguem no arquivo; per-user adiado | Decisão do usuário: eixo de FC é paralelo ao eixo de pace | y |
 | Retroatividade | Vigente-na-data: métricas e configs com `valid_from`; leitura em D usa a vigente em D | Decisão do usuário; padrão Strava (mudança vale dali em diante) | y |
 | Percentuais | Defaults por método + editáveis por zona com guardrails | Decisão do usuário; padrão Garmin/Strava (defaults alocados, edição livre validada) | y |
-| Manual vs Garmin | Manual vence: sync só cria linha se o valor mudar E a vigente não for `source=manual` | Decisão do usuário: editar independe do Garmin | y |
+| Manual vs Garmin | Manual vence enquanto a preferência do usuário for `manual` (registrada automaticamente a cada edição manual); "voltar a puxar do Garmin" (emenda 21/10/2026) libera a métrica — o próximo sync reassume com linha `source=garmin` (mesmo valor igual = flip de posse) | Decisão do usuário: editar independe do Garmin, mas edição não pode ser prisão perpétua (fcrest evolui semanalmente) | y |
 | Tela | `/perfil` nasce nesta feature (shell + zonas); user-profile expande depois | Decisão do usuário: backend + tela agora | y |
 | Defaults por método | lthr: 65/80/89/95/100 (tabela do usuário); fcr: 50/60/70/80/90; fcmax: 50/60/70/80/90 | Tabela LTHR proposta pelo usuário (variação legítima de 5 zonas; Friel usa 7); fcr/fcmax seguem Karvonen/Polar-ACSM |
 | Semântica de zona | `low ≤ FC < high` (lower inclusivo, upper exclusivo); Z5 do LTHR é aberta (`> low`); fcr/fcmax fecham em 100% (= fcmax) | Sem gaps nem sobreposição; guardrail Strava de não-sobreposição fica trivial |
@@ -94,8 +94,8 @@ padrão de fábrica) e eu veja a evolução.
    das fontes automáticas — `fcmax` e `fclthr` da API do Garmin (auto-detectados; valor
    ausente → pula a métrica) e `fcrest` derivada do mínimo dos últimos 7 dias da série
    `rhr` sincronizada — criando linha `source=garmin` quando o valor difere do vigente  <!-- event-driven -->
-6. IF a linha vigente tem `source=manual` THEN o sync SHALL não criar linha nova para
-   aquela métrica (a edição manual nunca é sobrescrita pelo Garmin)  <!-- unwanted-behavior -->
+6. IF a preferência do usuário para a métrica é `manual` THEN o sync SHALL não criar linha
+   nova para aquela métrica (a edição manual nunca é sobrescrita pelo Garmin)  <!-- unwanted-behavior -->
 7. WHEN o banco inicializa com o usuário 1 sem config THEN o sistema SHALL semear apenas
    a config de zonas (método lthr + defaults); nenhuma métrica é seedada — vêm do sync
    (HRZ-05) ou de edição manual, e o payload usa o fallback do env enquanto `fclthr` não
@@ -104,6 +104,34 @@ padrão de fábrica) e eu veja a evolução.
 **Independent Test**: PUT fclthr=185 → GET devolve 185/hoje; PUT 185 de novo → mesma
 resposta, zero linhas novas no histórico; PUT 400 → 422; sync com LTHR auto-detectado
 diferente → linha `source=garmin`; PUT manual de novo → próximo sync não sobrescreve.
+
+---
+
+### P1: Retorno ao sync por métrica (voltar a puxar do Garmin) ⭐ MVP
+
+**User Story**: As a corredor que editou um valor manualmente, I want voltar a puxar
+aquele valor do Garmin quando eu quiser so que a edição manual não seja uma prisão
+perpétua — o controle volta para o sync com um clique.
+
+**Why P1**: Manual-wins sem caminho de retorno transforma toda edição manual em
+congelamento eterno do valor (crítico para a `fcrest`, que evolui semanalmente).
+
+**Acceptance Criteria**:
+
+20. WHEN o usuário edita uma métrica via PUT THEN o sistema SHALL registrar a preferência
+    `manual` para aquela métrica automaticamente (a edição e o hold são um ato só);
+    IF o PUT não cria linha nova (valor igual ao vigente) THEN a preferência SHALL
+    permanecer inalterada  <!-- event-driven -->
+21. WHEN o usuário solicita voltar a puxar do Garmin (preferência `garmin`) THEN o
+    sistema SHALL registrar a preferência e o PRÓXIMO sync SHALL criar linha
+    `source=garmin` com o valor do próprio sync — mesmo que igual ao vigente (flip de
+    posse, uma vez); a partir daí o update-if-changed normal retoma  <!-- event-driven -->
+22. WHILE nenhuma preferência foi registrada THEN o sistema SHALL tratar a métrica como
+    `garmin` (default — o comportamento de hoje)  <!-- state-driven -->
+
+**Independent Test**: PUT fclthr=185 (manual) → sync não sobrescreve; usuário solicita
+voltar → próximo sync cria linha `source=garmin` com o valor do sync (igual ou não) e
+os syncs seguintes voltam ao update-if-changed; GET expõe a preferência de cada métrica.
 
 ---
 
@@ -202,6 +230,12 @@ tempo por zona de FC so that o veredito reflita minhas zonas, não as de outro u
   fcrest acompanha a forma física)
 - IF o usuário muda só o método THEN as métricas ficam intactas; IF muda só um percentual
   THEN o método fica (config nova herda o resto)
+- IF o PUT envia valor IGUAL ao vigente THEN nenhuma linha e a preferência fica como
+  está (no-op total — HRZ-03/20)
+- IF o usuário volta ao Garmin e o valor do sync é IGUAL ao manual vigente THEN o flip
+  cria a linha `source=garmin` mesmo assim (uma vez — é um evento de posse, não ruído)
+- IF o valor do sync está ausente (ex.: LTHR nunca detectado) THEN o flip não tem o que
+  gravar — a preferência fica `garmin` e o sync reassume na primeira aparição do valor
 - IF a config vigente era manual e o sync muda um valor source=garmin THEN as zonas do
   método que não dependem daquele valor seguem válidas (métrica e config são séries
   independentes)
@@ -237,8 +271,11 @@ tempo por zona de FC so that o veredito reflita minhas zonas, não as de outro u
 | HRZ-17 | P1: Consumo na avaliação IA | Design | ✅ Verified (ambos os ramos pinados) |
 | HRZ-18 | P1: Consumo na avaliação IA | Design | ✅ Verified (aritmética exata + denominador + zonas da época) |
 | HRZ-19 | P1: Consumo na avaliação IA | Design | ✅ Verified (bloco omitido em todos os ramos sem dado) |
+| HRZ-20 | P1: Retorno ao sync por métrica | Design | ✅ Implemented |
+| HRZ-21 | P1: Retorno ao sync por métrica | Design | ✅ Implemented |
+| HRZ-22 | P1: Retorno ao sync por métrica | Design | ✅ Implemented |
 
-**Coverage:** 19 total, 0 mapped to tasks, 19 unmapped ⚠️
+**Coverage:** 22 total, 0 mapped to tasks, 22 unmapped ⚠️
 
 ---
 

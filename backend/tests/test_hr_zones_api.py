@@ -384,6 +384,82 @@ def test_history_desc_by_valid_from_then_id(session_client) -> None:
 
 
 # ---------------------------------------------------------------
+# Preferência de posse (HRZ-20/21/22 — emenda 21/10/2026)
+# ---------------------------------------------------------------
+
+
+def test_get_returns_sync_modes_default_garmin(session_client) -> None:
+    """HRZ-22: sem preferência registrada, o GET expõe `garmin` para as
+    3 métricas (o sync manda — comportamento original)."""
+    client, _user_id = session_client
+
+    response = client.get("/api/profile/hr-zones")
+    assert response.status_code == 200
+    assert response.json()["modes"] == {
+        "fcmax": "garmin", "fcrest": "garmin", "fclthr": "garmin",
+    }
+
+
+def test_put_metrics_sets_manual_mode(session_client) -> None:
+    """HRZ-20: a edição manual registra a preferência `manual` — edição e
+    hold são um ato só, visível no GET."""
+    client, _user_id = session_client
+
+    response = client.put(
+        "/api/profile/hr-zones", json={"metrics": {"fclthr": 185}}
+    )
+    assert response.status_code == 200
+    assert response.json()["modes"]["fclthr"] == "manual"
+
+
+def test_put_sync_modes_garmin_roundtrip(session_client) -> None:
+    """HRZ-21: 'voltar a puxar do Garmin' registra `garmin` e a resposta
+    (shape do GET) já reflete; depois de novo `manual` volta a segurar."""
+    client, _user_id = session_client
+
+    client.put("/api/profile/hr-zones", json={"metrics": {"fclthr": 185}})
+    back = client.put(
+        "/api/profile/hr-zones", json={"sync_modes": {"fclthr": "garmin"}}
+    )
+    assert back.status_code == 200
+    assert back.json()["modes"]["fclthr"] == "garmin"
+
+    hold = client.put(
+        "/api/profile/hr-zones", json={"sync_modes": {"fclthr": "manual"}}
+    )
+    assert hold.status_code == 200
+    assert hold.json()["modes"]["fclthr"] == "manual"
+
+    # nenhuma linha de métrica foi criada pelos sync_modes (só a manual do PUT)
+    with SessionLocal() as db:
+        assert (
+            db.query(UserHrMetric).filter(UserHrMetric.source == "manual").count() == 1
+        )
+
+
+def test_put_sync_modes_empty_or_unknown_422(session_client) -> None:
+    """PUT só com `sync_modes` vazio é 'nada para atualizar' (422); kind
+    desconhecido -> 422 apontando; valor fora do vocabulário -> 422 do
+    schema (Literal)."""
+    client, _user_id = session_client
+
+    empty = client.put("/api/profile/hr-zones", json={"sync_modes": {}})
+    assert empty.status_code == 422
+    assert empty.json()["detail"] == "nada para atualizar"
+
+    unknown = client.put(
+        "/api/profile/hr-zones", json={"sync_modes": {"pulso": "garmin"}}
+    )
+    assert unknown.status_code == 422
+    assert unknown.json()["detail"] == "pulso: métrica desconhecida"
+
+    invalid = client.put(
+        "/api/profile/hr-zones", json={"sync_modes": {"fcmax": "sempre"}}
+    )
+    assert invalid.status_code == 422
+
+
+# ---------------------------------------------------------------
 # Fronteira: sem sessão 401 + isolamento A×B (HRZ-16 padrão user-scope)
 # ---------------------------------------------------------------
 

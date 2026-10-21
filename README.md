@@ -372,8 +372,13 @@ RUNNING no endpoint `heartRateZones/v2` — a FC máx **auto-detectada** pela
 Garmin (o perfil não armazena FC máx; fix do UAT 21/10/2026) — e `fclthr`
 do LTHR detectado pelo relógio; `fcrest` = mínimo dos últimos 7
 dias da série `rhr` já sincronizada (zero chamadas extras). Valor ausente
-pula a métrica sem erro; valor vigente manual → nenhuma linha
-(manual-wins); valor idêntico → nenhuma linha. **Nada é seedado**: o
+pula a métrica sem erro. **Editar manualmente vence** — e registra a
+preferência `manual` para a métrica (edição e hold são um ato só): o sync
+não sobrescreve enquanto durar. **Voltar a puxar do Garmin**: o botão no
+`/perfil` (visível quando a vigente é Manual) devolve a métrica ao sync —
+o próximo sync cria a linha `source=garmin` com o valor dele (mesmo que
+igual ao manual: é o flip de posse, uma vez) e o update-if-changed normal
+retoma. **Nada é seedado**: o
 banco nasce vazio de métricas (só a config lthr default do usuário 1) —
 elas vêm do primeiro sync ou da edição manual.
 
