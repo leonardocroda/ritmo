@@ -23,6 +23,7 @@ from app.db.models import (
     Split,
     Stress,
     SyncState,
+    UserHrMetric,
 )
 from app.garmin.mappers import (
     map_activity,
@@ -38,6 +39,7 @@ from app.garmin.mappers import (
 from app.garmin.upserts import (
     get_sync_state,
     set_sync_state,
+    update_physio_metrics,
     upsert_activity,
     upsert_health_rows,
     upsert_race_predictions,
@@ -477,3 +479,111 @@ def test_set_sync_state_updates_existing_last_date(db):
 
     assert _count(db, SyncState) == 1
     assert get_sync_state(db, 1, "activities") == date(2026, 10, 14)
+
+
+# ---------------------------------------------------------------
+# Métricas fisiológicas do sync (hr-zones T7) — update_physio_metrics
+# ---------------------------------------------------------------
+
+
+def test_update_physio_metrics_creates_garmin_rows_all_three_kinds(db):
+    """HRZ-05: valores novos viram linhas source=garmin — as 3 kinds
+    (fcmax, fclthr, fcrest) cobertas com valid_from = hoje."""
+    assert update_physio_metrics(db, 1, fcmax=190, fclthr=172, fcrest=42) == 3
+    db.commit()
+
+    rows = db.execute(select(UserHrMetric).order_by(UserHrMetric.id)).scalars().all()
+    assert len(rows) == 3
+    by_kind = {row.kind: row for row in rows}
+    assert set(by_kind) == {"fcmax", "fcrest", "fclthr"}
+    assert by_kind["fcmax"].value_bpm == 190
+    assert by_kind["fclthr"].value_bpm == 172
+    assert by_kind["fcrest"].value_bpm == 42
+    for row in rows:
+        assert row.user_id == 1
+        assert row.source == "garmin"
+        assert row.valid_from == date.today()
+
+
+def test_update_physio_metrics_same_value_idempotent(db):
+    """HRZ-03 (Independent Test do spec): mesmo valor -> sem linha nova;
+    retorno 0 = nada mudou."""
+    assert update_physio_metrics(db, 1, fcmax=190, fclthr=172, fcrest=42) == 3
+    db.commit()
+    assert update_physio_metrics(db, 1, fcmax=190, fclthr=172, fcrest=42) == 0
+    db.commit()
+
+    assert _count(db, UserHrMetric) == 3
+
+
+def test_update_physio_metrics_manual_wins_vigente(db):
+    """HRZ-06: vigente manual nunca é sobrescrita pelo sync (a regra
+    vive no set_metric — o upsert só delega); as demais kinds criam."""
+    db.add(
+        UserHrMetric(
+            user_id=1, kind="fclthr", value_bpm=185,
+            source="manual", valid_from=date(2026, 10, 10),
+        )
+    )
+    db.commit()
+
+    assert update_physio_metrics(db, 1, fcmax=190, fclthr=172, fcrest=42) == 2
+    db.commit()
+
+    lthr_rows = db.execute(
+        select(UserHrMetric).where(UserHrMetric.kind == "fclthr")
+    ).scalars().all()
+    assert len(lthr_rows) == 1
+    assert lthr_rows[0].value_bpm == 185
+    assert lthr_rows[0].source == "manual"
+
+
+def test_update_physio_metrics_none_skips_metric_silently(db):
+    """HRZ-05: valor ausente (None) pula a métrica sem erro; o retorno
+    conta só as linhas criadas."""
+    assert update_physio_metrics(db, 1, fcmax=190, fclthr=None, fcrest=None) == 1
+    db.commit()
+    assert update_physio_metrics(db, 1, fcmax=None, fclthr=None, fcrest=None) == 0
+    db.commit()
+
+    kinds = db.execute(select(UserHrMetric.kind)).scalars().all()
+    assert kinds == ["fcmax"]
+
+
+def test_update_physio_metrics_changed_value_creates_new_row(db):
+    """Update-if-changed: valor diferente do vigente -> linha nova
+    (append-only); a vigente passa a ser o valor novo."""
+    assert update_physio_metrics(db, 1, fcrest=42) == 1
+    db.commit()
+    assert update_physio_metrics(db, 1, fcrest=40) == 1
+    db.commit()
+
+    rows = (
+        db.execute(
+            select(UserHrMetric).where(UserHrMetric.kind == "fcrest")
+            .order_by(UserHrMetric.id)
+        )
+        .scalars()
+        .all()
+    )
+    assert [row.value_bpm for row in rows] == [42, 40]
+    assert all(row.source == "garmin" for row in rows)
+
+
+def test_update_physio_metrics_mixed_outcomes_count_only_new(db):
+    """Retorno = nº exato de linhas NOVAS com desfechos mistos: nova +
+    manual-wins + igual -> 1 (a contagem não conta as puladas)."""
+    db.add(
+        UserHrMetric(
+            user_id=1, kind="fclthr", value_bpm=185,
+            source="manual", valid_from=date(2026, 10, 10),
+        )
+    )
+    db.commit()
+    assert update_physio_metrics(db, 1, fcrest=42) == 1
+    db.commit()
+
+    assert update_physio_metrics(db, 1, fcmax=190, fclthr=172, fcrest=42) == 1
+    db.commit()
+
+    assert _count(db, UserHrMetric) == 3  # fcrest 42 + fclthr manual + fcmax 190

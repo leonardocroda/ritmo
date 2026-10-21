@@ -13,6 +13,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Activity, PersonalRecord, RacePrediction, Split, SyncState
+from app.profile.service import set_metric
 
 _ACTIVITY_FIELDS = (
     "start_time",
@@ -130,6 +131,28 @@ def upsert_race_predictions(db: Session, user_id: int, rows: list[dict]) -> int:
             for field, value in row.items():
                 setattr(existing, field, value)
     return len(rows)
+
+
+def update_physio_metrics(
+    db: Session,
+    user_id: int,
+    *,
+    fcmax: int | None = None,
+    fclthr: int | None = None,
+    fcrest: int | None = None,
+) -> int:
+    """Métricas fisiológicas do sync (HRZ-05) — cada valor não-None vira
+    uma escrita `set_metric(source="garmin")`; ausente (None) pula a
+    métrica sem erro. Idempotência (valor igual) e manual-wins vivem no
+    `set_metric` (HRZ-03/06) — a regra não se duplica aqui. Retorna o
+    número de linhas NOVAS; não comita (padrão do módulo)."""
+    created = 0
+    for kind, value in (("fcmax", fcmax), ("fclthr", fclthr), ("fcrest", fcrest)):
+        if value is None:
+            continue
+        if set_metric(db, user_id, kind, value, source="garmin"):
+            created += 1
+    return created
 
 
 def set_sync_state(db: Session, user_id: int, data_type: str, last_date: date) -> None:

@@ -278,11 +278,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Valor novo → linha `source=garmin`; mesmo valor → nenhuma linha; vigente manual → nenhuma linha (manual-wins)
-- [ ] Valor ausente (None) → métrica pulada sem erro; retorno conta só as criadas
-- [ ] As 3 kinds cobertas (fcmax, fclthr, fcrest)
-- [ ] Gate check passes: `uv run pytest tests/test_garmin_upserts.py` + Full suite verde
-- [ ] Test count: ~6 novos + existentes
+- [x] Valor novo → linha `source=garmin`; mesmo valor → nenhuma linha; vigente manual → nenhuma linha (manual-wins)
+- [x] Valor ausente (None) → métrica pulada sem erro; retorno conta só as criadas
+- [x] As 3 kinds cobertas (fcmax, fclthr, fcrest)
+- [x] Gate check passes: `uv run pytest tests/test_garmin_upserts.py` + Full suite verde
+- [x] Test count: ~6 novos + existentes
 
 **Tests**: integration
 **Gate**: quick + full
@@ -568,7 +568,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T4 | ✅ Complete | feat(hr-zones): effective-dated metric and config resolution service |
 | T5 | ✅ Complete | feat(hr-zones): profile hr-zones endpoints |
 | T6 | ✅ Complete | feat(garmin): user settings and lactate threshold gateway reads |
-| T7 | Pending | - |
+| T7 | ✅ Complete | feat(hr-zones): physio metrics upsert with manual-wins |
 | T8 | Pending | - |
 | T9 | Pending | - |
 | T10 | Pending | - |
