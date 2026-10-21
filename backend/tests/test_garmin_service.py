@@ -28,6 +28,7 @@ from app.db.models import (
     SyncJob,
     SyncState,
     User,
+    UserHrMetric,
 )
 from app.garmin import service
 from app.garmin.client import GarminAuthExpiredError, SyncBudgetExceededError
@@ -35,6 +36,7 @@ from app.garmin.service import JobConflictError, create_job, run_sync
 from app.garmin.upserts import get_sync_state
 from app.main import app
 from fake_garmin import CYCLING_ID, FakeGateway
+from helpers import RHR_PAYLOAD
 
 TODAY = date(2026, 10, 14)
 BACKFILL_ACTIVITIES_START = date(2026, 4, 17)  # TODAY - 180d (SYNC-15)
@@ -130,7 +132,7 @@ def test_run_sync_happy_path_done_with_full_stats(db, monkeypatch):
     assert stats["stress_days"] == 121
     assert stats["records"] == 2
     assert stats["predictions"] == 4
-    assert stats["calls_made"] == 499  # 1 atividades + 11 splits + 4x121 saúde + battery + recordes + 1 predições
+    assert stats["calls_made"] == 502  # 1 atividades + 11 splits + 4x121 saúde + battery + recordes + 1 predições + 3 physio (1 settings + 2 LTHR)
     assert stats["duration_s"] >= 0
     assert stats["warnings"] == []
     assert stats["reauth_needed"] is False
@@ -226,8 +228,8 @@ def test_second_sync_calls_made_much_smaller(db, monkeypatch):
     second_job = _create_job(first_job.user_id)
     run_sync(second_job.id)
 
-    assert _load_job(first_job.id).stats_json["calls_made"] == 499
-    assert _load_job(second_job.id).stats_json["calls_made"] == 23
+    assert _load_job(first_job.id).stats_json["calls_made"] == 502
+    assert _load_job(second_job.id).stats_json["calls_made"] == 26  # 23 + 3 da fase physio
 
 
 def test_state_machine_pending_running_done_with_partial_stats(db, monkeypatch):
@@ -388,11 +390,12 @@ def test_predictions_synced_after_records_exactly_one_call(db, monkeypatch):
 
 
 def test_predictions_step_consumes_one_extra_budget_call(db, monkeypatch):
-    """POT-01: +1 chamada no orçamento total do sync (backfill 498 -> 499)."""
+    """POT-01: +1 chamada no orçamento total do sync (backfill 502 =
+    498 das fases anteriores + predições + 3 da fase physio)."""
     monkeypatch.setattr(service, "GarminGateway", FakeGateway)
     job = _create_job()
     run_sync(job.id)
-    assert _load_job(job.id).stats_json["calls_made"] == 499
+    assert _load_job(job.id).stats_json["calls_made"] == 502
 
 
 def test_predictions_failure_warns_and_sync_continues(db, monkeypatch):
@@ -636,3 +639,203 @@ def test_startup_leaves_finished_jobs_untouched(db, monkeypatch):
     assert error_after.status == "error"
     assert error_after.error == "falha anterior"
     assert error_after.finished_at == datetime(2026, 10, 13, 8, 0, 0)
+
+
+# ---------------------------------------------------------------
+# Fase physio (hr-zones T8) — métricas fisiológicas no final do sync
+# ---------------------------------------------------------------
+
+
+def test_sync_physio_phase_creates_three_garmin_metrics(db, monkeypatch):
+    """HRZ-05: fase physio cria fcmax/fclthr/fcrest source=garmin e
+    consome +3 chamadas (1 user settings + 2 internas do LTHR)."""
+    monkeypatch.setattr(service, "GarminGateway", FakeGateway)
+    job = _create_job()
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "done"
+    stats = finished.stats_json
+    assert stats["calls_made"] == 502  # 499 das fases anteriores + 3 da physio
+    assert stats["warnings"] == []
+    fake = FakeGateway.last
+    assert fake.calls["user_settings"] == [()]
+    assert fake.calls["lactate_threshold"] == [()]
+
+    with SessionLocal() as s:
+        rows = (
+            s.execute(
+                select(UserHrMetric).where(UserHrMetric.user_id == job.user_id)
+            )
+            .scalars()
+            .all()
+        )
+        by_kind = {row.kind: row for row in rows}
+        assert set(by_kind) == {"fcmax", "fcrest", "fclthr"}
+        assert by_kind["fcmax"].value_bpm == 190
+        assert by_kind["fclthr"].value_bpm == 172
+        assert by_kind["fcrest"].value_bpm == 42  # mínimo-7d da série rhr (42 todo dia)
+        assert all(row.source == "garmin" for row in rows)
+
+
+def test_sync_physio_lthr_none_skips_fclthr_without_warning(db, monkeypatch):
+    """Edge do design: LTHR nunca detectado (heartRate None) -> fclthr
+    pulada sem warning; fcmax/fcrest chegam; job done."""
+    class NoLthr(FakeGateway):
+        lthr_none = True
+
+    monkeypatch.setattr(service, "GarminGateway", NoLthr)
+    job = _create_job()
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "done"
+    assert finished.error is None
+    assert finished.stats_json["warnings"] == []
+    with SessionLocal() as s:
+        kinds = (
+            s.execute(
+                select(UserHrMetric.kind).where(UserHrMetric.user_id == job.user_id)
+            )
+            .scalars()
+            .all()
+        )
+        assert set(kinds) == {"fcmax", "fcrest"}  # fclthr não chegou — pulei
+
+
+def test_sync_physio_manual_wins_and_repeat_sync_no_new_rows(db, monkeypatch):
+    """HRZ-06 ponta a ponta: vigente manual não é sobrescrita pelo sync;
+    2º sync com os mesmos valores não cria linha nenhuma (HRZ-03)."""
+    monkeypatch.setattr(service, "GarminGateway", FakeGateway)
+    job = _create_job()
+    with SessionLocal() as s:
+        s.add(
+            UserHrMetric(
+                user_id=job.user_id, kind="fclthr", value_bpm=185,
+                source="manual", valid_from=date(2026, 10, 10),
+            )
+        )
+        s.commit()
+    run_sync(job.id)
+
+    with SessionLocal() as s:
+        lthr_rows = (
+            s.execute(
+                select(UserHrMetric).where(
+                    UserHrMetric.user_id == job.user_id,
+                    UserHrMetric.kind == "fclthr",
+                )
+                .order_by(UserHrMetric.id)
+            )
+            .scalars()
+            .all()
+        )
+        assert len(lthr_rows) == 1  # manual-wins: o sync não sobrescreveu
+        assert lthr_rows[0].value_bpm == 185
+        assert lthr_rows[0].source == "manual"
+        assert _count(s, UserHrMetric) == 3  # fclthr manual + fcmax + fcrest
+
+    second_job = _create_job(job.user_id)
+    run_sync(second_job.id)
+    with SessionLocal() as s:
+        assert _count(s, UserHrMetric) == 3  # valores iguais: nada novo
+
+
+def test_sync_physio_fcrest_follows_min_7d_of_rhr_series(db, monkeypatch):
+    """HRZ-05/edge: fcrest = mínimo-7d da série `rhr` do próprio usuário
+    — a linha nova registra a mudança da série, e só quando ela muda."""
+
+    class LowerRhr(FakeGateway):
+        """Série nova: RHR 40 em todo dia (a evolução da fcrest)."""
+
+        def get_rhr(self, day):
+            self._record("rhr", day)
+            if day in self.rhr_no_data:
+                return None
+            reading = dict(
+                RHR_PAYLOAD["allMetrics"]["metricsMap"]["WELLNESS_RESTING_HEART_RATE"][0],
+                value=40.0,
+                calendarDate=day.isoformat(),
+            )
+            return dict(
+                RHR_PAYLOAD,
+                allMetrics={"metricsMap": {"WELLNESS_RESTING_HEART_RATE": [reading]}},
+            )
+
+    monkeypatch.setattr(service, "GarminGateway", FakeGateway)
+    job = _create_job()
+    run_sync(job.id)
+
+    monkeypatch.setattr(service, "GarminGateway", LowerRhr)
+    second_job = _create_job(job.user_id)
+    run_sync(second_job.id)
+    third_job = _create_job(second_job.user_id)
+    run_sync(third_job.id)
+
+    with SessionLocal() as s:
+        rows = (
+            s.execute(
+                select(UserHrMetric).where(
+                    UserHrMetric.user_id == job.user_id,
+                    UserHrMetric.kind == "fcrest",
+                )
+                .order_by(UserHrMetric.id)
+            )
+            .scalars()
+            .all()
+        )
+        # 1ª série (42) -> linha; nova série (40) -> linha; 3º sync igual -> nada
+        assert [row.value_bpm for row in rows] == [42, 40]
+        assert all(row.source == "garmin" for row in rows)
+
+
+def test_sync_physio_failure_warns_and_job_done(db, monkeypatch):
+    """SYNC-20 na fase physio: falha -> warning {tipo: "physio"}, job
+    done, fases anteriores intactas e nenhuma métrica gravada."""
+
+    class FailingPhysio(FakeGateway):
+        def get_user_settings(self):
+            self._record("user_settings")
+            raise RuntimeError("settings fora do ar")
+
+    monkeypatch.setattr(service, "GarminGateway", FailingPhysio)
+    job = _create_job()
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "done"
+    assert finished.error is None
+    stats = finished.stats_json
+    assert stats["warnings"] == [{"tipo": "physio", "erro": "settings fora do ar"}]
+    with SessionLocal() as s:
+        assert _count(s, Activity) == 12  # fases anteriores intactas
+        assert _count(s, RacePrediction) == 4
+        assert _count(s, DailyLoad) == 12  # pmc rodou depois do warning
+        assert _count(s, UserHrMetric) == 0  # a fase não gravou nada
+
+
+def test_sync_physio_max_hr_absent_skips_fcmax(db, monkeypatch):
+    """Extração resiliente: userData sem maxHeartRate -> fcmax pulada
+    sem warning; fclthr/fcrest chegam normalmente."""
+
+    class NoMaxHr(FakeGateway):
+        def get_user_settings(self):
+            self._record("user_settings")
+            return {"userData": {"measurementSystem": "METRIC"}}
+
+    monkeypatch.setattr(service, "GarminGateway", NoMaxHr)
+    job = _create_job()
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "done"
+    assert finished.stats_json["warnings"] == []
+    with SessionLocal() as s:
+        kinds = (
+            s.execute(
+                select(UserHrMetric.kind).where(UserHrMetric.user_id == job.user_id)
+            )
+            .scalars()
+            .all()
+        )
+        assert set(kinds) == {"fcrest", "fclthr"}  # fcmax não chegou — pulei

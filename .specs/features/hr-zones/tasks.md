@@ -306,13 +306,13 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Sync happy path (FakeGateway) cria as 3 métricas `source=garmin` e `calls_made` +3
-- [ ] LTHR ausente (`heartRate: None` no fake) → fclthr pulada, sem warning, job done
-- [ ] Vigente manual → sem linha nova (manual-wins ponta a ponta); valor igual → sem linha
-- [ ] fcrest = mínimo-7d da série `rhr` do próprio usuário (duas syncs com séries diferentes → linha nova só quando muda)
-- [ ] Falha do gateway na fase → warning `{tipo: "physio"}` + job `done` com as fases anteriores intactas
-- [ ] Gate check passes: `uv run pytest tests/test_garmin_service.py tests/test_sync_api.py` + Full suite verde
-- [ ] Test count: ~5 novos + existentes
+- [x] Sync happy path (FakeGateway) cria as 3 métricas `source=garmin` e `calls_made` +3
+- [x] LTHR ausente (`heartRate: None` no fake) → fclthr pulada, sem warning, job done
+- [x] Vigente manual → sem linha nova (manual-wins ponta a ponta); valor igual → sem linha
+- [x] fcrest = mínimo-7d da série `rhr` do próprio usuário (duas syncs com séries diferentes → linha nova só quando muda)
+- [x] Falha do gateway na fase → warning `{tipo: "physio"}` + job `done` com as fases anteriores intactas
+- [x] Gate check passes: `uv run pytest tests/test_garmin_service.py tests/test_sync_api.py` + Full suite verde
+- [x] Test count: ~5 novos + existentes
 
 **Tests**: integration
 **Gate**: quick + full
@@ -569,7 +569,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T5 | ✅ Complete | feat(hr-zones): profile hr-zones endpoints |
 | T6 | ✅ Complete | feat(garmin): user settings and lactate threshold gateway reads |
 | T7 | ✅ Complete | feat(hr-zones): physio metrics upsert with manual-wins |
-| T8 | Pending | - |
+| T8 | ✅ Complete | feat(hr-zones): sync physio phase updates fc metrics |
 | T9 | Pending | - |
 | T10 | Pending | - |
 | T11 | Pending | - |

@@ -9,7 +9,7 @@ warning em `stats_json` e o sync segue até `done` (SYNC-20);
 
 from datetime import date, datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -45,6 +45,7 @@ from app.garmin.pmc import recompute
 from app.garmin.upserts import (
     get_sync_state,
     set_sync_state,
+    update_physio_metrics,
     upsert_activity,
     upsert_health_rows,
     upsert_race_predictions,
@@ -314,6 +315,43 @@ def _sync_predictions(db, gateway, job, stats, user_id) -> None:
         _save_stats(db, job, stats)
 
 
+def _sync_physio(db, gateway, job, stats, user_id) -> None:
+    """Fase physio (HRZ-05/06): fcmax do user settings (userData
+    .maxHeartRate), fclthr do LTHR latest (speed_and_heart_rate
+    .heartRate) e fcrest do mínimo dos últimos 7 dias da série `rhr` já
+    sincronizada (query local, zero chamadas). Valor ausente pula a
+    métrica sem warning; falha -> warning `{tipo: "physio"}` e o sync
+    segue até done (SYNC-20) — update-if-changed/manual-wins vivem no
+    `update_physio_metrics`.
+    """
+    stats["step"] = "physio"
+    stats["message"] = "Puxando métricas fisiológicas…"
+    stats["calls_made"] = gateway.calls_made
+    _save_stats(db, job, stats)
+    try:
+        user_settings = gateway.get_user_settings()
+        fcmax = (user_settings or {}).get("userData", {}).get("maxHeartRate")
+        lthr = gateway.get_lactate_threshold()
+        fclthr = (lthr or {}).get("speed_and_heart_rate", {}).get("heartRate")
+        fcrest = db.execute(
+            select(func.min(Rhr.value)).where(
+                Rhr.user_id == user_id,
+                Rhr.date >= _today() - timedelta(days=6),
+            )
+        ).scalar_one()
+        update_physio_metrics(db, user_id, fcmax=fcmax, fclthr=fclthr, fcrest=fcrest)
+        stats["calls_made"] = gateway.calls_made
+        db.commit()
+    except (GarminAuthExpiredError, SyncBudgetExceededError):
+        db.rollback()
+        raise
+    except Exception as exc:
+        db.rollback()
+        stats["warnings"].append({"tipo": "physio", "erro": str(exc)})
+        stats["calls_made"] = gateway.calls_made
+        _save_stats(db, job, stats)
+
+
 def _sync_pmc(db, job, stats, user_id, oldest: date) -> None:
     """PMC (SYNC-22/23): recompute só da janela afetada — zero chamadas extras."""
     stats["step"] = "pmc"
@@ -368,6 +406,7 @@ def run_sync(job_id: int) -> None:
             _sync_battery(db, gateway, job, stats, user_id, settings)
             _sync_records(db, gateway, job, stats, user_id)
             _sync_predictions(db, gateway, job, stats, user_id)
+            _sync_physio(db, gateway, job, stats, user_id)
             _sync_pmc(db, job, stats, user_id, oldest)
             stats["message"] = "Sync concluído."
             _finish(db, job, stats, "done")

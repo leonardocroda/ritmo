@@ -219,7 +219,7 @@ tempo por zona de FC so that o veredito reflita minhas zonas, não as de outro u
 | HRZ-02 | P1: Métricas com histórico | Design | ✅ Implemented |
 | HRZ-03 | P1: Métricas com histórico | Design | ✅ Implemented |
 | HRZ-04 | P1: Métricas com histórico | Design | ✅ Implemented |
-| HRZ-05 | P1: Métricas com histórico | Design | Pending |
+| HRZ-05 | P1: Métricas com histórico | Design | ✅ Implemented |
 | HRZ-06 | P1: Métricas com histórico | Design | ✅ Implemented |
 | HRZ-07 | P1: Métricas com histórico | Design | ✅ Implemented |
 | HRZ-08 | P1: Config de método e zonas | Design | ✅ Implemented |

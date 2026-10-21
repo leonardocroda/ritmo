@@ -13,10 +13,11 @@ spec/design (lição L-001).
 from datetime import date, datetime
 
 import pytest
+from sqlalchemy import select
 
 from app.auth.security import hash_password
 from app.db.engine import SessionLocal
-from app.db.models import SyncJob, User
+from app.db.models import SyncJob, User, UserHrMetric
 from app.garmin import service
 from app.garmin.client import GarminAuthExpiredError
 from app.garmin.service import create_job
@@ -79,7 +80,7 @@ def test_post_creates_job_for_session_user_and_runs_to_done(sync_client):
     stats = job["stats"]
     assert stats["message"] == "Sync concluído."
     assert stats["activities_new"] == 12
-    assert stats["calls_made"] == 499  # inclui a 1 chamada do passo de predições (POT-01)
+    assert stats["calls_made"] == 502  # 499 das fases + 3 da physio (1 settings + 2 LTHR)
 
 
 def test_post_conflict_409_with_running_job_state(sync_client):
@@ -193,3 +194,30 @@ def test_reauth_error_exposed_via_api(sync_client, monkeypatch):
     assert job["status"] == "error"
     assert job["error"] == "Sessão Garmin expirada (401)"
     assert job["stats"]["reauth_needed"] is True
+
+
+def test_sync_physio_metrics_created_for_session_user(sync_client):
+    """HRZ-05 via API: o sync popula as 3 métricas do usuário da sessão
+    (user-scope) com fonte garmin — e o +3 de chamadas vem no stats."""
+    client, user_id = sync_client
+    client.post("/api/sync")
+
+    with SessionLocal() as db:
+        rows = (
+            db.execute(
+                select(UserHrMetric).where(UserHrMetric.user_id == user_id)
+            )
+            .scalars()
+            .all()
+        )
+        by_kind = {row.kind: row for row in rows}
+        assert set(by_kind) == {"fcmax", "fcrest", "fclthr"}
+        assert by_kind["fcmax"].value_bpm == 190
+        assert by_kind["fclthr"].value_bpm == 172
+        assert by_kind["fcrest"].value_bpm == 42
+        assert all(row.source == "garmin" for row in rows)
+
+    job = client.get("/api/sync/jobs/latest").json()["job"]
+    assert job["status"] == "done"
+    assert job["stats"]["calls_made"] == 502  # 499 + 3 da fase physio
+    assert job["stats"]["warnings"] == []
