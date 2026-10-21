@@ -135,12 +135,12 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Defaults dos 3 métodos exatamente como o spec (tabela do usuário no lthr)
-- [ ] `validate_bounds` rejeita cada caso inválido com o primeiro ponto no motivo
-- [ ] `zones_bpm` pinado com aritmética exata (ex.: fclthr 177 lthr → [115, 141, 158, 168, 177+]; fcr com fcrest 45/fcmax 190 → Z1 [107, 120)) e devolve None sem métrica
-- [ ] `classify` cobre bordas (low inclusivo, high exclusivo, Z5 aberta)
-- [ ] Gate check passes: `uv run pytest tests/test_hr_zones_calc.py`
-- [ ] Test count: ~14 novos + existentes
+- [x] Defaults dos 3 métodos exatamente como o spec (tabela do usuário no lthr)
+- [x] `validate_bounds` rejeita cada caso inválido com o primeiro ponto no motivo
+- [x] `zones_bpm` pinado com aritmética exata (ex.: fclthr 177 lthr → [115, 141, 158, 168, 177+]; fcr com fcrest 45/fcmax 190 → Z1 [107, 120)) e devolve None sem métrica
+- [x] `classify` cobre bordas (low inclusivo, high exclusivo, Z5 aberta)
+- [x] Gate check passes: `uv run pytest tests/test_hr_zones_calc.py`
+- [x] Test count: ~14 novos + existentes
 
 **Tests**: unit
 **Gate**: quick
@@ -563,7 +563,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | Task | Status | Commit |
 | ---- | ------ | ------ |
 | T1 | ✅ Complete | feat(db): add user hr metrics and zone configs tables |
-| T2 | Pending | - |
+| T2 | ✅ Complete | feat(hr-zones): pure zone math with method defaults and bounds validation |
 | T3 | Pending | - |
 | T4 | Pending | - |
 | T5 | Pending | - |
