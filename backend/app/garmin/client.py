@@ -8,7 +8,11 @@ Fatos verificados da lib (garminconnect==0.3.2, pinada no pyproject):
 - `get_rhr_day` existe; `get_rhr_data` não existe nesta versão;
 - `get_activities_by_date` pagina internamente de 20 em 20 sem pausa
   entre páginas (rajada) — por isso `get_activities` pagina por conta
-  própria via `connectapi`, com 1 contagem + 1 sleep por página.
+  própria via `connectapi`, com 1 contagem + 1 sleep por página;
+- `get_user_settings` não existe nesta versão: o endpoint user-settings
+  (payload `userData`, fonte do maxHeartRate) é o `get_user_profile`;
+- `get_lactate_threshold(latest=True)` faz 2 requests internos (power +
+  HR) — o orçamento conta os dois (fase physio do hr-zones).
 """
 
 import time
@@ -104,7 +108,7 @@ class GarminGateway:
             return result
         raise last_exc  # retries esgotados — o tipo será tratado como falho
 
-    # -- 9 métodos de dados do design -------------------------------------
+    # -- 11 métodos de dados do design ------------------------------------
 
     def get_activities(self, start: date, end: date) -> list[dict]:
         """Atividades por data com paginação PRÓPRIA (20/pág via connectapi).
@@ -175,3 +179,22 @@ class GarminGateway:
     def get_race_predictions(self) -> dict:
         """Preditor de prova (snapshot latest) — 1 chamada (POT-01)."""
         return self._call(self._garmin.get_race_predictions)
+
+    # SPEC_DEVIATION: o design nomeia a leitura de user settings como
+    # `get_user_settings`, método que não existe na lib 0.3.2 — o endpoint
+    # user-settings (/userprofile-service/userprofile/user-settings, payload
+    # `userData`) é exposto como `get_user_profile`.
+    # Reason: nome verificado no código da lib instalada; endpoint e chave
+    # userData.maxHeartRate são exatamente os do design (leitura read-only).
+    def get_user_settings(self) -> dict:
+        """User settings do perfil — userData.maxHeartRate é a fonte do
+        fcmax (fase physio do hr-zones)."""
+        return self._call(self._garmin.get_user_profile)
+
+    def get_lactate_threshold(self) -> dict:
+        """LTHR auto-detectado (latest) — 1 `_call` que na API custa 2
+        chamadas internas da lib (power + HR): o contador soma as duas
+        (orçamento honesto — o servidor consumiu os dois requests)."""
+        result = self._call(lambda: self._garmin.get_lactate_threshold(latest=True))
+        self._calls += 1  # 2ª chamada interna da lib (power): burst, sem pausa
+        return result

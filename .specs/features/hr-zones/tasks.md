@@ -250,11 +250,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] 2 métodos passam pelo `_call` (contagem + sleep conferidos nos testes)
-- [ ] FakeGateway serve os 2 métodos para os testes de sync (T8) — incluindo ausência de LTHR
-- [ ] Nenhum endpoint de escrita (read-only no perfil Garmin)
-- [ ] Gate check passes: `uv run pytest tests/test_garmin_gateway.py` + Full suite verde
-- [ ] Test count: ~3 novos + existentes
+- [x] 2 métodos passam pelo `_call` (contagem + sleep conferidos nos testes)
+- [x] FakeGateway serve os 2 métodos para os testes de sync (T8) — incluindo ausência de LTHR
+- [x] Nenhum endpoint de escrita (read-only no perfil Garmin)
+- [x] Gate check passes: `uv run pytest tests/test_garmin_gateway.py` + Full suite verde
+- [x] Test count: ~3 novos + existentes
 
 **Tests**: integration
 **Gate**: quick + full
@@ -567,7 +567,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T3 | ✅ Complete | feat(db): seed default lthr zone config for user 1 |
 | T4 | ✅ Complete | feat(hr-zones): effective-dated metric and config resolution service |
 | T5 | ✅ Complete | feat(hr-zones): profile hr-zones endpoints |
-| T6 | Pending | - |
+| T6 | ✅ Complete | feat(garmin): user settings and lactate threshold gateway reads |
 | T7 | Pending | - |
 | T8 | Pending | - |
 | T9 | Pending | - |

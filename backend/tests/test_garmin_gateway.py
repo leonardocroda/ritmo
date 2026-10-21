@@ -7,6 +7,7 @@ de 20 em 20 (lição L-001: literais, nunca constantes compartilhadas).
 """
 
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -102,6 +103,18 @@ class FakeGarmin:
         self._record("get_personal_record")
         self._gate()
         return {"records": "payload"}
+
+    def get_user_profile(self):
+        # Fato da 0.3.2: o endpoint user-settings (payload `userData`) é
+        # exposto com este nome — `get_user_settings` não existe na lib
+        self._record("get_user_profile")
+        self._gate()
+        return {"userData": {"maxHeartRate": 190}}
+
+    def get_lactate_threshold(self, *, latest=True):
+        self._record("get_lactate_threshold", latest)
+        self._gate()
+        return {"speed_and_heart_rate": {"heartRate": 172}, "power": {}}
 
 
 @pytest.fixture
@@ -286,3 +299,48 @@ def test_gateway_exposes_eight_data_methods(sleeps):
     assert fake.calls["get_stress_data"] == [("2026-10-13",)]
     assert fake.calls["get_body_battery"] == [("2026-10-13", "2026-10-13")]
     assert fake.calls["get_personal_record"] == [()]
+
+
+def test_get_user_settings_one_counted_call(sleeps):
+    """hr-zones T6: user settings do perfil (userData.maxHeartRate) —
+    1 chamada contada com o seu intervalo (SYNC-03)."""
+    fake = FakeGarmin()
+    gateway = GarminGateway(fake, make_settings())
+    result = gateway.get_user_settings()
+    assert result == {"userData": {"maxHeartRate": 190}}
+    assert gateway.calls_made == 1
+    assert sleeps == [1.0]
+    # Fato da lib 0.3.2: o endpoint user-settings é o `get_user_profile`
+    assert fake.calls["get_user_profile"] == [()]
+
+
+def test_get_lactate_threshold_costs_two_internal_calls(sleeps):
+    """hr-zones T6: LTHR latest — 1 `_call` que na API custa 2 chamadas
+    internas da lib (power + HR): o orçamento conta as duas."""
+    fake = FakeGarmin()
+    gateway = GarminGateway(fake, make_settings())
+    result = gateway.get_lactate_threshold()
+    assert result == {"speed_and_heart_rate": {"heartRate": 172}, "power": {}}
+    assert gateway.calls_made == 2
+    assert sleeps == [1.0]  # intervalo do _call — a lib faz o burst interno
+    assert fake.calls["get_lactate_threshold"] == [(True,)]  # latest=True
+
+
+def test_physio_reads_cost_three_budget_calls(sleeps):
+    """hr-zones T8: 1 user settings + 2 internas do LTHR = +3 chamadas
+    no orçamento da fase physio do sync."""
+    gateway = GarminGateway(FakeGarmin(), make_settings())
+    gateway.get_user_settings()
+    gateway.get_lactate_threshold()
+    assert gateway.calls_made == 3
+    assert sleeps == [1.0, 1.0]
+
+
+def test_gateway_is_read_only_no_write_endpoints():
+    """Design (risco do perfil Garmin): o gateway é read-only — nenhum
+    endpoint de escrita pode existir no cliente."""
+    source = Path("app/garmin/client.py").read_text(encoding="utf-8")
+    assert ".put(" not in source
+    assert ".post(" not in source
+    assert ".delete(" not in source
+    assert "self._garmin.set_" not in source

@@ -24,6 +24,37 @@ from helpers import (
 TREADMILL_ID = 98765432101  # corrida sem splits (esteira — edge do spec)
 CYCLING_ID = 55500000001  # não é corrida: nunca pede splits (SYNC-12)
 
+# Fase physio (hr-zones): user settings (userData.maxHeartRate) e LTHR
+# latest (speed_and_heart_rate.heartRate) — shapes da lib 0.3.2
+USER_SETTINGS_PAYLOAD = {
+    "userData": {
+        "displayName": "Corredora",
+        "measurementSystem": "METRIC",
+        "maxHeartRate": 190,
+    },
+}
+
+LACTATE_THRESHOLD_PAYLOAD = {
+    "speed_and_heart_rate": {
+        "userProfilePK": 122886821,
+        "version": None,
+        "calendarDate": "2026-10-13",
+        "sequence": 1,
+        "speed": 3.53,
+        "heartRate": 172,
+        "heartRateCycling": None,
+    },
+    "power": {"minAvgPower": 3.6, "maxAvgPower": 4.1},
+}
+
+# LTHR nunca detectado pelo relógio — heartRate None (edge do design)
+LACTATE_THRESHOLD_NONE_PAYLOAD = dict(
+    LACTATE_THRESHOLD_PAYLOAD,
+    speed_and_heart_rate=dict(
+        LACTATE_THRESHOLD_PAYLOAD["speed_and_heart_rate"], heartRate=None
+    ),
+)
+
 
 def _with_date(payload: dict, day: date, clock: str = "07:00:00") -> dict:
     data = dict(payload)
@@ -72,6 +103,8 @@ class FakeGateway:
     rhr_no_data: frozenset[date] = frozenset()
     stress_no_data: frozenset[date] = frozenset()
     battery_no_data: frozenset[date] = frozenset()
+    # Fase physio: LTHR nunca detectado pelo relógio (heartRate None)
+    lthr_none: bool = False
 
     def __init__(self) -> None:
         self._calls = 0
@@ -90,7 +123,7 @@ class FakeGateway:
         self._calls += 1
         self.calls.setdefault(name, []).append(args)
 
-    # -- 9 métodos de dados (interface do GarminGateway) -----------------
+    # -- 11 métodos de dados (interface do GarminGateway) ----------------
 
     def get_activities(self, start: date, end: date) -> list[dict]:
         self._record("activities", start, end)
@@ -163,3 +196,16 @@ class FakeGateway:
     def get_race_predictions(self) -> dict:
         self._record("race_predictions")
         return RACE_PREDICTIONS_PAYLOAD
+
+    def get_user_settings(self) -> dict:
+        self._record("user_settings")
+        return USER_SETTINGS_PAYLOAD
+
+    def get_lactate_threshold(self) -> dict:
+        # 1 `_call` que custa 2 chamadas internas na lib (power + HR) —
+        # o orçamento conta as duas (mesma contabilidade do gateway real)
+        self._record("lactate_threshold")
+        self._calls += 1
+        if self.lthr_none:
+            return LACTATE_THRESHOLD_NONE_PAYLOAD
+        return LACTATE_THRESHOLD_PAYLOAD
