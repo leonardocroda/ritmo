@@ -192,12 +192,12 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Resolução vigente-na-data: linha de ontem lida com `on_date` de anteontem vs hoje; duas mudanças no mesmo dia → tie-break por id DESC
-- [ ] `set_metric`: mesmo valor → False sem linha; garmin sobre manual → False (não cria); garmin sobre garmin/ausente com valor novo → True
-- [ ] `set_config`: mesma config → False; método novo → True
-- [ ] `validate_metrics_set`: cada limite e incoerência com campo+motivo exatos
-- [ ] Gate check passes: `uv run pytest tests/test_hr_zones_service.py`
-- [ ] Test count: ~12 novos + existentes
+- [x] Resolução vigente-na-data: linha de ontem lida com `on_date` de anteontem vs hoje; duas mudanças no mesmo dia → tie-break por id DESC
+- [x] `set_metric`: mesmo valor → False sem linha; garmin sobre manual → False (não cria); garmin sobre garmin/ausente com valor novo → True
+- [x] `set_config`: mesma config → False; método novo → True
+- [x] `validate_metrics_set`: cada limite e incoerência com campo+motivo exatos
+- [x] Gate check passes: `uv run pytest tests/test_hr_zones_service.py`
+- [x] Test count: ~12 novos + existentes
 
 **Tests**: integration
 **Gate**: quick
@@ -565,7 +565,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T1 | ✅ Complete | feat(db): add user hr metrics and zone configs tables |
 | T2 | ✅ Complete | feat(hr-zones): pure zone math with method defaults and bounds validation |
 | T3 | ✅ Complete | feat(db): seed default lthr zone config for user 1 |
-| T4 | Pending | - |
+| T4 | ✅ Complete | feat(hr-zones): effective-dated metric and config resolution service |
 | T5 | Pending | - |
 | T6 | Pending | - |
 | T7 | Pending | - |

@@ -217,16 +217,16 @@ tempo por zona de FC so that o veredito reflita minhas zonas, não as de outro u
 | --- | --- | --- | --- |
 | HRZ-01 | P1: Métricas com histórico | Design | ✅ Implemented |
 | HRZ-02 | P1: Métricas com histórico | Design | ✅ Implemented |
-| HRZ-03 | P1: Métricas com histórico | Design | Pending |
-| HRZ-04 | P1: Métricas com histórico | Design | Pending |
+| HRZ-03 | P1: Métricas com histórico | Design | ✅ Implemented |
+| HRZ-04 | P1: Métricas com histórico | Design | ✅ Implemented |
 | HRZ-05 | P1: Métricas com histórico | Design | Pending |
-| HRZ-06 | P1: Métricas com histórico | Design | Pending |
+| HRZ-06 | P1: Métricas com histórico | Design | ✅ Implemented |
 | HRZ-07 | P1: Métricas com histórico | Design | ✅ Implemented |
 | HRZ-08 | P1: Config de método e zonas | Design | ✅ Implemented |
 | HRZ-09 | P1: Config de método e zonas | Design | ✅ Implemented |
 | HRZ-10 | P1: Config de método e zonas | Design | ✅ Implemented |
 | HRZ-11 | P1: Config de método e zonas | Design | ✅ Implemented |
-| HRZ-12 | P1: Config de método e zonas | Design | Pending |
+| HRZ-12 | P1: Config de método e zonas | Design | ✅ Implemented |
 | HRZ-13 | P1: Tela de zonas no /perfil | Design | Pending |
 | HRZ-14 | P1: Tela de zonas no /perfil | Design | Pending |
 | HRZ-15 | P1: Tela de zonas no /perfil | Design | Pending |
