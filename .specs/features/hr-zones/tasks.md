@@ -420,11 +420,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Trocar de método prefilla os percentuais com os defaults e salvar cria a config
-- [ ] Editar percentuais + salvar → preview das zonas em bpm atualiza; bounds inválidos → 422 inline
-- [ ] Histórico lista métricas e configs DESC com data e fonte
-- [ ] Layout 390px coerente com o resto do app
-- [ ] Gate check passes: `npm run lint && npm run build`
+- [x] Trocar de método prefilla os percentuais com os defaults e salvar cria a config
+- [x] Editar percentuais + salvar → preview das zonas em bpm atualiza; bounds inválidos → 422 inline
+- [x] Histórico lista métricas e configs DESC com data e fonte
+- [x] Layout 390px coerente com o resto do app
+- [x] Gate check passes: `npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: build
@@ -573,5 +573,5 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T9 | ✅ Complete | feat(hr-zones): evaluation payload lthr from profile and hr zones block |
 | T10 | ✅ Complete | feat(frontend): hr zones api helpers and profile entry |
 | T11 | ✅ Complete | feat(frontend): profile page with hr values editing |
-| T12 | Pending | - |
+| T12 | ✅ Complete | feat(frontend): zone method config and history sections |
 | T13 | Pending | - |
