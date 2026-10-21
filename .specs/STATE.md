@@ -120,7 +120,7 @@
 - **Trade-off**: Leitura de zona passa pelo banco (uma query a mais por classificação) em troca de zonas/LTHR corretos por usuário; calibração self-service fica para a Fase 2 como planejado.
 - **Scope**: `vdot/zones.py` (fonte), `core/config.py` (`lthr_bpm` vira fallback), `users` (coluna `lthr_bpm`), seed no `init_db`, endpoint/página do perfil (zonas ativas).
 - **Date**: 2026-10-18
-- **Status**: active
+- **Status**: partially superseded by AD-021 (a parte LTHR/FC: coluna única → métricas effective-dated com zonas de FC por método; a parte "zonas VDOT por usuário" segue planejada, adiada — `vdot_zones.json` permanece a fonte)
 
 ### AD-016
 - **Decision**: A aba Hoje sai da navegação e a rota `/hoje` é deletada (junto com o `PanelPlaceholder`, cujo único usuário era ela): AD-011 adiou o painel pra pós-meia mas manteve o placeholder — o placeholder na nav ocupa espaço sem entregar nada na Fase 1. A home já redireciona pra `/treinos` (workouts-list); nenhum redirect extra é necessário.
@@ -162,6 +162,16 @@
 - **Date**: 2026-10-20
 - **Status**: active
 
+### AD-021
+- **Decision**: **Zonas de frequência cardíaca por usuário com séries effective-dated** (feature `hr-zones`, renomeia `zones-db`): `fcmax`, `fcrest` e `fclthr` em tabela append-only (`user_hr_metrics`: valor, `source` garmin|manual, `valid_from`) + config de zonas append-only (`hr_zone_configs`: método `lthr|fcr|fcmax` + percentuais editáveis com defaults por método — lthr 65/80/89/95/100 do usuário; fcr e fcmax 50/60/70/80/90); **zonas em bpm derivadas por função pura na leitura, vigentes na data consultada** (padrão Strava — treino antigo lido com zonas da época, sem reclassificação retroativa); **o sync é a fonte das três métricas** (emenda do usuário, 20/10: "pegar todas as infos no sync, inclusive LTHR"): fcmax de `user settings`, fclthr de `latestLactateThreshold` (ambas read-only), fcrest do mínimo-7d da série `rhr` própria — update-if-changed a cada sync; **manual vence**: sync nunca sobrescreve `source=manual`; **nenhuma métrica é seedada** (seed manual bloquearia o Garmin para sempre) — só a config lthr (defaults) do usuário 1; `LTHR_BPM` vira fallback do payload até o sync popular; zonas VDOT de **pace** seguem no `vdot_zones.json` (per-user adiado). Supersede parcialmente a AD-015.
+- **Reason**: Decisão do usuário (20/10/2026) na discussão do spec: dois corredores não compartilham limiar; zonas são configuração (3 métodos, percentuais editáveis estilo Garmin/Strava), valores precisam de histórico (evolução + leitura honesta do passado) e devem ser editáveis independentemente do Garmin.
+- **Trade-off**: Duas queries de resolução por leitura de zonas (métrica + config vigentes) em troca de zero snapshots/jobs de recompute e correção retroativa de graça; a série de fcrest cresce com as mudanças reais do mínimo-7d (evolução que o usuário pediu) em troca de histórico mais movimentado.
+- **Scope**: `app/profile/` (calc/service/router), `app/db/models.py` (`user_hr_metrics`, `hr_zone_configs`), `app/db/engine.py` (seed user 1), `app/garmin/{client,service,upserts}.py` (fase physio, read-only), `app/evaluation/payload.py` (`lthr_bpm` por métrica + bloco `zonas_fc`), `frontend` (`/perfil`, proxy, UserMenu), roadmap (zones-db → hr-zones).
+- **Date**: 2026-10-20
+- **Status**: active
+
+
+
 ## Handoff
 
 - **Feature**: `user-scope` — **concluída e validada (PASS, 20/10/2026)**: 19/19 ACs com
@@ -178,10 +188,13 @@
   alheios → 404; conftest sem override global (testes com sessão real via `session_client`);
   `test_user_isolation.py` com 7 testes A×B ponta a ponta; lições: L-015 (candidate) sobre
   AC citar endpoint inexistente
-- **In-progress**: none
-- **Next step**: **Fase 1.5 feature 3 — `zones-db`** ("specify feature zones-db"): seed do
-  `vdot_zones.json` → tabela `zones`, `ZoneConfig` lê do banco por usuário, `LTHR_BPM` vira
-  campo do perfil (AD-015). Depois: `garmin-tokens-db` → `user-profile`. Pendências menores
+- **In-progress**: `hr-zones` (renomeada de `zones-db`, AD-021) — spec confirmado pelo usuário
+  (20 ACs HRZ-01..20) + design completo (`.specs/features/hr-zones/design.md`); falta
+  tasks + execute. Escopo: métricas fcmax/fcrest/fclthr effective-dated, config de zonas
+  por método (lthr/fcr/fcmax) com percentuais editáveis, zonas derivadas vigentes-na-data,
+  tela `/perfil`, sync read-only com manual-wins, payload IA com `zonas_fc`.
+- **Next step**: "tasks hr-zones" (quebrar em tasks atômicas) → execute. Depois:
+  `garmin-tokens-db` → `user-profile`. Pendências menores
   vivas: CLI `set_password` não aplica política de senha ≥8 (API aplica; trocar a senha
   "test" por uma real antes de convidar); 2 docstrings de teste defasadas (cosmético —
   `test_activities_api.py:12-14`, `test_auth_api.py:3-4`); convite pode ser ligado
