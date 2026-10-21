@@ -392,11 +392,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] GET popula os três valores com badge de fonte e vigência; vazios mostram orientação
-- [ ] Editar + salvar → PUT → valores re-renderizam (fonte Manual); 422 mostra erro inline no campo
-- [ ] Sem sessão → redirect `/login` (comportamento herdado do proxy/apiFetch)
-- [ ] Layout 390px sem scroll horizontal (tema escuro)
-- [ ] Gate check passes: `npm run lint && npm run build`
+- [x] GET popula os três valores com badge de fonte e vigência; vazios mostram orientação
+- [x] Editar + salvar → PUT → valores re-renderizam (fonte Manual); 422 mostra erro inline no campo
+- [x] Sem sessão → redirect `/login` (comportamento herdado do proxy/apiFetch)
+- [x] Layout 390px sem scroll horizontal (tema escuro)
+- [x] Gate check passes: `npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: build
@@ -572,6 +572,6 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T8 | ✅ Complete | feat(hr-zones): sync physio phase updates fc metrics |
 | T9 | ✅ Complete | feat(hr-zones): evaluation payload lthr from profile and hr zones block |
 | T10 | ✅ Complete | feat(frontend): hr zones api helpers and profile entry |
-| T11 | Pending | - |
+| T11 | ✅ Complete | feat(frontend): profile page with hr values editing |
 | T12 | Pending | - |
 | T13 | Pending | - |
