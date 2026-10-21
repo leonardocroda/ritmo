@@ -632,3 +632,104 @@ export async function me(): Promise<MeOut> {
   if (!res.ok) throw await parseAuthError(res);
   return (await res.json()) as MeOut;
 }
+
+// ---- Perfil: zonas de FC (feature hr-zones) ----
+
+/** Métodos de cálculo (HRZ-08) — chaves ASCII da API, rótulo na UI. */
+export type HrZoneMethod = "lthr" | "fcr" | "fcmax";
+
+/** Percentuais de uma zona em pontos — high null = Z5 aberta no lthr. */
+export type HrZoneBound = { low: number; high: number | null };
+
+/** Espelho do `MetricOut` — valor vigente com fonte e vigência
+ * (HRZ-01); null quando nunca configurado. */
+export type HrMetric = {
+  value: number;
+  source: string;
+  valid_from: string;
+};
+
+/** Espelho do `ConfigOut` — método e percentuais vigentes (HRZ-12).
+ * `method` é sempre um dos 3: toda escrita valida contra Literal. */
+export type HrZoneConfig = {
+  method: HrZoneMethod;
+  bounds: { zones: HrZoneBound[] };
+  valid_from: string;
+};
+
+/** Zona derivada em bpm (HRZ-10) — high null = Z5 aberta do lthr. */
+export type HrZone = { n: number; low: number; high: number | null };
+
+/** Espelho do `HrZonesOut` (GET e resposta do PUT): métricas vigentes
+ * por kind, config, zonas derivadas em bpm (null sem config ou sem a
+ * métrica exigida — HRZ-11, estado vazio honesto) e os defaults dos 3
+ * métodos para prefill (HRZ-08). */
+export type HrZonesOut = {
+  metrics: Record<"fcmax" | "fcrest" | "fclthr", HrMetric | null>;
+  config: HrZoneConfig | null;
+  zones: HrZone[] | null;
+  defaults: Record<HrZoneMethod, HrZoneBound[]>;
+};
+
+/** Corpo do PUT (HRZ-02/08/09): métricas e/ou método e/ou bounds —
+ * método sem bounds aplica os defaults; bounds sem método herdam o
+ * método vigente. */
+export type HrZonesUpdate = {
+  metrics?: { fcmax?: number; fcrest?: number; fclthr?: number };
+  method?: HrZoneMethod;
+  bounds?: { zones: HrZoneBound[] };
+};
+
+/** Linha do histórico de métricas (HRZ-15) — DESC por (valid_from, id). */
+export type HrMetricHistory = {
+  kind: "fcmax" | "fcrest" | "fclthr";
+  value: number;
+  source: string;
+  valid_from: string;
+};
+
+/** Linha do histórico de configs (HRZ-15) — configs não têm fonte. */
+export type HrConfigHistory = {
+  method: HrZoneMethod;
+  bounds: { zones: HrZoneBound[] };
+  valid_from: string;
+};
+
+/** Espelho do `HrZonesHistoryOut` — as duas séries já vêm DESC. */
+export type HrZonesHistory = {
+  metrics: HrMetricHistory[];
+  configs: HrConfigHistory[];
+};
+
+/** Zonas vigentes hoje (HRZ-01/10/11) — métricas, config, zonas em
+ * bpm e defaults para prefill. */
+export async function getHrZones(): Promise<HrZonesOut> {
+  const res = await apiFetch("/api/profile/hr-zones", {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as HrZonesOut;
+}
+
+/** A única escrita (HRZ-02/03/04/08/09): métricas e/ou método e/ou
+ * bounds, resposta no shape do GET — a UI re-renderiza da resposta.
+ * 422 aponta campo ou zona com motivo PT-BR (HRZ-14). */
+export async function updateHrZones(payload: HrZonesUpdate): Promise<HrZonesOut> {
+  const res = await apiFetch("/api/profile/hr-zones", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as HrZonesOut;
+}
+
+/** Histórico de métricas e configs (HRZ-15), mais recente primeiro. */
+export async function getHrZonesHistory(): Promise<HrZonesHistory> {
+  const res = await apiFetch("/api/profile/hr-zones/history", {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as HrZonesHistory;
+}

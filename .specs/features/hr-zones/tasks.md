@@ -364,11 +364,11 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Helpers tipados espelhando o contrato da T5; zero `fetch(` direto
-- [ ] `/perfil` sem cookie → `/login?next=/perfil`; com cookie → renderiza
-- [ ] UserMenu linka para `/perfil` sem quebrar o Sair
-- [ ] Gate check passes: `npm run lint && npm run build`
-- [ ] Test count: sem test runner no frontend (matrix "none") — build gate
+- [x] Helpers tipados espelhando o contrato da T5; zero `fetch(` direto
+- [x] `/perfil` sem cookie → `/login?next=/perfil`; com cookie → renderiza
+- [x] UserMenu linka para `/perfil` sem quebrar o Sair
+- [x] Gate check passes: `npm run lint && npm run build`
+- [x] Test count: sem test runner no frontend (matrix "none") — build gate
 
 **Tests**: none
 **Gate**: build
@@ -571,7 +571,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T7 | ✅ Complete | feat(hr-zones): physio metrics upsert with manual-wins |
 | T8 | ✅ Complete | feat(hr-zones): sync physio phase updates fc metrics |
 | T9 | ✅ Complete | feat(hr-zones): evaluation payload lthr from profile and hr zones block |
-| T10 | Pending | - |
+| T10 | ✅ Complete | feat(frontend): hr zones api helpers and profile entry |
 | T11 | Pending | - |
 | T12 | Pending | - |
 | T13 | Pending | - |

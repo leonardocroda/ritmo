@@ -10,9 +10,10 @@ import type { NextRequest } from "next/server";
 // visível aqui porque frontend e API estão no mesmo host (só a porta difere).
 const SESSION_COOKIE = "ritmo_session";
 
-// Painéis protegidos (AUTH-17); `/` é caso à parte: o next vira /treinos,
-// para onde a home autenticada já redireciona (AUTH-20).
-const PANEL_PREFIXES = ["/treinos", "/performance", "/saude"];
+// Telas protegidas (AUTH-17): painéis + /perfil (HRZ-16, feature
+// hr-zones); `/` é caso à parte: o next vira /treinos, para onde a
+// home autenticada já redireciona (AUTH-20).
+const PANEL_PREFIXES = ["/treinos", "/performance", "/saude", "/perfil"];
 const AUTH_ROUTES = ["/login", "/registrar"];
 
 function isPanelRoute(pathname: string): boolean {
