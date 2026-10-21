@@ -386,7 +386,9 @@ pessoais, mas honestos.
 detectado (`latestLactateThreshold`, 182) e revelou que `userData` NÃO tem
 `maxHeartRate` — a fonte correta do fcmax é o endpoint de zonas de FC
 (`/biometric-service/heartRateZones/v2`, `maxHeartRateUsed`: 199
-auto-detectado vs 192 pela fórmula da idade). Se o relógio nunca detectou
+auto-detectado vs 192 pela fórmula da idade). O re-sync pós-fix confirmou
+o ciclo completo: as três métricas chegam `source=garmin` com zero
+warnings. Se o relógio nunca detectou
 LTHR, `fclthr` fica só manual e o payload segue no fallback do env.
 
 ## Workflow de desenvolvimento — spec-driven

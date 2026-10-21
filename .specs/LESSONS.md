@@ -104,6 +104,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: USR-05 (spec.md:58) (backend/api)
 - last seen: 2026-10-20T19:57:14Z
 
+### L-016 - Chave de payload de API externa citada em design nunca é fato: congele só a forma da extração (resiliente, ausente -> pula) e trate a chave como hipótese a confirmar em spike antes do execute
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `backend/app/garmin` · harmful: 0
+- features: hr-zones
+- evidence: UAT 21/10/2026 sync job 18/19 + fb98bbc (backend/app/garmin)
+- last seen: 2026-10-21T21:16:10Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

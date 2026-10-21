@@ -192,15 +192,15 @@
   README + `.env.example`. SPEC_DEVIATION 1 (justificada na validação): lib 0.3.2 expõe
   user settings como `get_user_profile` — gateway mantém o nome do design.
 - **In-progress**: none
-- **Next step**: UAT runtime com o usuário (2 itens pendentes, não são falhas):
-  (1) re-sync pós-fix `fcmax` — UAT 21/10 revelou que `userData` NÃO tem
-  `maxHeartRate` (a Garmin não armazena FC máx no perfil); fonte corrigida para o
-  endpoint de zonas de FC `heartRateZones/v2` (`maxHeartRateUsed` do esporte RUNNING,
-  auto-detectado — 199 na conta real vs 192 pela fórmula da idade); fclthr 182 já
-  confirmada; (2) `/perfil` no celular 390px (badges, troca de método prefilla defaults,
-  zonas mudam na hora, 422 inline, histórico) + manual-wins ponta a ponta. Hardening
-  opcional: 1 teste da fcrest com série RHR não uniforme (discrimina mínimo E janela-7d).
-  Depois: `garmin-tokens-db` → `user-profile`.
+- **Next step**: UAT runtime — item (1) **RESOLVIDO**: re-sync pós-fix
+  (job 19) confirmou as 3 métricas do Garmin — fcmax 199, fclthr 182, fcrest 42,
+  todas `source=garmin`, zero warnings, 26 chamadas (fonte do fcmax corrigida no
+  `fb98bbc`: `heartRateZones/v2` `maxHeartRateUsed` RUNNING — o perfil não tem
+  `maxHeartRate`; lição L-016 candidate). Resta o item (2): `/perfil` no celular
+  390px (badges, troca de método prefilla defaults, zonas mudam na hora, 422
+  inline, histórico) + manual-wins ponta a ponta. Hardening opcional: 1 teste da
+  fcrest com série RHR não uniforme (discrimina mínimo E janela-7d). Depois:
+  `garmin-tokens-db` → `user-profile`.
   Pendências menores vivas: CLI `set_password` sem política de senha ≥8; 2 docstrings de
   teste defasadas (cosmético); decisão aberta de produto: NVIDIA_MODEL default no `.env`
 - **Blockers**: none
