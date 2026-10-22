@@ -306,10 +306,10 @@ T9 → T10 → T11 → T12 → T13
 
 **Done when**:
 
-- [ ] Cores de zona vindas do `ZoneMeta` renderizam idênticas (antes/depois no detalhe de um treino)
-- [ ] Geometria, clamp de pace e largura proporcional intocados
-- [ ] `git grep -nE "#[0-9a-fA-F]{6}" -- frontend/src/components` → apenas `chartTheme.ts`
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] Cores de zona vindas do `ZoneMeta` renderizam idênticas (antes/depois no detalhe de um treino)
+- [x] Geometria, clamp de pace e largura proporcional intocados
+- [x] `git grep -nE "#[0-9a-fA-F]{6}" -- frontend/src/components` → apenas `chartTheme.ts`
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick

@@ -7,13 +7,15 @@
 // piso de 2.5 (recuperação fica no fundo, sem barra negativa), linha de
 // FC com ponto no MEIO de cada barra e relevo atrás em eixo próprio.
 // Sem Recharts: o eixo categórico da lib daria slots iguais (design).
-// Todas as cores (zonas e FC) vêm do payload — backend é a fonte única.
+// As cores de zona e FC vêm do payload — backend é a fonte única; eixo,
+// labels e tooltip vêm do chartTheme (zonas nunca fora daqui — DSN-16).
 // ViewBox no tamanho do alvo mobile: em telas maiores o gráfico escala
 // para cima em vez de encolher fontes no 390px.
 
 import { useState } from "react";
 
 import type { SplitOut, ZoneMeta } from "@/lib/api";
+import { chart, legendCaption } from "@/lib/chartTheme";
 import { formatDuration, formatPace } from "@/lib/format";
 
 const W = 390;
@@ -37,9 +39,9 @@ const KM_LABEL_GAP = 34;
 // Banda de relevo: eixo próprio, até 35% da altura útil
 const ELEV_BAND_H = PLOT_H * 0.35;
 
-const AXIS_COLOR = "#3f3f46";
-const TEXT_COLOR = "#d4d4d8";
-const MUTED_COLOR = "#a1a1aa";
+// Números de dado em tabulares (DSN-9): classe compartilhada dos labels
+// numéricos do SVG
+const NUMERIC_LABEL = "tabular-nums";
 
 type Props = {
   splits: SplitOut[];
@@ -64,7 +66,7 @@ function Legend({
   hrColor: string;
 }) {
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+    <div className={legendCaption}>
       {zonesPresent.map((zone) => (
         <span key={zone.key} className="flex items-center gap-1.5" title={zone.pace_range}>
           <span
@@ -128,14 +130,14 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
             x2={W - MARGIN.right}
             y1={PLOT_BOTTOM}
             y2={PLOT_BOTTOM}
-            stroke={AXIS_COLOR}
+            stroke={chart.axis}
           />
           <text
             x={W / 2}
             y={MARGIN.top + PLOT_H / 2}
             textAnchor="middle"
             fontSize={11}
-            fill={MUTED_COLOR}
+            fill={chart.muted}
           >
             sem voltas com pace
           </text>
@@ -236,7 +238,7 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
             x2={W - MARGIN.right}
             y1={paceTickY(paceS)}
             y2={paceTickY(paceS)}
-            stroke={AXIS_COLOR}
+            stroke={chart.axis}
             strokeOpacity={0.35}
           />
         ))}
@@ -247,7 +249,8 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
             y={paceTickY(paceS) + 3}
             textAnchor="end"
             fontSize={8}
-            fill={MUTED_COLOR}
+            fill={chart.muted}
+            className={NUMERIC_LABEL}
           >
             {formatPace(paceS)}
           </text>
@@ -261,6 +264,7 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
               textAnchor="start"
               fontSize={8}
               fill={hrColor}
+              className={NUMERIC_LABEL}
             >
               {`${tick.hr}`}
             </text>
@@ -279,13 +283,14 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
                 y={PLOT_BOTTOM - elevH}
                 width={bar.width}
                 height={elevH}
-                fill={MUTED_COLOR}
+                fill={chart.muted}
                 fillOpacity={0.18}
               />
             );
           })}
 
-        {/* Barras de pace por zona (largura = duração da volta) */}
+        {/* Barras de pace por zona (largura = duração da volta) — cor da
+            zona vem do payload (fonte única); fallback neutro do tema */}
         {bars.map((bar) =>
           bar.barH !== null ? (
             <rect
@@ -294,7 +299,7 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
               y={PLOT_BOTTOM - bar.barH}
               width={bar.width}
               height={bar.barH}
-              fill={zoneByKey.get(bar.split.zone as string)?.color ?? MUTED_COLOR}
+              fill={zoneByKey.get(bar.split.zone as string)?.color ?? chart.muted}
             />
           ) : null,
         )}
@@ -308,7 +313,8 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
               y={PLOT_BOTTOM - bar.barH - 5}
               textAnchor="middle"
               fontSize={9}
-              fill={TEXT_COLOR}
+              style={{ fill: "var(--foreground)" }}
+              className={NUMERIC_LABEL}
             >
               {formatPace(bar.split.pace_s as number)}
             </text>
@@ -340,7 +346,7 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
           x2={W - MARGIN.right}
           y1={PLOT_BOTTOM}
           y2={PLOT_BOTTOM}
-          stroke={AXIS_COLOR}
+          stroke={chart.axis}
         />
         {kmLabels.map((label) => (
           <g key={`km-${label.x}`}>
@@ -349,14 +355,15 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
               x2={label.x}
               y1={PLOT_BOTTOM}
               y2={PLOT_BOTTOM + 3}
-              stroke={AXIS_COLOR}
+              stroke={chart.axis}
             />
             <text
               x={label.x}
               y={H - 8}
               textAnchor={kmAnchor(label.x)}
               fontSize={9}
-              fill={MUTED_COLOR}
+              fill={chart.muted}
+              className={NUMERIC_LABEL}
             >
               {label.text}
             </text>
@@ -364,7 +371,8 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
         ))}
 
         {/* Tooltip por hover/tap — pace REAL (não clampado), FC, elevação,
-            duração, distância da volta e zona */}
+            duração, distância da volta e zona; cartão do tema (raio 12,
+            surface, borda hairline — DSN-11) */}
         {active !== null && (
           <g>
             <rect
@@ -372,16 +380,17 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
               y={MARGIN.top + 2}
               width={112}
               height={89}
-              rx={6}
-              fill="#18181b"
+              rx={12}
+              style={{ fill: "var(--card)" }}
               fillOpacity={0.95}
-              stroke={AXIS_COLOR}
+              stroke={chart.axis}
             />
             <text
               x={Math.min(Math.max(active.midX + 8, 4), W - 116) + 8}
               y={MARGIN.top + 15}
               fontSize={10}
-              fill="#ffffff"
+              style={{ fill: "var(--foreground)" }}
+              className={NUMERIC_LABEL}
             >
               {`Volta ${active.split.idx} · ${active.split.km_label} km`}
             </text>
@@ -398,7 +407,8 @@ export default function SplitsChart({ splits, zones, hrColor }: Props) {
                 x={Math.min(Math.max(active.midX + 8, 4), W - 116) + 8}
                 y={MARGIN.top + 28 + lineIndex * 11}
                 fontSize={10}
-                fill={TEXT_COLOR}
+                fill={chart.muted}
+                className={NUMERIC_LABEL}
               >
                 {line}
               </text>
