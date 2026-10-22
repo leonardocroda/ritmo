@@ -84,10 +84,10 @@ T9 → T10 → T11 → T12
 
 **Done when**:
 
-- [ ] `:root` com os tokens v0.3 e comentários de referência (v0.3 "Night"/"Surface"/"Lime"); semânticas `--good`/`--attention`/`--alert` presentes
-- [ ] `@theme inline` mapeia todas as novas cores + `--radius-card`/`--radius-ctl`; nomes canônicos (`--background`/`--card`/`--accent`/`--muted`/`--foreground`) preservados
-- [ ] App re-pelado sem edição de componente (conferir no dev: fundo `#0B0F12`, cartões `#121815`, accent `#B7F36B`)
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] `:root` com os tokens v0.3 e comentários de referência (v0.3 "Night"/"Surface"/"Lime"); semânticas `--good`/`--attention`/`--alert` presentes
+- [x] `@theme inline` mapeia todas as novas cores + `--radius-card`/`--radius-ctl`; nomes canônicos (`--background`/`--card`/`--accent`/`--muted`/`--foreground`) preservados
+- [x] App re-pelado sem edição de componente (conferir no dev: fundo `#0B0F12`, cartões `#121815`, accent `#B7F36B`)
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick
