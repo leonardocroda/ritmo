@@ -488,7 +488,7 @@ def test_auth_expired_error_reauth_needed(db, monkeypatch):
 
     class ReauthGateway(FakeGateway):
         @classmethod
-        def from_settings(cls, settings=None):
+        def from_user(cls, db, user_id, settings=None):
             raise GarminAuthExpiredError("Sessão Garmin expirada (401)")
 
     monkeypatch.setattr(service, "GarminGateway", ReauthGateway)

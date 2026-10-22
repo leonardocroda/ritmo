@@ -394,7 +394,7 @@ def run_sync(job_id: int) -> None:
         _save_stats(db, job, stats)
         gateway = None
         try:
-            gateway = GarminGateway.from_settings()
+            gateway = GarminGateway.from_user(db, job.user_id)
             user_id = job.user_id
             oldest = _sync_activities(db, gateway, job, stats, user_id, settings)
             _sync_daily_health(

@@ -151,7 +151,9 @@ class FakeGateway:
         type(self).last = self
 
     @classmethod
-    def from_settings(cls, settings=None) -> "FakeGateway":
+    def from_user(cls, db, user_id, settings=None) -> "FakeGateway":
+        """Espelho da assinatura do gateway real (GTDB-01): os argumentos
+        são ignorados — o fake não lê o banco, o teste semeia o que precisa."""
         return cls()
 
     @property

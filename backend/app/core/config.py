@@ -58,11 +58,6 @@ class Settings(BaseSettings):
     # calibrado, recalibração futura sobrepõe por env)
     lthr_bpm: int = 177  # LTHR_BPM
 
-    # Garmin — nomes de env var idênticos aos do garmin_mcp/token_utils
-    # (o pydantic-settings casa `garmintokens` com `GARMINTOKENS`)
-    garmintokens: str = "~/.garminconnect"
-    garmintokens_base64: str = "~/.garminconnect_base64"
-
     # Garmin — tokens cifrados em repouso no banco (AD-014, feature
     # garmin-tokens-db). Gere uma chave com:
     #   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"

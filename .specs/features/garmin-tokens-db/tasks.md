@@ -197,13 +197,13 @@ T6 → T11
 
 **Done when**:
 
-- [ ] `from_user` hidrata via `garmin.login(blob)` inline; `GarminConnectAuthenticationError` → `GarminAuthExpiredError`
-- [ ] Sem tokens / `InvalidToken` → `GarminAuthExpiredError` com mensagem sem fragmento de blob
-- [ ] `session_blob()` devolve `self._garmin.client.dumps()`; `tokens_loaded_at` devolve o `updated_at` visto no carregamento
-- [ ] `from_settings` deletado; nenhum import de `resolve_token_path`/`secure_token_dir` resta em `client.py`
-- [ ] `Settings` sem os campos legados; testes de gateway migrados (login ok, sem tokens, blob ilegível, lib rejeita)
-- [ ] Gate check passes: `cd backend && uv run pytest tests/test_garmin_gateway.py -q`
-- [ ] Test count: suite de gateway verde com ~4-5 testes de from_user (os 2 de from_settings migrados)
+- [x] `from_user` hidrata via `garmin.login(blob)` inline; `GarminConnectAuthenticationError` → `GarminAuthExpiredError`
+- [x] Sem tokens / `InvalidToken` → `GarminAuthExpiredError` com mensagem sem fragmento de blob
+- [x] `session_blob()` devolve `self._garmin.client.dumps()`; `tokens_loaded_at` devolve o `updated_at` visto no carregamento
+- [x] `from_settings` deletado; nenhum import de `resolve_token_path`/`secure_token_dir` resta em `client.py`
+- [x] `Settings` sem os campos legados; testes de gateway migrados (login ok, sem tokens, blob ilegível, lib rejeita)
+- [x] Gate check passes: `cd backend && uv run pytest tests/test_garmin_gateway.py -q`
+- [x] Test count: suite de gateway verde com ~4-5 testes de from_user (os 2 de from_settings migrados)
 
 **Tests**: unit
 **Gate**: quick
