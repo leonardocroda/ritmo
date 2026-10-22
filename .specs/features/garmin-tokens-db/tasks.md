@@ -347,12 +347,12 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Sem linha → `not_connected`; linha + último job reauth (tokens não atualizados após o fim do job) → `reauth_needed`; caso contrário → `connected`
-- [ ] Tokens atualizados APÓS o job falho → `connected` (emenda GTDB-16)
-- [ ] Resposta contém apenas `state` + `tokens_updated_at` (nenhum fragmento de blob)
-- [ ] Sem sessão → 401 (padrão do include)
-- [ ] Gate check passes: `cd backend && uv run pytest tests/test_profile_connection_api.py -q`
-- [ ] Test count: ~4 testes novos (3 estados + 401)
+- [x] Sem linha → `not_connected`; linha + último job reauth (tokens não atualizados após o fim do job) → `reauth_needed`; caso contrário → `connected`
+- [x] Tokens atualizados APÓS o job falho → `connected` (emenda GTDB-16)
+- [x] Resposta contém apenas `state` + `tokens_updated_at` (nenhum fragmento de blob)
+- [x] Sem sessão → 401 (padrão do include)
+- [x] Gate check passes: `cd backend && uv run pytest tests/test_profile_connection_api.py -q`
+- [x] Test count: ~4 testes novos (3 estados + 401)
 
 **Tests**: integration
 **Gate**: quick
