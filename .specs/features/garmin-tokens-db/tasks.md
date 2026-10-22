@@ -111,11 +111,11 @@ T6 → T11
 
 **Done when**:
 
-- [ ] `GarminToken` definido com unique `user_id` + CASCADE + `updated_at` com `onupdate`
-- [ ] `Base.metadata.create_all` cobre a tabela nova (sem ALTER — AD-019)
-- [ ] Testes: unique violada → IntegrityError; deletar o usuário apaga a linha (CASCADE)
-- [ ] Gate check passes: `cd backend && uv run pytest tests/test_garmin_tokens_models.py -q`
-- [ ] Test count: ~2-3 testes novos (baseline 493)
+- [x] `GarminToken` definido com unique `user_id` + CASCADE + `updated_at` com `onupdate`
+- [x] `Base.metadata.create_all` cobre a tabela nova (sem ALTER — AD-019)
+- [x] Testes: unique violada → IntegrityError; deletar o usuário apaga a linha (CASCADE)
+- [x] Gate check passes: `cd backend && uv run pytest tests/test_garmin_tokens_models.py -q`
+- [x] Test count: ~2-3 testes novos (baseline 493)
 
 **Tests**: unit
 **Gate**: quick

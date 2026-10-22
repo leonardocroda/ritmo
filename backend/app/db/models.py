@@ -402,3 +402,25 @@ class UserHrSyncPref(Base):
     kind: Mapped[str] = mapped_column(String(10))  # fcmax | fcrest | fclthr
     mode: Mapped[str] = mapped_column(String(10))  # garmin | manual
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
+
+
+class GarminToken(Base):
+    """Tokens Garmin do usuário (feature garmin-tokens-db, AD-014) — 1:1.
+
+    ``token_encrypted`` guarda SOMENTE ciphertext (Fernet sob
+    ``TOKEN_ENCRYPTION_KEY``); tokens_store é o único módulo que toca a
+    coluna. ``updated_at`` com onupdate é o guard otimista do
+    persist-back (GTDB-04): a linha registra o instante da última
+    escrita, então um re-login CLI durante o sync vence. CASCADE
+    espelha `sessions`: deletar o usuário apaga os tokens."""
+
+    __tablename__ = "garmin_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    # UNIQUE: exatamente uma linha de tokens por usuário (1 conta Garmin = 1 usuário)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True
+    )
+    token_encrypted: Mapped[str] = mapped_column(Text)  # blob Fernet (base64) do dumps() da lib
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
