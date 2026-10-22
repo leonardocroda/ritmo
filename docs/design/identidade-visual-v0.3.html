@@ -451,10 +451,10 @@ footer{border-top:1px solid var(--border);padding:22px 0 36px;color:var(--muted)
     <h2><span class="idx">06</span>Shell de app</h2>
     <div class="panel">
       <ul style="font-size:.95rem">
-        <li><b>Tab bar inferior, 5 itens</b> — ícones line 22px + label 10px; ativo em lime com pill lime/12% (o padrão da nav atual sobrevive à mudança de lugar).</li>
+        <li><b>Navegação responsiva</b> — no mobile (<768px): tab bar inferior, até 5 itens, ícones line 22px + label 10px, ativo em lime com pill lime/12% (o padrão da nav atual sobrevive). No desktop (≥768px): top bar no header com os mesmos itens e o mesmo padrão de ativo — tab bar inferior em tela grande fica deslocada (decisão do usuário).</li>
         <li><b>Alvos de toque ≥44px</b> em qualquer elemento clicável — nada de links decorativos.</li>
         <li><b>Safe-area</b> — 18px extras no fundo; o home indicator sempre visível.</li>
-        <li><b>Topo é conteúdo</b> — wordmark + sync apenas. Nada de navegação empilhada no header.</li>
+        <li><b>Topo é conteúdo no mobile</b> — wordmark + sync apenas; no desktop o header ganha a top bar de navegação — nada de navegação duplicada.</li>
         <li><b>Estados vazios</b> orientam o primeiro sync (padrão CLR-11 já em produção) — agora com a cara nova.</li>
         <li><b>Transições curtas</b> (150–200ms) só quando explicam causa e efeito — nada de animação decorativa.</li>
       </ul>
@@ -476,7 +476,7 @@ TIPOGRAFIA
 Instrument Sans 400–700, números tabulares. Display do veredito 38–40px sentence-case; título de card 16–17px; corpo 15px; caption 12,5px; eyebrow 11px caps (único lugar com caps).
 
 FORMA
-Raio: cartão 16, controle 12, pill 999. Espaçamento base 4. Alvos de toque ≥44px. Tab bar inferior com ativo em lime.
+Raio: cartão 16, controle 12, pill 999. Espaçamento base 4. Alvos de toque ≥44px. Navegação responsiva: tab bar inferior no mobile, top bar no header no desktop — ativo em lime nos dois.
 
 GRÁFICOS
 Uma série por gráfico; contexto em neutro, um único destaque lime (o "hoje"). Grid: só linha de base hairline; escala em caption 9–10px; tooltip = cartão discreto. Sem neon, sem glow, sem 3D.

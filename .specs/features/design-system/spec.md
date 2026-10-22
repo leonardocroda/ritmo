@@ -11,7 +11,7 @@ O frontend é hoje a soma dos defaults da stack: paleta zinc+lime-400 (5 tokens 
 - [ ] Paleta v0.3 em tokens únicos mapeados ao tema Tailwind — re-pele 100% das superfícies num único swap
 - [ ] Instrument Sans (400–700) via next/font + números tabulares em todo dado exibido
 - [ ] Tema de gráfico centralizado ("contexto em neutro, um único destaque lime") aplicado aos 11 gráficos existentes
-- [ ] Tab bar inferior: Treinos · Saúde · Performance · Perfil (navegação de polegar, app feel)
+- [ ] Navegação de app responsiva: tab bar inferior no mobile (<768px), top bar no header no desktop — mesmos itens (ícones + labels), mesmo padrão de ativo
 - [ ] Zero mudança de comportamento: contratos de API, dados e copy permanecem os mesmos
 
 ## Out of Scope
@@ -44,7 +44,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | SplitsChart | Mantém cores de zona VDOT; ganha só eixo/caption/tooltip do tema | Regra de coexistência v0.3 + AD-009 |
 | Semânticas de saúde | `--good`/`--attention`/`--alert` definidos agora, consumidos pela Home depois | Barato agora; evita reabrir o arquivo na feature da Home |
 | Raio | Cartão 16px, controle 12px, pill 999px | v0.3: "uma resposta por pergunta" |
-| Tab bar em telas largas | Permanece inferior em qualquer largura, alinhada ao conteúdo (max-w) | App-like consistente; desktop não é o público-alvo do MVP |
+| Navegação em telas largas | Responsiva: viewport <768px = tab bar inferior; ≥768px = top bar no header com os mesmos itens (ícones + labels) e o mesmo padrão de ativo | Decisão do usuário (22/10/2026): tab bar inferior em tela grande fica estranha — o app feel pertence ao mobile; o desktop volta ao topo | y |
 
 **Open questions:** none — as decisões de gosto (fonte, identidade) foram confirmadas pela aprovação do mock v0.3 (22/10/2026); o resto segue os defaults acima, passíveis de veto na confirmação desta spec.
 
@@ -107,21 +107,22 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 
 ---
 
-### P2: Tab bar inferior (app shell)
+### P2: Navegação de app responsiva (tab bar + top bar)
 
-**User Story**: Como usuário no celular, quero navegar pelos painéis com o polegar numa tab bar inferior, para que o app pareça app — não site.
+**User Story**: Como usuário, quero navegar por tab bar inferior no celular e por top bar no desktop, para que o app pareça app no mobile e não fique deslocado em tela grande.
 
-**Why P2**: É o sinal nº1 de "isso é um app" num web app mobile-first 390px (v0.3 §06); não bloqueia as P1 (pode entrar no mesmo ciclo de implementação logo após).
+**Why P2**: A tab bar inferior é o sinal nº1 de "isso é um app" no mobile-first 390px (v0.3 §06) — e a mesma tab em tela grande fica estranha (decisão do usuário, 22/10); os dois comportamentos nascem da mesma Nav, com os mesmos itens e o mesmo padrão de ativo.
 
 **Acceptance Criteria**:
 
-17. WHEN qualquer painel abre THEN the system SHALL exibir uma tab bar inferior fixa com 4 itens (Treinos, Saúde, Performance, Perfil) — ícone line 22px + label 10px, item ativo em lime com pill lime/12% (continuidade do padrão da nav atual). <!-- event-driven -->
+17. WHEN um painel abre em viewport menor que 768px THEN the system SHALL exibir uma tab bar inferior fixa com 4 itens (Treinos, Saúde, Performance, Perfil) — ícone line 22px + label 10px, item ativo em lime com pill lime/12% (continuidade do padrão da nav atual). <!-- event-driven -->
 18. WHILE uma tab está ativa THEN o item SHALL ter alvo de toque ≥44px e marcação `aria-current="page"` (padrão da `Nav` atual — `activePanel` por `startsWith`). <!-- state-driven -->
 19. WHEN a tela tem 390px de largura THEN as 4 tabs SHALL caber sem scroll horizontal. <!-- event-driven -->
-20. WHEN `/perfil` é alcançado pela tab bar THEN o header SHALL reter apenas wordmark + sync + menu do usuário (Sair) — o link de nome sai do header. <!-- event-driven -->
-21. The system SHALL adicionar 18px de respiro inferior fixo abaixo da tab bar (safe-area em telas que expõem inset). <!-- ubiquitous -->
+20. WHEN o viewport é de 768px ou mais THEN the system SHALL exibir a navegação no header (top bar) com os mesmos 4 itens — mesmos ícones e labels do mobile, mesmo padrão de ativo — e a tab bar inferior SHALL desaparecer. <!-- event-driven -->
+21. WHEN `/perfil` é alcançado pela navegação THEN o header SHALL reter apenas wordmark + sync + menu do usuário (Sair) em qualquer largura — o link de nome sai do header. <!-- event-driven -->
+22. The system SHALL adicionar 18px de respiro inferior fixo abaixo da tab bar no mobile (safe-area em telas que expõem inset). <!-- ubiquitous -->
 
-**Independent Test**: navegar pelos 4 destinos em 390px; ativo com pill lime em cada painel; `/perfil` alcançável pelo polegar; sem scroll horizontal.
+**Independent Test**: em 390px, navegar pelos 4 destinos com a tab inferior (ativo com pill lime, `/perfil` ao polegar, sem scroll horizontal); redimensionar para ≥768px → a navegação migra para o header com os mesmos itens e o item ativo preservado; a tab inferior some.
 
 ---
 
@@ -133,8 +134,8 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 
 **Acceptance Criteria**:
 
-22. WHEN um painel carrega dados THEN the system SHALL exibir skeleton na linguagem v0.3 (blocos neutros pulsando ~1,6s, sem spinner) no lugar do texto de carregamento atual. <!-- event-driven -->
-23. IF o carregamento falha THEN o estado de erro existente SHALL permanecer inalterado — o skeleton não muda o contrato de erro dos painéis. <!-- unwanted-behavior -->
+23. WHEN um painel carrega dados THEN the system SHALL exibir skeleton na linguagem v0.3 (blocos neutros pulsando ~1,6s, sem spinner) no lugar do texto de carregamento atual. <!-- event-driven -->
+24. IF o carregamento falha THEN o estado de erro existente SHALL permanecer inalterado — o skeleton não muda o contrato de erro dos painéis. <!-- unwanted-behavior -->
 
 **Independent Test**: throttling de rede no devtools → painéis mostram skeleton pulsando; matar a API → mensagem de erro atual intacta.
 
@@ -148,8 +149,8 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 
 **Acceptance Criteria**:
 
-24. WHEN o header renderiza THEN o wordmark SHALL ser "ritmo" em lowercase com o glyph de pulso lime ao lado. <!-- event-driven -->
-25. The system SHALL usar o pulso como favicon (metadata icon) enquanto não há logotipo definitivo. <!-- ubiquitous -->
+25. WHEN o header renderiza THEN o wordmark SHALL ser "ritmo" em lowercase com o glyph de pulso lime ao lado. <!-- event-driven -->
+26. The system SHALL usar o pulso como favicon (metadata icon) enquanto não há logotipo definitivo. <!-- ubiquitous -->
 
 **Independent Test**: header com "ritmo" + pulso; favicon do browser = pulso.
 
@@ -159,7 +160,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 
 - IF a fonte do Google Fonts está indisponível (offline/LAN sem internet) THEN a stack de fallback renderiza — nenhum bloqueio (`display: swap`, DSN-10).
 - IF o usuário está num painel profundo (ex.: `/treinos/123`) THEN a tab ativa continua Treinos (resolução `startsWith` da `activePanel` atual).
-- IF o viewport é mais largo que 390px THEN a tab bar permanece inferior, alinhada ao conteúdo — o shell não vira header nav em desktop.
+- IF o viewport cruza 768px (nos dois sentidos) THEN a navegação troca entre tab bar inferior e top bar sem perder o item ativo — mesma rota, mesmo estado nas duas renderizações.
 - IF um gráfico não tem dados THEN o estado vazio do bloco permanece (CLR-11/HLT-19) — o tema não inventa série.
 - WHEN um gráfico é legitimamente multi-série (PMC: CTL/ATL/TSB; fases do sono) THEN cada série recebe cor do conjunto semântico central — o mapeamento por gráfico é definido no design, nunca hex local de volta.
 
@@ -168,14 +169,14 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | Dimensão | Resolução |
 | -------- | --------- |
 | Input validation & bounds | N/A — feature visual, nenhum input novo |
-| Failure / partial-failure | Fonte offline → fallback swap (DSN-10); erro de dados preservado (DSN-23) |
+| Failure / partial-failure | Fonte offline → fallback swap (DSN-10); erro de dados preservado (DSN-24) |
 | Idempotency / retry / duplicatas | N/A — sem escrita de dado |
 | Auth boundaries & rate limits | N/A — rotas e sessão intocadas (tab bar navega nas mesmas URLs existentes) |
 | Concurrency / ordering | N/A — sem estado compartilhado novo |
 | Data lifecycle / expiry | N/A — nenhum dado novo |
 | Observability | N/A — feature visual; build/lint são o gate |
 | External-dependency failure | Google Fonts offline → stack de fallback com swap (DSN-10) |
-| State-transition integrity | Estados loading→ready→error/vazio preservados (DSN-22/23 + Edge Cases) |
+| State-transition integrity | Estados loading→ready→error/vazio preservados (DSN-23/24 + Edge Cases) |
 
 ---
 
@@ -199,17 +200,18 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | DSN-14 | P1: Tema de gráfico compartilhado | Design | Pending |
 | DSN-15 | P1: Tema de gráfico compartilhado | Design | Pending |
 | DSN-16 | P1: Tema de gráfico compartilhado | Design | Pending |
-| DSN-17 | P2: Tab bar inferior | Design | Pending |
-| DSN-18 | P2: Tab bar inferior | Design | Pending |
-| DSN-19 | P2: Tab bar inferior | Design | Pending |
-| DSN-20 | P2: Tab bar inferior | Design | Pending |
-| DSN-21 | P2: Tab bar inferior | Design | Pending |
-| DSN-22 | P2: Skeletons na linguagem | Design | Pending |
+| DSN-17 | P2: Navegação de app responsiva | Design | Pending |
+| DSN-18 | P2: Navegação de app responsiva | Design | Pending |
+| DSN-19 | P2: Navegação de app responsiva | Design | Pending |
+| DSN-20 | P2: Navegação de app responsiva | Design | Pending |
+| DSN-21 | P2: Navegação de app responsiva | Design | Pending |
+| DSN-22 | P2: Navegação de app responsiva | Design | Pending |
 | DSN-23 | P2: Skeletons na linguagem | Design | Pending |
-| DSN-24 | P3: Wordmark + pulso | - | Pending |
+| DSN-24 | P2: Skeletons na linguagem | Design | Pending |
 | DSN-25 | P3: Wordmark + pulso | - | Pending |
+| DSN-26 | P3: Wordmark + pulso | - | Pending |
 
-**Coverage:** 25 total, 25 mapped to stories, 0 unmapped ✅
+**Coverage:** 26 total, 26 mapped to stories, 0 unmapped ✅
 
 ---
 
@@ -220,6 +222,6 @@ How we know the feature is successful:
 - [ ] 100% das superfícies na paleta v0.3 — zero resquício zinc/lime-400; nenhum sky-400/red-400 hardcoded nos gráficos
 - [ ] `grep` de hex em `src/components` retorna apenas o módulo do tema (zonas VDOT incluídas lá)
 - [ ] Os 11 gráficos na mesma linguagem: linha de base hairline única, ticks 9–10px, tooltip cartão raio 12, "hoje" em lime onde existe
-- [ ] Tab bar inferior com Treinos · Saúde · Performance · Perfil funcionando em 390px, sem scroll horizontal, `/perfil` ao alcance do polegar
+- [ ] Navegação responsiva viva: tab bar inferior com Treinos · Saúde · Performance · Perfil em 390px (sem scroll horizontal, `/perfil` ao polegar) e top bar no header em ≥768px com os mesmos itens e ativo preservado
 - [ ] `npm run build` + `npm run lint` verdes; suite do backend intocada (zero mudança de servidor)
 - [ ] UAT visual em 390px contra `docs/design/identidade-visual-v0.3.html` — o app vivo conversa com o mock aprovado
