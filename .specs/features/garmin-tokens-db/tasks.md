@@ -376,10 +376,10 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Três estados renderizam com pill distinta (Conectado / Reautenticação necessária / Não conectado)
-- [ ] Seção no topo da página, sem índice, subtítulo sempre visível (mobile-first 390px)
-- [ ] `npm run lint` e `npm run build` verdes (Next 16 — seguir o guia em `node_modules/next/dist/docs/` se API nova for usada)
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] Três estados renderizam com pill distinta (Conectado / Reautenticação necessária / Não conectado)
+- [x] Seção no topo da página, sem índice, subtítulo sempre visível (mobile-first 390px)
+- [x] `npm run lint` e `npm run build` verdes (Next 16 — seguir o guia em `node_modules/next/dist/docs/` se API nova for usada)
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: build

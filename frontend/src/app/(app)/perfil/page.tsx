@@ -1,7 +1,9 @@
 "use client";
 
 // /perfil — nasce aqui com a tela de zonas de FC (feature hr-zones):
-// 1 "Valores", 2 "Método e zonas" e 3 "Histórico" (HRZ-13/14/15).
+// "Conexão Garmin" no topo (sem índice — pré-requisito, não passo do
+// fio condutor) e 1 "Valores", 2 "Método e zonas" e 3 "Histórico"
+// (HRZ-13/14/15).
 // Página client no padrão do /login: o proxy protege a rota (sem
 // cookie → /login?next=/perfil, HRZ-16) e o apiFetch redireciona na
 // sessão expirada em uso. O GET carrega o shape completo e o
@@ -12,13 +14,16 @@
 import { useEffect, useRef, useState } from "react";
 
 import PanelSection from "@/components/PanelSection";
+import ConnectionCard from "@/components/profile/ConnectionCard";
 import HrHistoryList from "@/components/profile/HrHistoryList";
 import HrMethodCard from "@/components/profile/HrMethodCard";
 import HrValuesCard from "@/components/profile/HrValuesCard";
 import HrZonesPreview from "@/components/profile/HrZonesPreview";
 import {
+  getGarminConnection,
   getHrZones,
   getHrZonesHistory,
+  type GarminConnectionOut,
   type HrZonesHistory,
   type HrZonesOut,
 } from "@/lib/api";
@@ -26,15 +31,22 @@ import {
 type PageState =
   | { kind: "loading" }
   | { kind: "error"; message: string }
-  | { kind: "ready"; data: HrZonesOut; history: HrZonesHistory };
+  | {
+      kind: "ready";
+      data: HrZonesOut;
+      history: HrZonesHistory;
+      connection: GarminConnectionOut;
+    };
 
 export default function PerfilPage() {
   const [state, setState] = useState<PageState>({ kind: "loading" });
   const historySeq = useRef(0);
 
   useEffect(() => {
-    Promise.all([getHrZones(), getHrZonesHistory()])
-      .then(([data, history]) => setState({ kind: "ready", data, history }))
+    Promise.all([getHrZones(), getHrZonesHistory(), getGarminConnection()])
+      .then(([data, history, connection]) =>
+        setState({ kind: "ready", data, history, connection }),
+      )
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : "Erro inesperado";
         setState({ kind: "error", message });
@@ -73,6 +85,15 @@ export default function PerfilPage() {
       )}
       {state.kind === "ready" && (
         <>
+          <PanelSection
+            title="Conexão Garmin"
+            subtitle="Como seus dados chegam aqui? O sync lê direto da sua conta Garmin usando os tokens salvos criptografados no banco — é ela que alimenta os painéis e as zonas. Reautenticação necessária significa que o último sync não conseguiu entrar na conta: o re-login é feito por CLI com o operador."
+          >
+            <ConnectionCard
+              state={state.connection.state}
+              tokensUpdatedAt={state.connection.tokens_updated_at}
+            />
+          </PanelSection>
           <PanelSection
             index={1}
             title="Valores"

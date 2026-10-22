@@ -737,3 +737,23 @@ export async function getHrZonesHistory(): Promise<HrZonesHistory> {
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as HrZonesHistory;
 }
+
+// ---- Perfil: conexão Garmin (feature garmin-tokens-db) ----
+
+/** Espelho do `ConnectionOut` (GET /api/profile/garmin-connection) —
+ * só metadados, nunca o blob (GTDB-17). */
+export type GarminConnectionOut = {
+  state: "connected" | "reauth_needed" | "not_connected";
+  tokens_updated_at: string | null;
+};
+
+/** Estado da conexão Garmin do usuário da sessão (GTDB-16): Conectado,
+ * Reautenticação necessária ou Não conectado — só exibição, o re-login
+ * é CLI do operador. */
+export async function getGarminConnection(): Promise<GarminConnectionOut> {
+  const res = await apiFetch("/api/profile/garmin-connection", {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as GarminConnectionOut;
+}
