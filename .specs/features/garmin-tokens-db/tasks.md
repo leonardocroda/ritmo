@@ -167,13 +167,13 @@ T6 → T11
 
 **Done when**:
 
-- [ ] `require_key` aceita chave Fernet válida; ausente e inválida → `TokenKeyError` com mensagem apontando o comando de geração
-- [ ] `save_blob` grava ciphertext (nunca plano); sem linha cria, com linha atualiza (`updated_at` avança); guard recusa (`False`) quando a linha mudou desde o carregamento
-- [ ] `get_blob` devolve `(blob, updated_at)` ou `None` sem linha; ciphertext de outra chave → exceção de decript (tratada pelos chamadores como "sem tokens")
-- [ ] `get_meta` devolve existência + `updated_at` sem decriptar
-- [ ] Nenhuma chamada de log no módulo (GTDB-15)
-- [ ] Gate check passes: `cd backend && uv run pytest tests/test_garmin_tokens_store.py -q`
-- [ ] Test count: ~8 testes novos
+- [x] `require_key` aceita chave Fernet válida; ausente e inválida → `TokenKeyError` com mensagem apontando o comando de geração
+- [x] `save_blob` grava ciphertext (nunca plano); sem linha cria, com linha atualiza (`updated_at` avança); guard recusa (`False`) quando a linha mudou desde o carregamento
+- [x] `get_blob` devolve `(blob, updated_at)` ou `None` sem linha; ciphertext de outra chave → exceção de decript (tratada pelos chamadores como "sem tokens")
+- [x] `get_meta` devolve existência + `updated_at` sem decriptar
+- [x] Nenhuma chamada de log no módulo (GTDB-15)
+- [x] Gate check passes: `cd backend && uv run pytest tests/test_garmin_tokens_store.py -q`
+- [x] Test count: ~8 testes novos
 
 **Tests**: unit
 **Gate**: quick
