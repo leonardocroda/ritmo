@@ -290,12 +290,12 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Import válido (dir com `garmin_tokens.json` e arquivo direto) → linha do usuário 1 cifrada
-- [ ] Linha existente → recusa com orientação para `login --user`, exit != 0, linha intacta
-- [ ] Arquivo ausente/ilegível/JSON sem `di_token` → erro claro, nenhuma gravação
-- [ ] `--path` com default `~/.garminconnect` (seam de teste, sem `--user` — spec trava o usuário 1)
-- [ ] Gate check passes: `cd backend && uv run pytest tests/test_garmin_import.py -q`
-- [ ] Test count: ~5 testes novos
+- [x] Import válido (dir com `garmin_tokens.json` e arquivo direto) → linha do usuário 1 cifrada
+- [x] Linha existente → recusa com orientação para `login --user`, exit != 0, linha intacta
+- [x] Arquivo ausente/ilegível/JSON sem `di_token` → erro claro, nenhuma gravação
+- [x] `--path` com default `~/.garminconnect` (seam de teste, sem `--user` — spec trava o usuário 1)
+- [x] Gate check passes: `cd backend && uv run pytest tests/test_garmin_import.py -q`
+- [x] Test count: ~5 testes novos
 
 **Tests**: unit
 **Gate**: quick
