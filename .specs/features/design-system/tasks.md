@@ -363,9 +363,9 @@ T9 → T10 → T11 → T12 → T13
 
 **Done when**:
 
-- [ ] Wordmark "ritmo" + pulso no header; favicon do pulso na aba do browser
-- [ ] `display_name` sem link; "Sair" preservado com hover token; `/perfil` alcançável pela nav nos dois breakpoints
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] Wordmark "ritmo" + pulso no header; favicon do pulso na aba do browser
+- [x] `display_name` sem link; "Sair" preservado com hover token; `/perfil` alcançável pela nav nos dois breakpoints
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick
