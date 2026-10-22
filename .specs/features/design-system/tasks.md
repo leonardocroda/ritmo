@@ -227,7 +227,7 @@ T9 → T10 → T11 → T12 → T13
 - [x] Cores por entidade conforme a tabela do design; tooltips e legendas nas classes do tema
 - [x] `git grep -nE "#[0-9a-fA-F]{6}"` nos 4 arquivos → vazio (cores só do chartTheme)
 - [x] Dados, formatos e estados vazios intocados (CLR/HLT)
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick
@@ -254,7 +254,7 @@ T9 → T10 → T11 → T12 → T13
 
 - [x] HrvChart: status do card, banda e outliers preservados; cores do tema
 - [x] RhrChart/StressChart na família alert; zero hex local nos 3 arquivos
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick
@@ -281,7 +281,7 @@ T9 → T10 → T11 → T12 → T13
 
 - [x] PMC com 3 séries legíveis nas famílias semânticas; destaques do último dia intactos
 - [x] Vo2max/Vdot com sujeito lime e selos/faixas preservados; zero hex local nos 3 arquivos
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick
