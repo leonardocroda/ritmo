@@ -195,7 +195,7 @@ export default function HrValuesCard({
         <button
           type="submit"
           disabled={saving || !hasAnyInput}
-          className="rounded-ctl bg-accent px-3 py-2 text-sm font-medium text-background disabled:opacity-60"
+          className="rounded-ctl bg-accent px-3 py-2 text-sm font-medium text-on-accent disabled:opacity-60"
         >
           {saving ? "Salvando…" : "Salvar valores"}
         </button>

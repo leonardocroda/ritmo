@@ -418,9 +418,9 @@ T9 → T10 → T11 → T12 → T13
 
 **Done when**:
 
-- [ ] Todo `bg-accent` com texto usa `text-on-accent` (login, registrar, cards do /perfil)
-- [ ] `git grep -n "border-white/" -- frontend/src` retorna vazio
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] Todo `bg-accent` com texto usa `text-on-accent` (login, registrar, cards do /perfil)
+- [x] `git grep -n "border-white/" -- frontend/src` retorna vazio
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick

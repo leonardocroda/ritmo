@@ -48,7 +48,7 @@ export default function HrvTable({ hrv }: { hrv: HrvBlock }) {
         </thead>
         <tbody>
           {rows.map((p) => (
-            <tr key={p.date} className="border-t border-white/5">
+            <tr key={p.date} className="border-t border-border">
               <th
                 scope="row"
                 className="px-1 py-1.5 text-left font-medium whitespace-nowrap tabular-nums"

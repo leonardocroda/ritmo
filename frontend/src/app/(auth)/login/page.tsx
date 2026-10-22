@@ -87,7 +87,7 @@ function LoginForm() {
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-ctl bg-accent px-3 py-2 text-sm font-medium text-background disabled:opacity-60"
+          className="w-full rounded-ctl bg-accent px-3 py-2 text-sm font-medium text-on-accent disabled:opacity-60"
         >
           {pending ? "Entrando…" : "Entrar"}
         </button>
