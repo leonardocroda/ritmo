@@ -390,10 +390,10 @@ T9 → T10 → T11 → T12 → T13
 
 **Done when**:
 
-- [ ] `<Skeleton />` renderiza com pulso no neutro (nenhum spinner)
-- [ ] Toda tela de loading textual dos painéis virou skeleton (`git grep -n "Carregando" -- frontend/src` → sem estados de loading; textos de erro permanecem)
-- [ ] Erro/empty states intocados (fluxo CLR-11/HLT-19 no dev)
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] `<Skeleton />` renderiza com pulso no neutro (nenhum spinner)
+- [x] Toda tela de loading textual dos painéis virou skeleton (`git grep -n "Carregando" -- frontend/src` → sem estados de loading; textos de erro permanecem)
+- [x] Erro/empty states intocados (fluxo CLR-11/HLT-19 no dev)
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick

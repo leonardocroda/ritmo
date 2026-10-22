@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import PanelSection from "@/components/PanelSection";
+import Skeleton from "@/components/Skeleton";
 import HrHistoryList from "@/components/profile/HrHistoryList";
 import HrMethodCard from "@/components/profile/HrMethodCard";
 import HrValuesCard from "@/components/profile/HrValuesCard";
@@ -64,7 +65,13 @@ export default function PerfilPage() {
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
       <h1 className="text-2xl font-semibold tracking-tight">Perfil</h1>
       {state.kind === "loading" && (
-        <p className="mt-6 text-sm text-muted">Carregando perfil…</p>
+        // Skeleton no lugar do texto de carregamento (DSN-23)
+        <div className="mt-6 space-y-3">
+          <Skeleton className="h-5 w-1/3 rounded-ctl" />
+          <Skeleton className="h-56 w-full rounded-card" />
+          <Skeleton className="h-4 w-2/3 rounded-ctl" />
+          <Skeleton className="h-4 w-1/2 rounded-ctl" />
+        </div>
       )}
       {state.kind === "error" && (
         <p className="mt-6 rounded-card border border-border bg-card px-4 py-3 text-sm text-muted">

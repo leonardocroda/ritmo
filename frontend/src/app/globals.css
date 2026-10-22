@@ -45,3 +45,22 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Skeleton (DSN-23): bloco neutro pulsando ~1,6s no gradiente
+   raised→deep. O raio fica por conta da composição (rounded-ctl /
+   rounded-card) — o raio só existe como utilitário do @theme inline. */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.skeleton {
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  background: linear-gradient(90deg, var(--raised), var(--deep), var(--raised));
+  background-size: 200% 100%;
+}

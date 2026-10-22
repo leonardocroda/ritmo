@@ -27,6 +27,7 @@ import {
   formatTemp,
 } from "@/lib/format";
 import SplitsChart from "@/components/workouts/SplitsChart";
+import Skeleton from "@/components/Skeleton";
 import EvaluateForm from "@/components/workouts/EvaluateForm";
 import EvaluationCard, { EvaluationHistory } from "@/components/workouts/EvaluationCard";
 
@@ -153,9 +154,16 @@ export default function WorkoutDetail({ id }: { id: number }) {
   }
 
   if (state.kind === "loading") {
+    // Skeleton no lugar do texto de carregamento (DSN-23): título +
+    // cartão de gráfico + linhas de texto.
     return (
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
-        <p className="text-sm text-muted">Carregando treino…</p>
+        <div className="space-y-3">
+          <Skeleton className="h-5 w-1/3 rounded-ctl" />
+          <Skeleton className="h-56 w-full rounded-card" />
+          <Skeleton className="h-4 w-2/3 rounded-ctl" />
+          <Skeleton className="h-4 w-1/2 rounded-ctl" />
+        </div>
       </main>
     );
   }

@@ -20,6 +20,7 @@ import {
   formatKm,
   formatPace,
 } from "@/lib/format";
+import Skeleton from "@/components/Skeleton";
 
 const PAGE_SIZE = 30;
 
@@ -164,7 +165,15 @@ export default function WorkoutsList() {
         })}
       </div>
 
-      {loading && <p className="mt-6 text-sm text-muted">Carregando treinos…</p>}
+      {loading && (
+        // Skeleton no lugar do texto de carregamento (DSN-23): três
+        // linhas de cartão no lugar da lista que chega.
+        <div className="mt-6 space-y-2">
+          <Skeleton className="h-14 w-full rounded-card" />
+          <Skeleton className="h-14 w-full rounded-card" />
+          <Skeleton className="h-14 w-full rounded-card" />
+        </div>
+      )}
 
       {!loading && error !== null && (
         <p className="mt-6 rounded-card border border-border bg-card px-4 py-3 text-sm text-muted">
@@ -199,7 +208,7 @@ export default function WorkoutsList() {
                 : "rounded-full border border-accent/30 px-4 py-1.5 text-sm font-medium text-accent hover:bg-accent/10"
             }
           >
-            {loadingMore ? "Carregando…" : "Carregar mais"}
+            {loadingMore ? <Skeleton className="h-4 w-20 rounded-ctl" /> : "Carregar mais"}
           </button>
         </div>
       )}

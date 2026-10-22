@@ -18,6 +18,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { getHealthSummary, type HealthSummaryOut } from "@/lib/api";
 import PanelSection from "@/components/PanelSection";
+import Skeleton from "@/components/Skeleton";
 import DoseResponse from "@/components/health/DoseResponse";
 import HrvChart from "@/components/health/HrvChart";
 import HrvTable from "@/components/health/HrvTable";
@@ -135,7 +136,16 @@ export default function HealthPanel() {
   }
 
   if (state.kind === "loading") {
-    return <p className="mt-6 text-sm text-muted">Carregando saúde…</p>;
+    // Skeleton no lugar do texto de carregamento (DSN-23): seletor de
+    // janela + cartão de gráfico + linhas de texto.
+    return (
+      <div className="mt-6 space-y-3">
+        <Skeleton className="h-7 w-56 rounded-full" />
+        <Skeleton className="h-56 w-full rounded-card" />
+        <Skeleton className="h-4 w-2/3 rounded-ctl" />
+        <Skeleton className="h-4 w-1/2 rounded-ctl" />
+      </div>
+    );
   }
 
   if (state.kind === "error") {

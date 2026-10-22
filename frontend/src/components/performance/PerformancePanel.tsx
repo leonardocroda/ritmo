@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { getPotential, type PotentialOut, type VdotBlock } from "@/lib/api";
 import { formatVdot } from "@/lib/format";
 import PanelSection from "@/components/PanelSection";
+import Skeleton from "@/components/Skeleton";
 import DecayTable from "@/components/performance/DecayTable";
 import PmcChart from "@/components/performance/PmcChart";
 import PredictionsTable from "@/components/performance/PredictionsTable";
@@ -79,7 +80,15 @@ export default function PerformancePanel() {
   }, []);
 
   if (state.kind === "loading") {
-    return <p className="mt-6 text-sm text-muted">Carregando potencial…</p>;
+    // Skeleton no lugar do texto de carregamento (DSN-23): linha-guia
+    // + card da lacuna + cartão de gráfico.
+    return (
+      <div className="mt-6 space-y-3">
+        <Skeleton className="h-4 w-2/3 rounded-ctl" />
+        <Skeleton className="h-32 w-full rounded-card" />
+        <Skeleton className="h-56 w-full rounded-card" />
+      </div>
+    );
   }
 
   if (state.kind === "error") {
