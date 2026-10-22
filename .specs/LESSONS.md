@@ -110,6 +110,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: UAT 21/10/2026 sync job 18/19 + fb98bbc (backend/app/garmin)
 - last seen: 2026-10-21T21:16:10Z
 
+### L-017 - Assert an exclusion path with the resource alive — a not-persisted assertion tested only where the gateway is None is vacuously true
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `garmin sync persist-back` · harmful: 0
+- features: garmin-tokens-db
+- evidence: mutant M6 / backend/app/garmin/service.py:458-463 (validation.md Sensor) (garmin sync persist-back)
+- last seen: 2026-10-22T22:18:59Z
+
+### L-018 - Give each error trigger listed in an AC its own test — a sibling test for a different trigger leaves the untested branch free to regress
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `backend error paths` · harmful: 0
+- features: garmin-tokens-db
+- evidence: GTDB-12 / backend/app/garmin/import_tokens.py:48-51 (validation.md AC table) (backend error paths)
+- last seen: 2026-10-22T22:19:29Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

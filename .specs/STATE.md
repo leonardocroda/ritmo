@@ -174,36 +174,39 @@
 
 ## Handoff
 
-- **Feature**: `hr-zones` — **concluída e validada (PASS, 21/10/2026)**: 19/19 ACs com
-  evidência spec-anchored `file:line`, sensor 5/5 mutantes mortas (effective-dating,
-  tie-break, manual-wins, fronteira de zona, guard de omissão), suite 493/493 verde
-  (+66 vs 427), frontend lint+build OK, `validate_state.py` exit 0; relatório em
-  `.specs/features/hr-zones/validation.md`
-- **Phase / Task**: Execute concluído — 13 tasks em 3 batches de sub-agents (Batch 1:
-  T1 models `c7a27dd` → T2 calc `2e20377` → T3 seed `60868f7` → T4 service `e49e26f` →
-  T5 API `008456b`; Batch 2: T6 gateway `8c344fd` → T7 upsert `24fc4d5` → T8 sync
-  `202ddfa` → T9 payload `ffc65c3`; Batch 3: T10 helpers `33f5970` → T11 página
-  `094d84b` → T12 método/histórico `13f87d1` → T13 docs `223e914`)
-- **Completed**: séries effective-dated append-only (`user_hr_metrics`, `hr_zone_configs`),
-  calc puro (3 métodos com defaults + guardrails), service com manual-wins/idempotência
-  num lugar só (`set_metric`), 3 endpoints `/api/profile/hr-zones*` com user-scope,
-  fase physio no sync (+3 chamadas, warning tolerante), payload IA com `lthr_bpm`
-  vigente-na-data + fallback env e bloco `zonas_fc`, tela `/perfil` (3 seções AD-009),
-  README + `.env.example`. SPEC_DEVIATION 1 (justificada na validação): lib 0.3.2 expõe
-  user settings como `get_user_profile` — gateway mantém o nome do design.
+- **Feature**: `garmin-tokens-db` — **concluída e validada (PASS, 22/10/2026)**:
+  20/20 ACs com evidência spec-anchored `file:line`, sensor da rodada 2 com 4/4
+  mutantes mortas (persist-back no reauth com gateway vivo e import ilegível
+  fechados na fix round 1; guard otimista e `from_user` adversariais mantidos
+  mortos), suite 550/550 (baseline real pré-feature 508; +42 testes; o "493" do
+  handoff anterior estava defasado), frontend lint+build OK, `validate_state.py`
+  exit 0; relatório em `.specs/features/garmin-tokens-db/validation.md`
+- **Phase / Task**: Execute concluído — 11 tasks em 2 batches (Batch 1: T1 models
+  `d49438f` → T2 config `9e35873` → T3 tokens_store `4a1e2ab` → T4 gateway+call
+  site `b3901c5` → T5 persist-back `c2dacdd` → T6 login CLI `7d98f9d` → T7 import
+  CLI `653cc13`; Batch 2: T8 fail-fast `d77902c` → T9 endpoint `15aa875` → T10
+  frontend `f745de1` → T11 extinção `82d5348`) + fix round 1 do Verifier (`7ab580c`,
+  `cf64f9d`)
+- **Completed**: tokens por usuário no banco (`garmin_tokens`, unique + FK
+  CASCADE), cofre Fernet (`tokens_store`: require_key/get_blob/save_blob/get_meta),
+  `GarminGateway.from_user` + `session_blob`/`tokens_loaded_at`, persist-back no
+  fim do sync com guard otimista (`synchronize_session=False` — evita a identity
+  map ressuscitar ciphertext recusado), CLI `login --user` (pop GARMINTOKENS,
+  valida di_token, upsert) e `import_tokens --path` (recusa linha existente),
+  fail-fast da `TOKEN_ENCRYPTION_KEY` no lifespan, `GET /api/profile/
+  garmin-connection` (3 estados + emenda re-login pós-job), `ConnectionCard` no
+  topo do `/perfil` (PanelSection sem índice), tokenstore filesystem extinto
+  (compose, .env.example, README, token_utils reduzido a resolve_token_path)
 - **In-progress**: none
-- **Next step**: `hr-zones` **100% entregue e UAT-confirmada (21/10/2026)**: sync real
-  trouxe as 3 métricas (fcmax 199 do heartRateZones v2, fclthr 182, fcrest 42 — jobs
-  18/19, zero warnings); ciclo manual completo no celular (editar → sync segura → botão
-  "Voltar a puxar do Garmin" → sync reassumiu com flip 177 manual → 182 garmin; pref
-  `user_hr_sync_prefs.fclthr = garmin`). Todos os Success Criteria do spec marcados.
-  Próxima feature da fila: `garmin-tokens-db` → `user-profile`. Hardening opcional
-  (sem pressa): 1 teste da fcrest com série RHR não uniforme (discrimina mínimo E
-  janela-7d). Pendências menores vivas: CLI `set_password` sem política de senha ≥8; 2
-  docstrings de teste defasadas (cosmético); decisão aberta de produto: NVIDIA_MODEL
-  default no `.env`
-  Pendências menores vivas: CLI `set_password` sem política de senha ≥8; 2 docstrings de
-  teste defasadas (cosmético); decisão aberta de produto: NVIDIA_MODEL default no `.env`
+- **Next step**: `garmin-tokens-db` **100% entregue e validada (22/10/2026)**.
+  Operação pós-merge no host: gerar `TOKEN_ENCRYPTION_KEY` no `backend/.env`,
+  rodar `uv run python -m app.garmin.import_tokens` UMA vez (importa os tokens
+  atuais do usuário 1 sem MFA) e reiniciar a stack. Próxima feature da fila:
+  `user-profile`. Lições L-017/L-018 registradas (persist-reauth e import
+  ilegível). Pendências menores vivas: CLI `set_password` sem política de senha
+  ≥8; 2 docstrings de teste defasadas (cosmético); decisão aberta de produto:
+  NVIDIA_MODEL default no `.env`; Next 16.4 oferece "security upgrade" no build
+  (não executado — fora do escopo da feature)
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main (commits locais; push só com go-ahead do usuário)

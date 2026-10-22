@@ -176,28 +176,28 @@ onboarding de convidado operador-assistido via CLI.
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| GTDB-01 | P1: Sync lê tokens do banco | Design | Pending |
-| GTDB-02 | P1: Sync lê tokens do banco | Design | Pending |
-| GTDB-03 | P1: Sync lê tokens do banco | Design | Pending |
-| GTDB-04 | P1: Refresh persistido de volta | Design | Pending |
-| GTDB-05 | P1: Refresh persistido de volta | Design | Pending |
-| GTDB-06 | P1: Refresh persistido de volta | Design | Pending |
-| GTDB-07 | P1: Login de convidado via CLI | Design | Pending |
-| GTDB-08 | P1: Login de convidado via CLI | Design | Pending |
-| GTDB-09 | P1: Login de convidado via CLI | Design | Pending |
-| GTDB-10 | P1: Importação run-once do usuário 1 | Design | Pending |
-| GTDB-11 | P1: Importação run-once do usuário 1 | Design | Pending |
-| GTDB-12 | P1: Importação run-once do usuário 1 | Design | Pending |
-| GTDB-13 | P1: Criptografia em repouso com fail-fast | Design | Pending |
-| GTDB-14 | P1: Criptografia em repouso com fail-fast | Design | Pending |
-| GTDB-15 | P1: Criptografia em repouso com fail-fast | Design | Pending |
-| GTDB-16 | P2: Status da conexão no /perfil | - | Pending |
-| GTDB-17 | P2: Status da conexão no /perfil | - | Pending |
-| GTDB-18 | P2: Tokenstore de arquivo extinto | - | Pending |
-| GTDB-19 | P2: Tokenstore de arquivo extinto | - | Pending |
-| GTDB-20 | P2: Tokenstore de arquivo extinto | - | Pending |
+| GTDB-01 | P1: Sync lê tokens do banco | Design | ✅ Verified |
+| GTDB-02 | P1: Sync lê tokens do banco | Design | ✅ Verified |
+| GTDB-03 | P1: Sync lê tokens do banco | Design | ✅ Verified |
+| GTDB-04 | P1: Refresh persistido de volta | Design | ✅ Verified |
+| GTDB-05 | P1: Refresh persistido de volta | Design | ✅ Verified |
+| GTDB-06 | P1: Refresh persistido de volta | Design | ✅ Verified |
+| GTDB-07 | P1: Login de convidado via CLI | Design | ✅ Verified |
+| GTDB-08 | P1: Login de convidado via CLI | Design | ✅ Verified |
+| GTDB-09 | P1: Login de convidado via CLI | Design | ✅ Verified |
+| GTDB-10 | P1: Importação run-once do usuário 1 | Design | ✅ Verified |
+| GTDB-11 | P1: Importação run-once do usuário 1 | Design | ✅ Verified |
+| GTDB-12 | P1: Importação run-once do usuário 1 | Design | ✅ Verified |
+| GTDB-13 | P1: Criptografia em repouso com fail-fast | Design | ✅ Verified |
+| GTDB-14 | P1: Criptografia em repouso com fail-fast | Design | ✅ Verified |
+| GTDB-15 | P1: Criptografia em repouso com fail-fast | Design | ✅ Verified |
+| GTDB-16 | P2: Status da conexão no /perfil | - | ✅ Verified |
+| GTDB-17 | P2: Status da conexão no /perfil | - | ✅ Verified |
+| GTDB-18 | P2: Tokenstore de arquivo extinto | - | ✅ Verified |
+| GTDB-19 | P2: Tokenstore de arquivo extinto | - | ✅ Verified |
+| GTDB-20 | P2: Tokenstore de arquivo extinto | - | ✅ Verified |
 
-**Coverage:** 20 total, 0 mapped to tasks, 20 unmapped ⚠️ (mapeamento nasce no Tasks/Execute)
+**Coverage:** 20 total, 20 mapped to tasks, 0 unmapped ✅
 
 ---
 

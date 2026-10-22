@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 17,
+  "next_id": 19,
   "lessons": [
     {
       "id": "L-001",
@@ -292,6 +292,42 @@
       ],
       "created": "2026-10-21T21:16:10Z",
       "last_seen": "2026-10-21T21:16:10Z"
+    },
+    {
+      "id": "L-017",
+      "key": "surviving_mutant::assert an exclusion path with the resource alive a not persisted assertion tested only where the gateway is none is vacuously true",
+      "text": "Assert an exclusion path with the resource alive — a not-persisted assertion tested only where the gateway is None is vacuously true",
+      "signal": "surviving_mutant",
+      "scope": "garmin sync persist-back",
+      "status": "candidate",
+      "features": [
+        "garmin-tokens-db"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "mutant M6 / backend/app/garmin/service.py:458-463 (validation.md Sensor) (garmin sync persist-back)"
+      ],
+      "created": "2026-10-22T22:18:59Z",
+      "last_seen": "2026-10-22T22:18:59Z"
+    },
+    {
+      "id": "L-018",
+      "key": "ac_gap::give each error trigger listed in an ac its own test a sibling test for a different trigger leaves the untested branch free to regress",
+      "text": "Give each error trigger listed in an AC its own test — a sibling test for a different trigger leaves the untested branch free to regress",
+      "signal": "ac_gap",
+      "scope": "backend error paths",
+      "status": "candidate",
+      "features": [
+        "garmin-tokens-db"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "GTDB-12 / backend/app/garmin/import_tokens.py:48-51 (validation.md AC table) (backend error paths)"
+      ],
+      "created": "2026-10-22T22:19:29Z",
+      "last_seen": "2026-10-22T22:19:29Z"
     }
   ]
 }
