@@ -223,10 +223,10 @@ T9 → T10 → T11 → T12 → T13
 
 **Done when**:
 
-- [ ] 4 charts sem `CartesianGrid`, com linha de base hairline e ticks 9–10px muted
-- [ ] Cores por entidade conforme a tabela do design; tooltips e legendas nas classes do tema
-- [ ] `git grep -nE "#[0-9a-fA-F]{6}"` nos 4 arquivos → vazio (cores só do chartTheme)
-- [ ] Dados, formatos e estados vazios intocados (CLR/HLT)
+- [x] 4 charts sem `CartesianGrid`, com linha de base hairline e ticks 9–10px muted
+- [x] Cores por entidade conforme a tabela do design; tooltips e legendas nas classes do tema
+- [x] `git grep -nE "#[0-9a-fA-F]{6}"` nos 4 arquivos → vazio (cores só do chartTheme)
+- [x] Dados, formatos e estados vazios intocados (CLR/HLT)
 - [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none

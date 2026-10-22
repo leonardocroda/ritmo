@@ -7,7 +7,6 @@
 
 import {
   Bar,
-  CartesianGrid,
   ComposedChart,
   ReferenceLine,
   ResponsiveContainer,
@@ -17,12 +16,8 @@ import {
 } from "recharts";
 
 import type { SleepBlock, SleepPoint } from "@/lib/api";
+import { axisLine, chart, legendCaption, tick, tooltipCard } from "@/lib/chartTheme";
 import { formatHours, formatVdot } from "@/lib/format";
-
-const AXIS_COLOR = "#3f3f46";
-const MUTED_COLOR = "#a1a1aa";
-const DURATION_COLOR = "#38bdf8"; // duração (mesma cor de fitness do PMC)
-const FLOOR_COLOR = MUTED_COLOR; // piso 7h — linha neutra tracejada
 
 /** "2026-04-20" -> "20/04" (wall clock, sem conversão de fuso). */
 function shortDay(date: string): string {
@@ -59,7 +54,7 @@ function SleepTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-ctl border border-border bg-card px-3 py-2 text-xs">
+    <div className={tooltipCard}>
       <p className="font-medium">{fullDay(point.date)}</p>
       <p className="mt-1 text-muted">{formatHours(point.duration_s)}</p>
       <p className="mt-0.5 text-muted">
@@ -71,11 +66,11 @@ function SleepTooltip({
 
 function SeriesLegend({ floorS }: { floorS: number }) {
   const series = [
-    { label: "duração", color: DURATION_COLOR },
-    { label: `piso (${formatHours(floorS)})`, color: FLOOR_COLOR },
+    { label: "duração", color: chart.subject },
+    { label: `piso (${formatHours(floorS)})`, color: chart.context },
   ];
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+    <div className={legendCaption}>
       {series.map((item) => (
         <span key={item.label} className="flex items-center gap-1.5">
           <span
@@ -111,19 +106,18 @@ export default function SleepChart({ sleep }: { sleep: SleepBlock }) {
       <div className="mt-3 h-56 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={bars} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={AXIS_COLOR} strokeOpacity={0.35} />
             <XAxis
               dataKey="date"
               tickFormatter={shortDay}
               minTickGap={28}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={axisLine}
+              tick={tick}
               tickLine={false}
             />
             <YAxis
               width={38}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={false}
+              tick={tick}
               tickLine={false}
               tickFormatter={hourTick}
             />
@@ -132,11 +126,11 @@ export default function SleepChart({ sleep }: { sleep: SleepBlock }) {
                 estiverem abaixo dele (domínio estica até a régua) */}
             <ReferenceLine
               y={floorHours}
-              stroke={FLOOR_COLOR}
+              stroke={chart.context}
               strokeDasharray="4 4"
               ifOverflow="extendDomain"
             />
-            <Bar dataKey="hours" name="duração" fill={DURATION_COLOR} fillOpacity={0.8} />
+            <Bar dataKey="hours" name="duração" fill={chart.subject} fillOpacity={0.8} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
