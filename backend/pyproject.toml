@@ -23,6 +23,7 @@ dependencies = [
     "httpx>=0.28",
     # Hash de senha argon2id (feature auth — AD-013; design descarta passlib)
     "argon2-cffi>=25.1",
+    "cryptography>=43",
 ]
 
 [tool.hatch.build.targets.wheel]

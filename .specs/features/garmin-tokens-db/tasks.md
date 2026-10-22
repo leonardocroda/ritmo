@@ -140,10 +140,10 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Campo presente com default vazio e comentário de contexto (geração da chave)
-- [ ] `cryptography` instalada e importável (`from cryptography.fernet import Fernet`)
-- [ ] Os campos `garmintokens`/`garmintokens_base64` permanecem (remoção é da T4/T11 — o leitor morre junto)
-- [ ] Gate check passes: `cd backend && uv run pytest -q` (suite inteira verde, 493)
+- [x] Campo presente com default vazio e comentário de contexto (geração da chave)
+- [x] `cryptography` instalada e importável (`from cryptography.fernet import Fernet`)
+- [x] Os campos `garmintokens`/`garmintokens_base64` permanecem (remoção é da T4/T11 — o leitor morre junto)
+- [x] Gate check passes: `cd backend && uv run pytest -q` (suite inteira verde, 493)
 
 **Tests**: none
 **Gate**: full

@@ -63,6 +63,13 @@ class Settings(BaseSettings):
     garmintokens: str = "~/.garminconnect"
     garmintokens_base64: str = "~/.garminconnect_base64"
 
+    # Garmin — tokens cifrados em repouso no banco (AD-014, feature
+    # garmin-tokens-db). Gere uma chave com:
+    #   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    # e defina TOKEN_ENCRYPTION_KEY no .env/compose — sem ela o backend
+    # não sobe (fail-fast, GTDB-14)
+    token_encryption_key: str = ""
+
     # Garmin sync — janelas, cadência e guard rails (SYNC_*)
     sync_repull_days: int = 3                 # SYNC_REPULL_DAYS
     sync_backfill_activities_days: int = 180  # SYNC_BACKFILL_ACTIVITIES_DAYS
