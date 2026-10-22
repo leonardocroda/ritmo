@@ -130,6 +130,23 @@ def test_import_json_without_di_token_errors_without_writing(
     assert _token_row() is None
 
 
+def test_import_malformed_json_errors_without_writing(db, fernet, tmp_path, monkeypatch, capsys):
+    """GTDB-12: arquivo legado ILEGÍVEL (JSON truncado — o branch
+    ``except (OSError, ValueError)``) → erro claro, exit != 0 e nenhuma
+    gravação — o banco nunca recebe um blob corrompido."""
+    (tmp_path / "garmin_tokens.json").write_text(
+        '{"di_token": "di-token-legado"', encoding="utf-8"  # '{' sem fechar
+    )
+    monkeypatch.setattr(sys, "argv", ["import_tokens", "--path", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exc:
+        main()
+
+    assert exc.value.code != 0
+    assert "ilegível" in capsys.readouterr().err
+    assert _token_row() is None
+
+
 def test_main_default_path_is_home_garminconnect(db, fernet, tmp_path, monkeypatch):
     """GTDB-10: sem ``--path`` o default é ``~/.garminconnect`` (expansão
     de ~ via resolve_token_path) — o run-once da operação."""
