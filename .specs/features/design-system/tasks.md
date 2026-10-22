@@ -10,7 +10,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 **Design**: `.specs/features/design-system/design.md`
 **Spec**: `.specs/features/design-system/spec.md`
-**Status**: Draft
+**Status**: In Progress
 
 ---
 
