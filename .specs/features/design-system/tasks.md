@@ -112,11 +112,11 @@ T9 → T10 → T11 → T12
 
 **Done when**:
 
-- [ ] `Instrument_Sans` configurada com `display: swap`; `--font-sans` aponta `--font-instrument-sans`; `Geist_Mono` intocada
-- [ ] `themeColor` `#0B0F12`
-- [ ] Computed style do body = "Instrument Sans" no dev; peso 650 renderiza (fonte variável)
-- [ ] Offline no runtime não quebra a renderização (self-hosting do build + swap)
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] `Instrument_Sans` configurada com `display: swap`; `--font-sans` aponta `--font-instrument-sans`; `Geist_Mono` intocada
+- [x] `themeColor` `#0B0F12`
+- [x] Computed style do body = "Instrument Sans" no dev; peso 650 renderiza (fonte variável)
+- [x] Offline no runtime não quebra a renderização (self-hosting do build + swap)
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick
