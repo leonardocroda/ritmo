@@ -44,16 +44,16 @@ function formatSigned(value: number, decimals = 0): string {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card px-3 py-2">
+    <div className="rounded-card border border-border bg-card px-3 py-2">
       <dt className="text-xs text-muted">{label}</dt>
-      <dd className="mt-0.5 text-sm font-medium">{value}</dd>
+      <dd className="mt-0.5 text-sm font-medium tabular-nums">{value}</dd>
     </div>
   );
 }
 
 function Chip({ label, value }: { label: string; value: string }) {
   return (
-    <span className="rounded-full border border-border bg-card px-3 py-1 text-sm">
+    <span className="rounded-full border border-border bg-card px-3 py-1 text-sm tabular-nums">
       <span className="text-muted">{label}</span> {value}
     </span>
   );
@@ -65,7 +65,7 @@ function ConsistencyRow({ label, value }: { label: string; value: string }) {
       <th scope="row" className="px-4 py-2 text-left text-sm font-normal text-muted">
         {label}
       </th>
-      <td className="px-4 py-2 text-right text-sm font-medium">{value}</td>
+      <td className="px-4 py-2 text-right text-sm font-medium tabular-nums">{value}</td>
     </tr>
   );
 }
@@ -182,7 +182,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
   if (state.kind === "error") {
     return (
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
-        <p className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted">
+        <p className="rounded-card border border-border bg-card px-4 py-3 text-sm text-muted">
           Não foi possível carregar o treino: {state.message}
         </p>
       </main>
@@ -286,7 +286,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
       {consistency !== null && (
         <section className="mt-6">
           <h2 className="text-sm font-medium text-muted">Consistência</h2>
-          <div className="mt-2 overflow-hidden rounded-xl border border-border bg-card">
+          <div className="mt-2 overflow-hidden rounded-card border border-border bg-card">
             <table className="w-full">
               <tbody>
                 {consistency.first_half_pace_s !== null && (
@@ -359,7 +359,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
       {splits.length > 0 && (
         <section className="mt-6">
           <h2 className="text-sm font-medium text-muted">Voltas</h2>
-          <div className="mt-2 rounded-xl border border-border bg-card p-3">
+          <div className="mt-2 rounded-card border border-border bg-card p-3">
             <SplitsChart
               splits={splits}
               zones={state.detail.zones}

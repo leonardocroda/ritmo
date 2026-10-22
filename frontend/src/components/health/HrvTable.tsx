@@ -51,7 +51,7 @@ export default function HrvTable({ hrv }: { hrv: HrvBlock }) {
             <tr key={p.date} className="border-t border-white/5">
               <th
                 scope="row"
-                className="px-1 py-1.5 text-left font-medium whitespace-nowrap"
+                className="px-1 py-1.5 text-left font-medium whitespace-nowrap tabular-nums"
               >
                 {fullDay(p.date)}
               </th>

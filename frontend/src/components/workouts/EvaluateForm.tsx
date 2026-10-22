@@ -69,7 +69,7 @@ export default function EvaluateForm({
   return (
     <section className="mt-6">
       <h2 className="text-sm font-medium text-muted">Avaliar com IA</h2>
-      <div className="mt-2 rounded-xl border border-border bg-card p-3">
+      <div className="mt-2 rounded-card border border-border bg-card p-3">
         <label className="block text-xs text-muted" htmlFor="intent-type">
           Qual era a intenção do treino?
         </label>
@@ -78,7 +78,7 @@ export default function EvaluateForm({
           value={intentType}
           onChange={(event) => setIntentType(event.target.value as InferredType)}
           disabled={blocked}
-          className="mt-1 w-full rounded-lg border border-border hover:border-border-hover bg-background px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-ctl border border-border hover:border-border-hover bg-background px-3 py-2 text-sm"
         >
           {INTENT_OPTIONS.map((option) => (
             <option key={option} value={option}>
@@ -98,7 +98,7 @@ export default function EvaluateForm({
           rows={2}
           maxLength={MAX_INTENT_TEXT}
           disabled={blocked}
-          className="mt-1 w-full resize-none rounded-lg border border-border hover:border-border-hover bg-background px-3 py-2 text-sm placeholder:text-muted/60"
+          className="mt-1 w-full resize-none rounded-ctl border border-border hover:border-border-hover bg-background px-3 py-2 text-sm placeholder:text-muted/60"
         />
 
         <button

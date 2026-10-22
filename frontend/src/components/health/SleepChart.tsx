@@ -59,7 +59,7 @@ function SleepTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-xl border border-border bg-card px-3 py-2 text-xs">
+    <div className="rounded-ctl border border-border bg-card px-3 py-2 text-xs">
       <p className="font-medium">{fullDay(point.date)}</p>
       <p className="mt-1 text-muted">{formatHours(point.duration_s)}</p>
       <p className="mt-0.5 text-muted">

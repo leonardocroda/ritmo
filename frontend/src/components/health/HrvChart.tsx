@@ -56,7 +56,7 @@ function HrvTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-xl border border-border bg-card px-3 py-2 text-xs">
+    <div className="rounded-ctl border border-border bg-card px-3 py-2 text-xs">
       <p className="font-medium">{fullDay(point.date)}</p>
       <p className="mt-1 text-muted">
         {point.value != null ? `HRV ${formatVdot(point.value)} ms` : "sem captura"} ·
@@ -142,7 +142,7 @@ export default function HrvChart({ hrv }: { hrv: HrvBlock }) {
         </span>
       </p>
       {/* Contexto (HRV-07/08): a última noite e os limites da banda */}
-      <p className="mt-1 text-xs text-muted">
+      <p className="mt-1 text-xs text-muted tabular-nums">
         última noite {formatVdot(current.value)} ms
         {current.band_low != null && current.band_high != null && (
           <>

@@ -37,7 +37,7 @@ function Item({ item }: { item: ActivityListItem }) {
     <li>
       <Link
         href={`/treinos/${item.id}`}
-        className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:border-accent/40"
+        className="flex items-center justify-between gap-3 rounded-card border border-border bg-card px-4 py-3 hover:border-accent/40"
       >
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-2">
@@ -57,7 +57,7 @@ function Item({ item }: { item: ActivityListItem }) {
             {item.distance_m > 0 && ` · ${formatKm(item.distance_m)}`}
           </p>
         </div>
-        <div className="shrink-0 text-right text-sm">
+        <div className="shrink-0 text-right text-sm tabular-nums">
           <p>
             {item.pace_s !== null
               ? `${formatPace(item.pace_s)}/km`
@@ -167,13 +167,13 @@ export default function WorkoutsList() {
       {loading && <p className="mt-6 text-sm text-muted">Carregando treinos…</p>}
 
       {!loading && error !== null && (
-        <p className="mt-6 rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted">
+        <p className="mt-6 rounded-card border border-border bg-card px-4 py-3 text-sm text-muted">
           Não foi possível carregar os treinos: {error}
         </p>
       )}
 
       {!loading && error === null && total === 0 && (
-        <p className="mt-6 rounded-xl border border-border bg-card px-4 py-6 text-sm text-muted">
+        <p className="mt-6 rounded-card border border-border bg-card px-4 py-6 text-sm text-muted">
           Nenhuma atividade por aqui. Use o botão &ldquo;Puxar do Garmin&rdquo; no topo
           para sincronizar seus dados.
         </p>

@@ -44,7 +44,7 @@ function fullDay(date: string): string {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card px-2.5 py-2">
+    <div className="rounded-card border border-border bg-card px-2.5 py-2">
       <dt className="text-xs text-muted">{label}</dt>
       <dd className="mt-0.5 text-sm font-medium tabular-nums">{value}</dd>
     </div>
@@ -66,7 +66,7 @@ function PmcTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-xl border border-border bg-card px-3 py-2 text-xs">
+    <div className="rounded-ctl border border-border bg-card px-3 py-2 text-xs">
       <p className="font-medium">{fullDay(point.date)}</p>
       <p className="mt-1 text-muted">
         CTL {statOrDash(point.ctl)} · ATL {statOrDash(point.atl)}

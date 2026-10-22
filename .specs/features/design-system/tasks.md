@@ -169,9 +169,9 @@ T9 → T10 → T11 → T12
 
 **Done when**:
 
-- [ ] Cartões 16px e controles 12px conferidos nas 4 telas (treinos, performance, saúde, perfil)
-- [ ] `tabular-nums` presente nos números de dado (HrvTable, DecayTable, PredictionsTable, valores display dos charts)
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] Cartões 16px e controles 12px conferidos nas 4 telas (treinos, performance, saúde, perfil)
+- [x] `tabular-nums` presente nos números de dado (HrvTable, DecayTable, PredictionsTable, valores display dos charts)
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick
