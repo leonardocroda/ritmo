@@ -1026,6 +1026,35 @@ def test_reauth_path_never_persists(db, monkeypatch):
         assert s.execute(select(GarminToken)).scalars().all() == []
 
 
+def test_reauth_mid_job_with_live_gateway_never_persists(db, monkeypatch):
+    """GTDB-04 AC 1 + SYNC-25: 401 EM PLENO JOB (gateway vivo, tokens
+    semeados) → job error com `reauth_needed=true` e a linha de tokens
+    INTACTA — o blob morto da sessão NUNCA é gravado sobre a linha
+    válida (persist-back é exclusivo dos finais done|error genérico)."""
+    job = _create_job()
+    user_id = job.user_id
+    fernet = _seed_tokens(user_id, SEED_BLOB)
+    seeded_updated_at = _loaded_at(user_id)
+
+    class MidJobReauth(FakeGateway):
+        tokens_loaded_at = seeded_updated_at  # o from_user real teria lido a linha
+
+        def get_sleep(self, day):
+            self._record("sleep", day)
+            raise GarminAuthExpiredError("Sessão Garmin expirada (401) no meio do sync")
+
+    monkeypatch.setattr(service, "GarminGateway", MidJobReauth)
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "error"
+    assert finished.error == "Sessão Garmin expirada (401) no meio do sync"
+    assert finished.stats_json["reauth_needed"] is True
+    row = _token_row(user_id)
+    assert fernet.decrypt(row.token_encrypted.encode()).decode() == SEED_BLOB  # intacta
+    assert row.updated_at == seeded_updated_at  # persist-back ausente no caminho reauth
+
+
 def test_persist_back_guard_refused_preserves_newer_row(db, monkeypatch):
     """GTDB-04 AC 2: re-login CLI durante o sync → persist-back RECUSA
     (guard otimista), a linha mais nova permanece e o warning registra."""
