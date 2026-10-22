@@ -334,11 +334,11 @@ T9 → T10 → T11 → T12 → T13
 
 **Done when**:
 
-- [ ] Viewport <768px: tab bar fixa com 4 itens, ativo lime + pill, `aria-current`, sem scroll horizontal em 390px
-- [ ] Viewport ≥768px: nav no header com os mesmos ícones e labels; tab bar some
-- [ ] Resize 390px↔1280px não perde o item ativo (mesma rota, duas renderizações)
-- [ ] Conteúdo não fica sob a barra (wrapper de respiro; lista paginada do Treinos confere)
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] Viewport <768px: tab bar fixa com 4 itens, ativo lime + pill, `aria-current`, sem scroll horizontal em 390px
+- [x] Viewport ≥768px: nav no header com os mesmos ícones e labels; tab bar some
+- [x] Resize 390px↔1280px não perde o item ativo (mesma rota, duas renderizações)
+- [x] Conteúdo não fica sob a barra (wrapper de respiro; lista paginada do Treinos confere)
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick
