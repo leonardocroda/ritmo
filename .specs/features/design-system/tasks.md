@@ -279,8 +279,8 @@ T9 → T10 → T11 → T12 → T13
 
 **Done when**:
 
-- [ ] PMC com 3 séries legíveis nas famílias semânticas; destaques do último dia intactos
-- [ ] Vo2max/Vdot com sujeito lime e selos/faixas preservados; zero hex local nos 3 arquivos
+- [x] PMC com 3 séries legíveis nas famílias semânticas; destaques do último dia intactos
+- [x] Vo2max/Vdot com sujeito lime e selos/faixas preservados; zero hex local nos 3 arquivos
 - [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
