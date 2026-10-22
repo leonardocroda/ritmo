@@ -196,10 +196,10 @@ T9 → T10 → T11 → T12 → T13
 
 **Done when**:
 
-- [ ] Módulo exporta `chart`, `tick`, `axisLine`, `tooltipCard`, `legendCaption` conforme o design
-- [ ] Regra de coexistência documentada no cabeçalho
-- [ ] Build segue verde (módulo ainda não importado por ninguém)
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] Módulo exporta `chart`, `tick`, `axisLine`, `tooltipCard`, `legendCaption` conforme o design
+- [x] Regra de coexistência documentada no cabeçalho
+- [x] Build segue verde (módulo ainda não importado por ninguém)
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick
