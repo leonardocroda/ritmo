@@ -258,14 +258,14 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Login válido (com e sem MFA) → linha do usuário criada/substituída com ciphertext
-- [ ] Email inexistente → mensagem clara, exit != 0, nenhuma gravação
-- [ ] Falha de credenciais/MFA/rate limit → erro, tokens existentes inalterados
-- [ ] Sessão sem `di_token` → erro "sem token DI", nada gravado
-- [ ] `GARMINTOKENS` removida do env do processo antes do login (fake registra `login(None)`)
-- [ ] Nenhum fragmento de token em mensagens de erro (GTDB-15)
-- [ ] Gate check passes: `cd backend && uv run pytest tests/test_garmin_login.py -q`
-- [ ] Test count: ~6 testes (reescrita completa do arquivo)
+- [x] Login válido (com e sem MFA) → linha do usuário criada/substituída com ciphertext
+- [x] Email inexistente → mensagem clara, exit != 0, nenhuma gravação
+- [x] Falha de credenciais/MFA/rate limit → erro, tokens existentes inalterados
+- [x] Sessão sem `di_token` → erro "sem token DI", nada gravado
+- [x] `GARMINTOKENS` removida do env do processo antes do login (fake registra `login(None)`)
+- [x] Nenhum fragmento de token em mensagens de erro (GTDB-15)
+- [x] Gate check passes: `cd backend && uv run pytest tests/test_garmin_login.py -q`
+- [x] Test count: ~6 testes (reescrita completa do arquivo)
 
 **Tests**: unit
 **Gate**: quick
