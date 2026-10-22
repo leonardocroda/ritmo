@@ -37,7 +37,7 @@ function Item({ item }: { item: ActivityListItem }) {
     <li>
       <Link
         href={`/treinos/${item.id}`}
-        className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-card px-4 py-3 hover:border-accent/40"
+        className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:border-accent/40"
       >
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-2">
@@ -167,13 +167,13 @@ export default function WorkoutsList() {
       {loading && <p className="mt-6 text-sm text-muted">Carregando treinos…</p>}
 
       {!loading && error !== null && (
-        <p className="mt-6 rounded-xl border border-white/10 bg-card px-4 py-3 text-sm text-muted">
+        <p className="mt-6 rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted">
           Não foi possível carregar os treinos: {error}
         </p>
       )}
 
       {!loading && error === null && total === 0 && (
-        <p className="mt-6 rounded-xl border border-white/10 bg-card px-4 py-6 text-sm text-muted">
+        <p className="mt-6 rounded-xl border border-border bg-card px-4 py-6 text-sm text-muted">
           Nenhuma atividade por aqui. Use o botão &ldquo;Puxar do Garmin&rdquo; no topo
           para sincronizar seus dados.
         </p>
@@ -195,7 +195,7 @@ export default function WorkoutsList() {
             disabled={loadingMore}
             className={
               loadingMore
-                ? "rounded-full border border-white/10 bg-card px-4 py-1.5 text-sm font-medium text-muted"
+                ? "rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium text-muted"
                 : "rounded-full border border-accent/30 px-4 py-1.5 text-sm font-medium text-accent hover:bg-accent/10"
             }
           >

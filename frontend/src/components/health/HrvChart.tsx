@@ -56,7 +56,7 @@ function HrvTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2 text-xs">
+    <div className="rounded-xl border border-border bg-card px-3 py-2 text-xs">
       <p className="font-medium">{fullDay(point.date)}</p>
       <p className="mt-1 text-muted">
         {point.value != null ? `HRV ${formatVdot(point.value)} ms` : "sem captura"} ·
@@ -137,7 +137,7 @@ export default function HrvChart({ hrv }: { hrv: HrvBlock }) {
         {/* Badge textual: status local do payload (HRV-06/08 — sem
             tradução inventada; null = coletando linha de base). O número
             em destaque é a média 7d — é ela que decide o status (UAT) */}
-        <span className="rounded-full border border-white/10 bg-card px-2 py-0.5 text-xs text-muted">
+        <span className="rounded-full border border-border bg-card px-2 py-0.5 text-xs text-muted">
           {current.status ?? "coletando linha de base…"}
         </span>
       </p>

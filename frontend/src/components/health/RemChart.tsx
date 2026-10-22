@@ -46,7 +46,7 @@ function RemTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2 text-xs">
+    <div className="rounded-xl border border-border bg-card px-3 py-2 text-xs">
       <p className="font-medium">{fullDay(point.date)}</p>
       <p className="mt-1 text-muted">
         REM {point.rem_pct !== null ? `${formatVdot(point.rem_pct)}%` : "—"}

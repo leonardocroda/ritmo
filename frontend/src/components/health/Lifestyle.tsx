@@ -23,7 +23,7 @@ export default function Lifestyle({ lifestyle }: { lifestyle: LifestyleData }) {
   return (
     <div className="grid grid-cols-2 gap-2">
       {/* Streak 0 aparece como está — é recado, não erro (HLT-23) */}
-      <div className="rounded-xl border border-white/10 bg-card px-3 py-2">
+      <div className="rounded-xl border border-border bg-card px-3 py-2">
         <p className="text-xs text-muted">Força 2×/semana</p>
         <p className="mt-0.5 text-sm font-medium tabular-nums">
           {count(strength.streak_weeks, "semana", "semanas")} de streak
@@ -36,7 +36,7 @@ export default function Lifestyle({ lifestyle }: { lifestyle: LifestyleData }) {
           {count(strength.current_week_sessions, "sessão", "sessões")}
         </p>
       </div>
-      <div className="rounded-xl border border-white/10 bg-card px-3 py-2">
+      <div className="rounded-xl border border-border bg-card px-3 py-2">
         <p className="text-xs text-muted">Yoga</p>
         <p className="mt-0.5 text-sm font-medium tabular-nums">
           {count(yoga.sessions, "sessão", "sessões")}

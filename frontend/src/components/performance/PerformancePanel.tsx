@@ -37,7 +37,7 @@ function formatDay(date: string): string {
 function GapCard({ vdot }: { vdot: VdotBlock }) {
   const { current, demonstrated, gap_pct } = vdot;
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-4 py-3">
+    <div className="rounded-xl border border-border bg-card px-4 py-3">
       <p className="flex items-baseline gap-2">
         <span className="text-3xl font-semibold tracking-tight tabular-nums">
           {gap_pct !== null ? `${formatVdot(gap_pct)}%` : "—"}
@@ -84,7 +84,7 @@ export default function PerformancePanel() {
 
   if (state.kind === "error") {
     return (
-      <p className="mt-6 rounded-xl border border-white/10 bg-card px-4 py-3 text-sm text-muted">
+      <p className="mt-6 rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted">
         Não foi possível carregar o potencial: {state.message}
       </p>
     );
@@ -102,7 +102,7 @@ export default function PerformancePanel() {
     pmc === null
   ) {
     return (
-      <p className="mt-6 rounded-xl border border-white/10 bg-card px-4 py-6 text-sm text-muted">
+      <p className="mt-6 rounded-xl border border-border bg-card px-4 py-6 text-sm text-muted">
         Nada por aqui ainda. Use o botão &ldquo;Puxar do Garmin&rdquo; no topo
         para sincronizar seus dados.
       </p>
@@ -124,7 +124,7 @@ export default function PerformancePanel() {
       >
         <div className="space-y-3">
           <GapCard vdot={vdot} />
-          <div className="rounded-xl border border-white/10 bg-card p-3">
+          <div className="rounded-xl border border-border bg-card p-3">
             <VdotTimeline vdot={vdot} />
           </div>
         </div>
@@ -145,7 +145,7 @@ export default function PerformancePanel() {
           title="O que o relógio estima"
           subtitle="Tendência do VO2max que o algoritmo do relógio estima a partir de ritmo e FC — referência que fica abaixo de provas e testes na hierarquia de métricas."
         >
-          <div className="rounded-xl border border-white/10 bg-card p-3">
+          <div className="rounded-xl border border-border bg-card p-3">
             <Vo2maxTrend vo2max={vo2max} />
           </div>
         </PanelSection>
@@ -156,11 +156,11 @@ export default function PerformancePanel() {
         subtitle="O motor por trás do número: quanta carga estou impondo ao corpo? A curva de 60 dias traz fitness (CTL), fadiga (ATL) e forma (TSB) — carga acima da que o corpo absorve compromete recuperação e adaptação."
       >
         {pmc !== null ? (
-          <div className="rounded-xl border border-white/10 bg-card p-3">
+          <div className="rounded-xl border border-border bg-card p-3">
             <PmcChart pmc={pmc} />
           </div>
         ) : (
-          <p className="rounded-xl border border-white/10 bg-card px-4 py-6 text-sm text-muted">
+          <p className="rounded-xl border border-border bg-card px-4 py-6 text-sm text-muted">
             Sem curva de carga ainda — ela nasce no primeiro sync, que acumula
             o treino dos últimos dias.
           </p>

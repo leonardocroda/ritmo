@@ -86,7 +86,7 @@ export default function SyncButton() {
         disabled={active}
         className={
           active
-            ? "rounded-full border border-white/10 bg-card px-4 py-1.5 text-sm font-medium text-muted"
+            ? "rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium text-muted"
             : "rounded-full border border-accent/30 px-4 py-1.5 text-sm font-medium text-accent hover:bg-accent/10"
         }
       >

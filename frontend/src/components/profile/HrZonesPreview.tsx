@@ -31,7 +31,7 @@ const REQUIRED_METRICS: Record<HrZoneMethod, { kind: MetricKind; label: string }
 
 function EmptyState({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-xl border border-white/10 bg-card px-4 py-3 text-sm text-muted">
+    <p className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted">
       {children}
     </p>
   );
@@ -73,7 +73,7 @@ export default function HrZonesPreview({
   }
 
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2">
+    <div className="rounded-xl border border-border bg-card px-3 py-2">
       <p className="text-xs text-muted">Zonas resultantes (bpm)</p>
       <ul className="mt-1 space-y-1">
         {zones.map((zone) => (

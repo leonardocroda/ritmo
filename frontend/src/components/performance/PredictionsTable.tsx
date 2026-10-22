@@ -35,7 +35,7 @@ export default function PredictionsTable({
 }) {
   return (
     <div>
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-card">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
         <table className="w-full text-xs">
           <thead>
             <tr className="text-left text-[10px] text-muted">
@@ -63,7 +63,7 @@ export default function PredictionsTable({
             {EVENTS.map((event) => {
               const row = predictions[event];
               return (
-                <tr key={event} className="border-t border-white/10">
+                <tr key={event} className="border-t border-border">
                   <th
                     scope="row"
                     className="px-2 py-2 text-left font-medium whitespace-nowrap"

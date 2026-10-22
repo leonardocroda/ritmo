@@ -10,7 +10,7 @@ import UserMenu from "@/components/UserMenu";
 
 export default function Header() {
   return (
-    <header className="border-b border-white/10">
+    <header className="border-b border-border">
       <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <span className="shrink-0 text-lg font-semibold tracking-tight">
           Ritmo<span className="text-accent">.</span>

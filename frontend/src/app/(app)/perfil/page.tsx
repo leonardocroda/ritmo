@@ -67,7 +67,7 @@ export default function PerfilPage() {
         <p className="mt-6 text-sm text-muted">Carregando perfil…</p>
       )}
       {state.kind === "error" && (
-        <p className="mt-6 rounded-xl border border-white/10 bg-card px-4 py-3 text-sm text-muted">
+        <p className="mt-6 rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted">
           Não foi possível carregar o perfil: {state.message}
         </p>
       )}

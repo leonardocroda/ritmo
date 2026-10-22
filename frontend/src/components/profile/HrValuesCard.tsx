@@ -27,7 +27,7 @@ const METRIC_FIELDS = [
 ] as const;
 
 const INPUT_CLASS =
-  "mt-1 w-full rounded-lg border border-white/10 bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-accent/50";
+  "mt-1 w-full rounded-lg border border-border hover:border-border-hover bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-accent/50";
 
 /** "garmin" → "Garmin" — a API manda ASCII, a UI rotula. */
 function sourceLabel(source: string): string {
@@ -137,7 +137,7 @@ export default function HrValuesCard({
           return (
             <div
               key={field.kind}
-              className="rounded-xl border border-white/10 bg-card px-3 py-2"
+              className="rounded-xl border border-border bg-card px-3 py-2"
             >
               <div className="flex items-baseline justify-between gap-2">
                 <p className="text-sm font-medium">{field.label}</p>
@@ -180,7 +180,7 @@ export default function HrValuesCard({
                     type="button"
                     onClick={() => handleRelease(field.kind)}
                     disabled={releasing !== null}
-                    className="mt-2 w-full rounded-lg border border-white/10 px-2 py-1.5 text-xs text-muted hover:text-foreground hover:border-accent/50 disabled:opacity-60"
+                    className="mt-2 w-full rounded-lg border border-border px-2 py-1.5 text-xs text-muted hover:text-foreground hover:border-accent/50 disabled:opacity-60"
                   >
                     {releasing === field.kind
                       ? "Liberando…"

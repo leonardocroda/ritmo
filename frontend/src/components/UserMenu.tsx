@@ -48,7 +48,7 @@ export default function UserMenu() {
       <button
         type="button"
         onClick={handleLogout}
-        className="rounded-full border border-white/10 px-3 py-1.5 text-sm text-muted hover:text-foreground"
+        className="rounded-full border border-border hover:border-border-hover px-3 py-1.5 text-sm text-muted hover:text-foreground"
       >
         Sair
       </button>

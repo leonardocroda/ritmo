@@ -24,7 +24,7 @@ function nights(n: number): string {
 
 function DoseCard({ label, bucket }: { label: string; bucket: DoseBucket }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2">
+    <div className="rounded-xl border border-border bg-card px-3 py-2">
       <p className="text-xs text-muted">{label}</p>
       <p className="mt-0.5 text-sm font-medium tabular-nums">{nights(bucket.nights)}</p>
       <dl className="mt-1.5 space-y-1 text-xs">

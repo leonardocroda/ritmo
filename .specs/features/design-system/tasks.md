@@ -141,10 +141,10 @@ T9 → T10 → T11 → T12
 
 **Done when**:
 
-- [ ] `git grep -n "border-white/10" -- frontend/src` retorna vazio
-- [ ] Interativos com hover/focus na borda token (pelo menos: pill do seletor do Saúde, botão Sair, um input do /perfil)
-- [ ] Estados de erro/vazio seguem com a borda nova, contratos visuais intactos
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] `git grep -n "border-white/10" -- frontend/src` retorna vazio
+- [x] Interativos com hover/focus na borda token (pelo menos: pill do seletor do Saúde, botão Sair, um input do /perfil)
+- [x] Estados de erro/vazio seguem com a borda nova, contratos visuais intactos
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: quick
