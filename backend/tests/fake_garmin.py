@@ -6,7 +6,8 @@ Falhas e buracos de dados vêm de subclasses definidas por cenário nos
 testes; o dia sem dado devolve None (SYNC-19).
 """
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+import json
 
 from helpers import (
     BATTERY_ROWS,
@@ -23,6 +24,16 @@ from helpers import (
 
 TREADMILL_ID = 98765432101  # corrida sem splits (esteira — edge do spec)
 CYCLING_ID = 55500000001  # não é corrida: nunca pede splits (SYNC-12)
+
+# Blob "vigente" da sessão do fake (GTDB-04): valor fixo, distinto do
+# seed dos testes — o persist-back deve gravá-lo CIFRADO no fim do job
+FAKE_SESSION_BLOB = json.dumps(
+    {
+        "di_token": "di-token-fake-rotacionado",
+        "di_refresh_token": "refresh-fake",
+        "di_client_id": "client-id-fake",
+    }
+)
 
 # Fase physio (hr-zones): zonas de FC v2 (maxHeartRateUsed = fcmax
 # auto-detectado da Garmin, esporte RUNNING; fallback DEFAULT) e LTHR
@@ -144,6 +155,10 @@ class FakeGateway:
     battery_no_data: frozenset[date] = frozenset()
     # Fase physio: LTHR nunca detectado pelo relógio (heartRate None)
     lthr_none: bool = False
+    # Persist-back (GTDB-04): updated_at que o from_user real teria lido.
+    # None = guard desligado (upsert direto); testes de guard setam o
+    # valor da linha semeada via monkeypatch (auto-restaurado)
+    tokens_loaded_at: datetime | None = None
 
     def __init__(self) -> None:
         self._calls = 0
@@ -155,6 +170,10 @@ class FakeGateway:
         """Espelho da assinatura do gateway real (GTDB-01): os argumentos
         são ignorados — o fake não lê o banco, o teste semeia o que precisa."""
         return cls()
+
+    def session_blob(self) -> str:
+        """Blob vigente da "sessão" — o que o persist-back grava cifrado."""
+        return FAKE_SESSION_BLOB
 
     @property
     def calls_made(self) -> int:

@@ -8,9 +8,13 @@ do spec/design, nunca constantes compartilhadas com a implementação
 """
 
 from datetime import date, datetime, timedelta
+import json
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import func, select
+
+from cryptography.fernet import Fernet
 from sqlalchemy import func, select
 
 from app.db.engine import SessionLocal, init_db
@@ -18,6 +22,7 @@ from app.db.models import (
     Activity,
     BodyBattery,
     DailyLoad,
+    GarminToken,
     Hrv,
     PersonalRecord,
     RacePrediction,
@@ -30,7 +35,7 @@ from app.db.models import (
     User,
     UserHrMetric,
 )
-from app.garmin import service
+from app.garmin import service, tokens_store
 from app.garmin.client import GarminAuthExpiredError, SyncBudgetExceededError
 from app.garmin.service import (
     JobConflictError,
@@ -41,13 +46,21 @@ from app.garmin.service import (
 from app.profile import service as profile_service
 from app.garmin.upserts import get_sync_state
 from app.main import app
-from fake_garmin import CYCLING_ID, FakeGateway
-from helpers import RHR_PAYLOAD
+from fake_garmin import CYCLING_ID, FAKE_SESSION_BLOB, FakeGateway
+from helpers import RHR_PAYLOAD, TEST_TOKEN_ENCRYPTION_KEY
 
 TODAY = date(2026, 10, 14)
 BACKFILL_ACTIVITIES_START = date(2026, 4, 17)  # TODAY - 180d (SYNC-15)
 BACKFILL_HEALTH_START = date(2026, 6, 16)  # TODAY - 120d (SYNC-15, HRV-15: lookback de banda)
 REPULL_START = date(2026, 10, 11)  # TODAY - 3d (SYNC-10)
+
+# Blobs do persist-back (GTDB-04) — literais distintos entre si
+SEED_BLOB = json.dumps(
+    {"di_token": "di-token-seed", "di_refresh_token": "refresh-seed", "di_client_id": "cid"}
+)
+RELOGIN_BLOB = json.dumps(
+    {"di_token": "di-token-relogin", "di_refresh_token": "refresh-relogin", "di_client_id": "cid"}
+)
 
 
 @pytest.fixture(autouse=True)
@@ -925,3 +938,165 @@ def test_fcmax_from_zones_absent_or_malformed_returns_none():
     assert _fcmax_from_zones([]) is None
     assert _fcmax_from_zones(None) is None
     assert _fcmax_from_zones({"sport": "RUNNING", "maxHeartRateUsed": 199}) is None
+
+
+# ---------------------------------------------------------------
+# Persist-back (garmin-tokens-db T5) — blob vigente volta cifrado
+# ---------------------------------------------------------------
+
+
+def _seed_tokens(user_id: int, blob: str) -> Fernet:
+    """Linha de tokens do usuário, como o login CLI a gravaria; devolve o fernet."""
+    fernet = Fernet(TEST_TOKEN_ENCRYPTION_KEY)
+    with SessionLocal() as s:
+        tokens_store.save_blob(s, user_id, blob, fernet)
+        s.commit()
+    return fernet
+
+
+def _token_row(user_id: int) -> GarminToken:
+    with SessionLocal() as s:
+        return s.execute(
+            select(GarminToken).where(GarminToken.user_id == user_id)
+        ).scalar_one()
+
+
+def _loaded_at(user_id: int) -> datetime:
+    with SessionLocal() as s:
+        return s.execute(
+            select(GarminToken.updated_at).where(GarminToken.user_id == user_id)
+        ).scalar_one()
+
+
+def test_sync_done_persists_session_blob_encrypted(db, monkeypatch):
+    """GTDB-04 AC 1: job done → a linha do banco contém o blob VIGENTE do
+    gateway, cifrado — a coluna nunca guarda texto plano."""
+    monkeypatch.setattr(service, "GarminGateway", FakeGateway)
+    job = _create_job()
+    fernet = _seed_tokens(job.user_id, SEED_BLOB)
+    run_sync(job.id)
+
+    assert _load_job(job.id).status == "done"
+    row = _token_row(job.user_id)
+    assert row.token_encrypted != FAKE_SESSION_BLOB  # cifrado, nunca plano
+    assert row.token_encrypted != SEED_BLOB
+    assert fernet.decrypt(row.token_encrypted.encode()).decode() == FAKE_SESSION_BLOB
+    assert _load_job(job.id).stats_json["warnings"] == []
+
+
+def test_sync_generic_error_still_persists_blob(db, monkeypatch):
+    """GTDB-04 AC 1: job error GENÉRICO também persiste o blob vigente —
+    o refresh já consumido não pode se perder na falha."""
+
+    class FailingActivities(FakeGateway):
+        def get_activities(self, start, end):
+            self._record("activities", start, end)
+            raise RuntimeError("atividades indisponíveis")
+
+    monkeypatch.setattr(service, "GarminGateway", FailingActivities)
+    job = _create_job()
+    fernet = _seed_tokens(job.user_id, SEED_BLOB)
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "error"
+    assert finished.stats_json["reauth_needed"] is False
+    row = _token_row(job.user_id)
+    assert fernet.decrypt(row.token_encrypted.encode()).decode() == FAKE_SESSION_BLOB
+
+
+def test_reauth_path_never_persists(db, monkeypatch):
+    """GTDB-01 AC 3 + SYNC-25: usuário SEM tokens → job error com
+    `reauth_needed=true` e NENHUMA linha gravada (o blob morto não volta
+    para o banco)."""
+
+    class ReauthGateway(FakeGateway):
+        @classmethod
+        def from_user(cls, db, user_id, settings=None):
+            raise GarminAuthExpiredError("Usuário sem tokens Garmin no banco")
+
+    monkeypatch.setattr(service, "GarminGateway", ReauthGateway)
+    job = _create_job()
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "error"
+    assert finished.stats_json["reauth_needed"] is True
+    with SessionLocal() as s:
+        assert s.execute(select(GarminToken)).scalars().all() == []
+
+
+def test_persist_back_guard_refused_preserves_newer_row(db, monkeypatch):
+    """GTDB-04 AC 2: re-login CLI durante o sync → persist-back RECUSA
+    (guard otimista), a linha mais nova permanece e o warning registra."""
+
+    job = _create_job()
+    user_id = job.user_id
+    fernet = _seed_tokens(user_id, SEED_BLOB)
+    loaded_at = _loaded_at(user_id)
+
+    class ReloginMidSync(FakeGateway):
+        def get_sleep(self, day):
+            result = super().get_sleep(day)
+            with SessionLocal() as s:
+                row = s.execute(
+                    select(GarminToken).where(GarminToken.user_id == user_id)
+                ).scalar_one()
+                row.token_encrypted = fernet.encrypt(RELOGIN_BLOB.encode()).decode()
+                row.updated_at = datetime(2026, 10, 14, 23, 0, 0)
+                s.commit()
+            return result
+
+    monkeypatch.setattr(service, "GarminGateway", ReloginMidSync)
+    monkeypatch.setattr(FakeGateway, "tokens_loaded_at", loaded_at)
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "done"
+    assert finished.stats_json["warnings"] == [
+        {"tipo": "tokens", "erro": "tokens atualizados durante o sync — preservados"}
+    ]
+    row = _token_row(user_id)
+    assert fernet.decrypt(row.token_encrypted.encode()).decode() == RELOGIN_BLOB  # venceu
+    assert row.updated_at == datetime(2026, 10, 14, 23, 0, 0)  # preservada
+
+
+def test_persist_back_guard_accepted_when_row_unchanged(db, monkeypatch):
+    """GTDB-04 AC 1: guard com expected VIGENTE → grava o blob do fim do
+    job sem warning (distingue o caminho com guard do upsert simples)."""
+    monkeypatch.setattr(service, "GarminGateway", FakeGateway)
+    job = _create_job()
+    _seed_tokens(job.user_id, SEED_BLOB)
+    monkeypatch.setattr(FakeGateway, "tokens_loaded_at", _loaded_at(job.user_id))
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "done"
+    assert finished.stats_json["warnings"] == []
+    row = _token_row(job.user_id)
+    assert Fernet(TEST_TOKEN_ENCRYPTION_KEY).decrypt(row.token_encrypted.encode()).decode() == (
+        FAKE_SESSION_BLOB
+    )
+
+
+def test_persist_back_exception_warns_and_job_finishes_normally(db, monkeypatch):
+    """GTDB-04 AC 3: persist-back com exceção → warning nos stats e o job
+    segue para o status normal (o risco é reauth no ciclo seguinte)."""
+
+    class BrokenDump(FakeGateway):
+        def session_blob(self):
+            raise RuntimeError("dumps quebrou")
+
+    monkeypatch.setattr(service, "GarminGateway", BrokenDump)
+    job = _create_job()
+    fernet = _seed_tokens(job.user_id, SEED_BLOB)
+    run_sync(job.id)
+
+    finished = _load_job(job.id)
+    assert finished.status == "done"
+    assert finished.error is None
+    assert finished.stats_json["warnings"] == [
+        {"tipo": "tokens", "erro": "persist-back falhou"}
+    ]
+    row = _token_row(job.user_id)  # linha intacta — nada foi sobrescrito
+    assert fernet.decrypt(row.token_encrypted.encode()).decode() == SEED_BLOB

@@ -227,14 +227,14 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Job de usuário SEM tokens → `error` com `reauth_needed=true` (canal SYNC-25 intacto)
-- [ ] Job done → linha do banco contém o blob vigente do gateway (cifrado); job error genérico idem
-- [ ] Guard recusado (tokens mudaram no meio do job) → warning nos stats e linha mais nova PRESERVADA
-- [ ] Persist-back com exceção → warning nos stats, job segue para o status normal
-- [ ] Caminho reauth NÃO persiste (blob morto)
-- [ ] `FakeGateway` espelha a assinatura nova; suite inteira verde (nenhum site de teste quebrado)
-- [ ] Gate check passes: `cd backend && uv run pytest -q`
-- [ ] Test count: ~6 testes novos em test_garmin_service.py; 493 baseline + novos, zero deletados
+- [x] Job de usuário SEM tokens → `error` com `reauth_needed=true` (canal SYNC-25 intacto)
+- [x] Job done → linha do banco contém o blob vigente do gateway (cifrado); job error genérico idem
+- [x] Guard recusado (tokens mudaram no meio do job) → warning nos stats e linha mais nova PRESERVADA
+- [x] Persist-back com exceção → warning nos stats, job segue para o status normal
+- [x] Caminho reauth NÃO persiste (blob morto)
+- [x] `FakeGateway` espelha a assinatura nova; suite inteira verde (nenhum site de teste quebrado)
+- [x] Gate check passes: `cd backend && uv run pytest -q`
+- [x] Test count: ~6 testes novos em test_garmin_service.py; 493 baseline + novos, zero deletados
 
 **Tests**: unit
 **Gate**: full
