@@ -180,36 +180,11 @@
 
 ## Handoff
 
-- **Feature**: `hr-zones` — **concluída e validada (PASS, 21/10/2026)**: 19/19 ACs com
-  evidência spec-anchored `file:line`, sensor 5/5 mutantes mortas (effective-dating,
-  tie-break, manual-wins, fronteira de zona, guard de omissão), suite 493/493 verde
-  (+66 vs 427), frontend lint+build OK, `validate_state.py` exit 0; relatório em
-  `.specs/features/hr-zones/validation.md`
-- **Phase / Task**: Execute concluído — 13 tasks em 3 batches de sub-agents (Batch 1:
-  T1 models `c7a27dd` → T2 calc `2e20377` → T3 seed `60868f7` → T4 service `e49e26f` →
-  T5 API `008456b`; Batch 2: T6 gateway `8c344fd` → T7 upsert `24fc4d5` → T8 sync
-  `202ddfa` → T9 payload `ffc65c3`; Batch 3: T10 helpers `33f5970` → T11 página
-  `094d84b` → T12 método/histórico `13f87d1` → T13 docs `223e914`)
-- **Completed**: séries effective-dated append-only (`user_hr_metrics`, `hr_zone_configs`),
-  calc puro (3 métodos com defaults + guardrails), service com manual-wins/idempotência
-  num lugar só (`set_metric`), 3 endpoints `/api/profile/hr-zones*` com user-scope,
-  fase physio no sync (+3 chamadas, warning tolerante), payload IA com `lthr_bpm`
-  vigente-na-data + fallback env e bloco `zonas_fc`, tela `/perfil` (3 seções AD-009),
-  README + `.env.example`. SPEC_DEVIATION 1 (justificada na validação): lib 0.3.2 expõe
-  user settings como `get_user_profile` — gateway mantém o nome do design.
+- **Feature**: `design-system` — **concluída e validada (PASS, 22/10/2026)**: 26/26 ACs com evidência spec-anchored `file:line`, sensor 5 mutações (3 mortas; 2 sobreviventes = gaps de instrumento, não defeito de implementação — real code verificado nos pontos exatos), lint+build verdes, `validate_state.py` exit 0; relatório em `.specs/features/design-system/validation.md`
+- **Phase / Task**: Execute concluído — 13 tasks em 3 batches de sub-agents (Batch 1: T1 `baf3d89` → T2 `2bf2fda` → T3 `09ebe2a` → T4 `2bdea1b`; Batch 2: T5 `6254441` → T6 `f924670` → T7 `dafdc06` → T8 `fdea111` → T9 `c982e58` (+ `0cc9ed2` checkboxes); Batch 3: T10 `96cc975` → T11 `0e16364` → T12 `f6f7c49` → T13 `c0a8fd3`)
+- **Completed**: tokens v0.3 + semânticas de saúde (globals.css, nomes canônicos preservados — AD-022), Instrument Sans + themeColor + pulso no wordmark/favicon, sweeps (bordas token + hover interativo, raio card/ctl, tabular-nums), `chartTheme.ts` + 11 gráficos no tema ("neutro + um destaque lime", zonas VDOT intactas — backend fonte única), navegação responsiva (tab bar <768px / top bar no header ≥768px, mesmos itens/ícones, aria-current + Suspense boundaries preservadas), skeletons nos loadings, polimento on-accent/divisores. Lições L-017..L-020 destiladas (instrumentos: greps de valor literal e de render-site)
 - **In-progress**: none
-- **Next step**: `hr-zones` **100% entregue e UAT-confirmada (21/10/2026)**: sync real
-  trouxe as 3 métricas (fcmax 199 do heartRateZones v2, fclthr 182, fcrest 42 — jobs
-  18/19, zero warnings); ciclo manual completo no celular (editar → sync segura → botão
-  "Voltar a puxar do Garmin" → sync reassumiu com flip 177 manual → 182 garmin; pref
-  `user_hr_sync_prefs.fclthr = garmin`). Todos os Success Criteria do spec marcados.
-  Próxima feature da fila: `garmin-tokens-db` → `user-profile`. Hardening opcional
-  (sem pressa): 1 teste da fcrest com série RHR não uniforme (discrimina mínimo E
-  janela-7d). Pendências menores vivas: CLI `set_password` sem política de senha ≥8; 2
-  docstrings de teste defasadas (cosmético); decisão aberta de produto: NVIDIA_MODEL
-  default no `.env`
-  Pendências menores vivas: CLI `set_password` sem política de senha ≥8; 2 docstrings de
-  teste defasadas (cosmético); decisão aberta de produto: NVIDIA_MODEL default no `.env`
+- **Next step**: **UAT visual 390px↔desktop contra `docs/design/identidade-visual-v0.3.html`** (critério final do spec — exige olhos humanos; 2 terminais: backend do compose no repo principal + `cd frontend && npm run dev` no worktree `ritmo-design-system`). Após UAT: merge `design-system` → `main`. Gaps de instrumento (opcional): grep de valor literal de token + grep do render do TabBar no gate. **Decisão aberta do usuário: `next upgrade` (CVE conhecida do Next 16.4.0, nudge do build) — tocaria package.json/lockfile, precisa de go-ahead explícito e coordenação com o agent do garmin-tokens-db**. Próxima feature da fila: `home-panel` (supersede AD-011)
 - **Blockers**: none
-- **Uncommitted files**: none
-- **Branch**: main (commits locais; push só com go-ahead do usuário)
+- **Uncommitted files**: none (após o commit de validação)
+- **Branch**: `design-system` (worktree `ritmo-design-system`; commits locais — push/merge só com go-ahead do usuário)

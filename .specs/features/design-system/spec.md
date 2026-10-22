@@ -184,32 +184,32 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| DSN-01 | P1: Tokens v0.3 em código | Design | Pending |
-| DSN-02 | P1: Tokens v0.3 em código | Design | Pending |
-| DSN-03 | P1: Tokens v0.3 em código | Design | Pending |
-| DSN-04 | P1: Tokens v0.3 em código | Design | Pending |
-| DSN-05 | P1: Tokens v0.3 em código | Design | Pending |
-| DSN-06 | P1: Tokens v0.3 em código | Design | Pending |
-| DSN-07 | P1: Tipografia com assinatura | Design | Pending |
-| DSN-08 | P1: Tipografia com assinatura | Design | Pending |
-| DSN-09 | P1: Tipografia com assinatura | Design | Pending |
-| DSN-10 | P1: Tipografia com assinatura | Design | Pending |
-| DSN-11 | P1: Tema de gráfico compartilhado | Design | Pending |
-| DSN-12 | P1: Tema de gráfico compartilhado | Design | Pending |
-| DSN-13 | P1: Tema de gráfico compartilhado | Design | Pending |
-| DSN-14 | P1: Tema de gráfico compartilhado | Design | Pending |
-| DSN-15 | P1: Tema de gráfico compartilhado | Design | Pending |
-| DSN-16 | P1: Tema de gráfico compartilhado | Design | Pending |
-| DSN-17 | P2: Navegação de app responsiva | Design | Pending |
-| DSN-18 | P2: Navegação de app responsiva | Design | Pending |
-| DSN-19 | P2: Navegação de app responsiva | Design | Pending |
-| DSN-20 | P2: Navegação de app responsiva | Design | Pending |
-| DSN-21 | P2: Navegação de app responsiva | Design | Pending |
-| DSN-22 | P2: Navegação de app responsiva | Design | Pending |
-| DSN-23 | P2: Skeletons na linguagem | Design | Pending |
-| DSN-24 | P2: Skeletons na linguagem | Design | Pending |
-| DSN-25 | P3: Wordmark + pulso | - | Pending |
-| DSN-26 | P3: Wordmark + pulso | - | Pending |
+| DSN-01 | P1: Tokens v0.3 em código | Execute | Verified |
+| DSN-02 | P1: Tokens v0.3 em código | Execute | Verified |
+| DSN-03 | P1: Tokens v0.3 em código | Execute | Verified |
+| DSN-04 | P1: Tokens v0.3 em código | Execute | Verified |
+| DSN-05 | P1: Tokens v0.3 em código | Execute | Verified |
+| DSN-06 | P1: Tokens v0.3 em código | Execute | Verified |
+| DSN-07 | P1: Tipografia com assinatura | Execute | Verified |
+| DSN-08 | P1: Tipografia com assinatura | Execute | Verified |
+| DSN-09 | P1: Tipografia com assinatura | Execute | Verified |
+| DSN-10 | P1: Tipografia com assinatura | Execute | Verified |
+| DSN-11 | P1: Tema de gráfico compartilhado | Execute | Verified |
+| DSN-12 | P1: Tema de gráfico compartilhado | Execute | Verified |
+| DSN-13 | P1: Tema de gráfico compartilhado | Execute | Verified |
+| DSN-14 | P1: Tema de gráfico compartilhado | Execute | Verified |
+| DSN-15 | P1: Tema de gráfico compartilhado | Execute | Verified |
+| DSN-16 | P1: Tema de gráfico compartilhado | Execute | Verified |
+| DSN-17 | P2: Navegação de app responsiva | Execute | Verified |
+| DSN-18 | P2: Navegação de app responsiva | Execute | Verified |
+| DSN-19 | P2: Navegação de app responsiva | Execute | Verified |
+| DSN-20 | P2: Navegação de app responsiva | Execute | Verified |
+| DSN-21 | P2: Navegação de app responsiva | Execute | Verified |
+| DSN-22 | P2: Navegação de app responsiva | Execute | Verified |
+| DSN-23 | P2: Skeletons na linguagem | Execute | Verified |
+| DSN-24 | P2: Skeletons na linguagem | Execute | Verified |
+| DSN-25 | P3: Wordmark + pulso | Execute | Verified |
+| DSN-26 | P3: Wordmark + pulso | Execute | Verified |
 
 **Coverage:** 26 total, 26 mapped to stories, 0 unmapped ✅
 

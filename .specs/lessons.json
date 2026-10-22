@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 17,
+  "next_id": 21,
   "lessons": [
     {
       "id": "L-001",
@@ -292,6 +292,78 @@
       ],
       "created": "2026-10-21T21:16:10Z",
       "last_seen": "2026-10-21T21:16:10Z"
+    },
+    {
+      "id": "L-017",
+      "key": "surviving_mutant::build gate features with zero tests structural greps must also pin token literal values e g git grep for b7f36b in globals css charttheme ts otherwise palette value regressions pass lint build silently",
+      "text": "Build-gate features with zero tests: structural greps must also pin token LITERAL values (e.g. git grep for B7F36B in globals.css/chartTheme.ts), otherwise palette-value regressions pass lint+build silently.",
+      "signal": "surviving_mutant",
+      "scope": "frontend/design-system",
+      "status": "candidate",
+      "features": [
+        "design-system"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "ds-sensor mutation 3 (globals.css:9) (frontend/design-system)"
+      ],
+      "created": "2026-10-22T23:46:28Z",
+      "last_seen": "2026-10-22T23:46:28Z"
+    },
+    {
+      "id": "L-018",
+      "key": "surviving_mutant::when a component s presence is an acceptance criterion tabbar render dsn 17 add a structural grep for its render site e g tabbar in the layout lint build cannot notice a removed render",
+      "text": "When a component's PRESENCE is an acceptance criterion (TabBar render, DSN-17), add a structural grep for its render site (e.g. '<TabBar />' in the layout) — lint+build cannot notice a removed render.",
+      "signal": "surviving_mutant",
+      "scope": "frontend/design-system",
+      "status": "candidate",
+      "features": [
+        "design-system"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "ds-sensor mutation 4 ((app)/layout.tsx:17) (frontend/design-system)"
+      ],
+      "created": "2026-10-22T23:46:52Z",
+      "last_seen": "2026-10-22T23:46:52Z"
+    },
+    {
+      "id": "L-019",
+      "key": "spec_precision_gap::spec wording that a later design refines gradient area flat bandopacity 0 06 must be reconciled amend the ac text or note the refinement in the spec so code and spec stop diverging on gradiente lime transparente",
+      "text": "Spec wording that a later design refines (gradient area -> flat bandOpacity 0.06) must be reconciled: amend the AC text or note the refinement in the spec, so code and spec stop diverging on 'gradiente lime->transparente'.",
+      "signal": "spec_precision_gap",
+      "scope": "frontend/design-system",
+      "status": "candidate",
+      "features": [
+        "design-system"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "DSN-14 (spec.md AC 14) (frontend/design-system)"
+      ],
+      "created": "2026-10-22T23:47:05Z",
+      "last_seen": "2026-10-22T23:47:05Z"
+    },
+    {
+      "id": "L-020",
+      "key": "spec_deviation::when a design table detail collides with a pinned backend contract splitschart hr color f8fafc backend test test activities api py 450 the contract wins record the deviation in the design doc not as a frontend change",
+      "text": "When a design-table detail collides with a pinned backend contract (SplitsChart hr_color #f8fafc, backend test test_activities_api.py:450), the contract wins — record the deviation in the design doc, not as a frontend change.",
+      "signal": "spec_deviation",
+      "scope": "frontend/design-system",
+      "status": "candidate",
+      "features": [
+        "design-system"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "design.md SplitsChart mapping row (hrColor) (frontend/design-system)"
+      ],
+      "created": "2026-10-22T23:47:16Z",
+      "last_seen": "2026-10-22T23:47:16Z"
     }
   ]
 }
