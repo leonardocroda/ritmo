@@ -62,7 +62,7 @@ T4 → T5 → T6 → T7 → T8 → T9
 Navegação responsiva, marca e skeletons.
 
 ```
-T9 → T10 → T11 → T12
+T9 → T10 → T11 → T12 → T13
 ```
 
 ---
@@ -402,6 +402,33 @@ T9 → T10 → T11 → T12
 
 ---
 
+### T13: Polimento de tokens (on-accent e divisores)
+
+**What**: Corrigir os dois gaps deferidos pelo Batch 1: botões com fundo accent (`bg-accent` em login, registrar, HrValuesCard, HrMethodCard) trocam `text-background` por `text-on-accent` (o token `#182014` existe para isso); o divisor de linhas da HrvTable sai de `border-white/5` para `border-border` — nenhum alpha de branco sobra como borda.
+**Where**: `frontend/src/**` (varredura pontual)
+**Depends on**: T12
+> Ordem da fase — polimento no fim, com o shell pronto.
+**Reuses**: tokens da T1 (`--color-on-accent`, `--color-border`)
+**Requirement**: DSN-02, DSN-06
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] Todo `bg-accent` com texto usa `text-on-accent` (login, registrar, cards do /perfil)
+- [ ] `git grep -n "border-white/" -- frontend/src` retorna vazio
+- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+
+**Tests**: none
+**Gate**: quick
+
+**Commit**: `feat(frontend): polimento de tokens — on-accent e divisores`
+
+---
+
 ## Phase Execution Map
 
 ```
@@ -409,12 +436,12 @@ Phase 1 → Phase 2 → Phase 3
 
 Phase 1:  T1 → T2 → T3 → T4
 Phase 2:  T4 → T5 → T6 → T7 → T8 → T9
-Phase 3:  T9 → T10 → T11 → T12
+Phase 3:  T9 → T10 → T11 → T12 → T13
 ```
 
 Execution is strictly sequential - there is no intra-phase parallelism. A single agent (or batch worker) works one task at a time, in order.
 
-**Batching**: 12 tasks → 3 batches (Batch 1 = Phase 1, T1-T4; Batch 2 = Phase 2, T5-T9; Batch 3 = Phase 3, T10-T12). A Verifier roda automaticamente após o Batch 3.
+**Batching**: 13 tasks → 3 batches (Batch 1 = Phase 1, T1-T4; Batch 2 = Phase 2, T5-T9; Batch 3 = Phase 3, T10-T13). A Verifier roda automaticamente após o Batch 3.
 
 ---
 
@@ -434,6 +461,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T10: Navegação responsiva | 1 componente + wiring | ✅ Granular |
 | T11: Wordmark + header enxuto | 1 componente + acessórios de marca | ⚠️ Coeso |
 | T12: Skeletons | 1 componente + aplicação | ⚠️ Coeso |
+| T13: Polimento de tokens | 2 micro-varreduras de classe (coeso) | ✅ Granular |
 
 > As 5 tasks "coeso" aplicam um único padrão a arquivos irmãos — split por arquivo multiplicaria 11 tasks de chart em micro-edits idênticas sem ganho de verificabilidade (cada chart tem checkbox próprio no Done when).
 
@@ -453,6 +481,7 @@ Execution is strictly sequential - there is no intra-phase parallelism. A single
 | T10 | T9 | T9 → T10 | ✅ Match |
 | T11 | T10 | T10 → T11 | ✅ Match |
 | T12 | T11 | T11 → T12 | ✅ Match |
+| T13 | T12 | T12 → T13 | ✅ Match |
 
 Nenhuma dependência aponta para fase posterior (validado pelo script).
 
@@ -472,6 +501,7 @@ Nenhuma dependência aponta para fase posterior (validado pelo script).
 | T10 | Frontend (shell) | none - build gate | none | ✅ OK |
 | T11 | Frontend (marca/header) | none - build gate | none | ✅ OK |
 | T12 | Frontend (estados) | none - build gate | none | ✅ OK |
+| T13 | Frontend (polimento) | none - build gate | none | ✅ OK |
 
 ---
 
@@ -480,11 +510,11 @@ Nenhuma dependência aponta para fase posterior (validado pelo script).
 | Requirement | Tasks |
 | ----------- | ----- |
 | DSN-01 | T1 |
-| DSN-02 | T1 |
+| DSN-02 | T1, T13 |
 | DSN-03 | T1 |
 | DSN-04 | T3 |
 | DSN-05 | T1, T4 |
-| DSN-06 | T3, T5, T6, T7, T8, T9 |
+| DSN-06 | T3, T5, T6, T7, T8, T9, T13 |
 | DSN-07 | T2 |
 | DSN-08 | T2 |
 | DSN-09 | T4 |
