@@ -21,18 +21,20 @@ Fatos verificados da lib (garminconnect==0.3.2, pinada no pyproject):
 
 import time
 from collections.abc import Callable
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
+from cryptography.fernet import InvalidToken
 from garminconnect import (
     Garmin,
     GarminConnectAuthenticationError,
     GarminConnectConnectionError,
     GarminConnectTooManyRequestsError,
 )
+from sqlalchemy.orm import Session
 
 from app.core.config import Settings
-from app.garmin.token_utils import resolve_token_path, secure_token_dir
+from app.garmin.tokens_store import get_blob, require_key
 
 PAGE_SIZE = 20
 BATTERY_MAX_RANGE_DAYS = 28  # T15 real: a API devolve 400 "date range is too big" acima disso
@@ -50,31 +52,70 @@ class SyncBudgetExceededError(Exception):
 class GarminGateway:
     """Todas as chamadas de dados passam por `_call()` — sequência garantida."""
 
-    def __init__(self, garmin: Garmin, settings: Settings) -> None:
+    def __init__(
+        self,
+        garmin: Garmin,
+        settings: Settings,
+        tokens_loaded_at: datetime | None = None,
+    ) -> None:
         self._garmin = garmin
         self.settings = settings
         self._calls = 0
+        # updated_at da linha vista no carregamento — injeta o guard
+        # otimista do persist-back (GTDB-04: re-login CLI durante o sync vence)
+        self._tokens_loaded_at = tokens_loaded_at
 
     @classmethod
-    def from_settings(cls, settings: Settings | None = None) -> "GarminGateway":
-        """Login pelo tokenstore existente (SYNC-25) — nunca pede credenciais.
+    def from_user(
+        cls, db: Session, user_id: int, settings: Settings | None = None
+    ) -> "GarminGateway":
+        """Login pelos tokens DO USUÁRIO no banco (GTDB-01) — nunca pede
+        credenciais.
 
-        As ~2 chamadas internas do `login()` são custo fixo documentado:
-        ficam fora do contador de chamadas de dados.
+        A string de blob (len > 512) é tratada pela lib como DADOS
+        inline (`client.loads`), não como path. Sem linha, blob que não
+        decripta (chave trocada) ou lib rejeitando o blob →
+        `GarminAuthExpiredError` (o job vira error com
+        `reauth_needed=true` — canal SYNC-25, GTDB-03); mensagens sem
+        fragmento do blob (GTDB-15). As ~2 chamadas internas do
+        `login()` são custo fixo documentado: ficam fora do contador de
+        chamadas de dados.
         """
         settings = settings or Settings()
-        tokenstore = resolve_token_path(settings.garmintokens)
+        try:
+            loaded = get_blob(db, user_id, require_key(settings))
+        except InvalidToken as exc:
+            raise GarminAuthExpiredError(
+                "Tokens Garmin ilegíveis para o usuário — refaça o login CLI."
+            ) from exc
+        if loaded is None:
+            raise GarminAuthExpiredError(
+                f"Usuário {user_id} sem tokens Garmin no banco — rode o login CLI."
+            )
+        blob, loaded_at = loaded
         garmin = Garmin()
         try:
-            garmin.login(tokenstore)
+            garmin.login(blob)
         except GarminConnectAuthenticationError as exc:
             raise GarminAuthExpiredError(str(exc)) from exc
-        secure_token_dir(tokenstore)
-        return cls(garmin, settings)
+        return cls(garmin, settings, tokens_loaded_at=loaded_at)
 
     @property
     def calls_made(self) -> int:
         return self._calls
+
+    @property
+    def tokens_loaded_at(self) -> datetime | None:
+        """`updated_at` da linha visto no carregamento (guard do persist-back)."""
+        return self._tokens_loaded_at
+
+    def session_blob(self) -> str:
+        """Blob vigente da sessão (`garmin.client.dumps()`) — o que o
+        persist-back grava cifrado no fim do job (GTDB-04).
+
+        Com blob inline a lib NÃO persiste o refresh rotacionado
+        (`_tokenstore_path` unset) — por isso o persist-back é nosso."""
+        return self._garmin.client.dumps()
 
     def _sleep(self, seconds: float) -> None:
         time.sleep(seconds)

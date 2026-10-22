@@ -42,6 +42,7 @@ from app.garmin.mappers import (
     map_stress,
 )
 from app.garmin.pmc import recompute
+from app.garmin.tokens_store import require_key, save_blob
 from app.garmin.upserts import (
     get_sync_state,
     set_sync_state,
@@ -384,6 +385,35 @@ def _finish(db, job, stats, status, error_text=None) -> None:
     _save_stats(db, job, stats)
 
 
+def _persist_tokens(db, job, stats, gateway) -> None:
+    """GTDB-04: blob vigente da sessão volta CIFRADO ao fim do job.
+
+    Com blob inline a lib NÃO persiste o refresh rotacionado
+    (`_tokenstore_path` unset — spike) — o persist-back é nosso. Guard
+    otimista (`expected_updated_at` = o que o gateway carregou): um
+    re-login CLI durante o sync vence — recusa vira warning e a linha
+    mais nova é preservada (GTDB-04 AC 2); exceção idem (risco assumido:
+    reauth no ciclo seguinte, GTDB-04 AC 3). NUNCA chamado no caminho
+    reauth (blob morto — SYNC-25). Mensagens FIXAS, sem fragmento de
+    blob (GTDB-15).
+    """
+    try:
+        saved = save_blob(
+            db,
+            job.user_id,
+            gateway.session_blob(),
+            require_key(get_settings()),
+            expected_updated_at=gateway.tokens_loaded_at,
+        )
+    except Exception:
+        stats["warnings"].append({"tipo": "tokens", "erro": "persist-back falhou"})
+        return
+    if not saved:
+        stats["warnings"].append(
+            {"tipo": "tokens", "erro": "tokens atualizados durante o sync — preservados"}
+        )
+
+
 def run_sync(job_id: int) -> None:
     """Entrada do BackgroundTasks: pending -> running -> fases -> done|error."""
     settings = get_settings()
@@ -394,7 +424,7 @@ def run_sync(job_id: int) -> None:
         _save_stats(db, job, stats)
         gateway = None
         try:
-            gateway = GarminGateway.from_settings()
+            gateway = GarminGateway.from_user(db, job.user_id)
             user_id = job.user_id
             oldest = _sync_activities(db, gateway, job, stats, user_id, settings)
             _sync_daily_health(
@@ -423,6 +453,7 @@ def run_sync(job_id: int) -> None:
             _sync_physio(db, gateway, job, stats, user_id)
             _sync_pmc(db, job, stats, user_id, oldest)
             stats["message"] = "Sync concluído."
+            _persist_tokens(db, job, stats, gateway)
             _finish(db, job, stats, "done")
         except GarminAuthExpiredError as exc:
             db.rollback()
@@ -434,6 +465,7 @@ def run_sync(job_id: int) -> None:
             db.rollback()
             if gateway is not None:
                 stats["calls_made"] = gateway.calls_made
+                _persist_tokens(db, job, stats, gateway)
             _finish(db, job, stats, "error", error_text=str(exc))
 
 

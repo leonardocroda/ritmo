@@ -6,24 +6,31 @@ teto conferido antes da chamada, sem retry em auth, paginação própria
 de 20 em 20 (lição L-001: literais, nunca constantes compartilhadas).
 """
 
+import json
 from datetime import date
 from pathlib import Path
 from typing import Any
 
 import pytest
+from cryptography.fernet import Fernet
 from garminconnect import (
     GarminConnectAuthenticationError,
     GarminConnectConnectionError,
     GarminConnectTooManyRequestsError,
 )
+from sqlalchemy import select
 
 from app.core.config import Settings
+from app.db.engine import SessionLocal, init_db
+from app.db.models import GarminToken, User
 from app.garmin import client as client_module
 from app.garmin.client import (
     GarminAuthExpiredError,
     GarminGateway,
     SyncBudgetExceededError,
 )
+from app.garmin.tokens_store import save_blob
+from helpers import TEST_TOKEN_ENCRYPTION_KEY
 
 
 def make_settings(**overrides) -> Settings:
@@ -31,6 +38,16 @@ def make_settings(**overrides) -> Settings:
     values = {"sync_call_interval_s": 1.0, "sync_max_calls": 1500, "sync_retry_max": 3}
     values.update(overrides)
     return Settings(_env_file=None, **values)
+
+
+# Blobs do fluxo from_user (GTDB-01/03): o do banco do usuário e o
+# "vigente" que o client da lib devolve após o login (rotacionado)
+USER_BLOB = json.dumps(
+    {"di_token": "di-token-do-usuario", "di_refresh_token": "r", "di_client_id": "c"}
+)
+SESSION_BLOB = json.dumps(
+    {"di_token": "di-token-rotacionado", "di_refresh_token": "r2", "di_client_id": "c"}
+)
 
 
 # Payload do endpoint de zonas de FC v2 (shape real do spike de UAT,
@@ -47,6 +64,16 @@ HEART_RATE_ZONES_GATEWAY_PAYLOAD = [
 ]
 
 
+class FakeGarminClient:
+    """`garmin.client` da lib — dumps() serializa o estado da sessão (GTDB-04)."""
+
+    def __init__(self, blob: str) -> None:
+        self._blob = blob
+
+    def dumps(self) -> str:
+        return self._blob
+
+
 class FakeGarmin:
     """Stub da lib: registra chamadas e scripta falhas/páginas.
 
@@ -61,6 +88,7 @@ class FakeGarmin:
         self.failures = list(failures or [])
         self.pages = list(pages or [])
         self.calls: dict[str, list] = {}
+        self.client = FakeGarminClient(SESSION_BLOB)
 
     def _record(self, name: str, *args: Any) -> None:
         self.calls.setdefault(name, []).append(args)
@@ -136,23 +164,101 @@ def sleeps(monkeypatch):
     return recorded
 
 
-def test_from_settings_login_via_tokenstore(monkeypatch, tmp_path, sleeps):
-    """SYNC-25: from_settings faz login pelo tokenstore, fora do contador."""
-    token_dir = str(tmp_path / "tokens")
+@pytest.fixture()
+def db():
+    """Schema criado pelo init_db (o conftest derruba antes de cada teste)."""
+    init_db()
+    with SessionLocal() as session:
+        yield session
+
+
+@pytest.fixture()
+def fernet() -> Fernet:
+    return Fernet(TEST_TOKEN_ENCRYPTION_KEY)
+
+
+def _seed_tokens(db, user_id: int, blob: str, f: Fernet) -> None:
+    """Linha de tokens do usuário, como o login CLI/import a gravaria."""
+    save_blob(db, user_id, blob, f)
+    db.commit()
+
+
+def test_from_user_logs_in_with_user_blob_inline(db, fernet, monkeypatch) -> None:
+    """GTDB-01: from_user hidrata a sessão EXCLUSIVAMENTE dos tokens do
+    usuário no banco — o blob vai inline para `garmin.login` (len > 512 =
+    dados), fora do contador de chamadas de dados; tokens_loaded_at é o
+    updated_at visto no carregamento (âncora do guard, GTDB-04)."""
+    user = User(display_name="Corredora")
+    db.add(user)
+    db.flush()
+    _seed_tokens(db, user.id, USER_BLOB, fernet)
+    loaded_at = db.execute(
+        select(GarminToken.updated_at).where(GarminToken.user_id == user.id)
+    ).scalar_one()
+
     fake = FakeGarmin()
     monkeypatch.setattr(client_module, "Garmin", lambda: fake)
-    gateway = GarminGateway.from_settings(make_settings(garmintokens=token_dir))
+    gateway = GarminGateway.from_user(db, user.id, make_settings(token_encryption_key=TEST_TOKEN_ENCRYPTION_KEY))
+
     assert isinstance(gateway, GarminGateway)
-    assert fake.calls["login"] == [(token_dir,)]
+    assert fake.calls["login"] == [(USER_BLOB,)]  # blob inline, sem path
     assert gateway.calls_made == 0  # login é custo fixo, não é chamada de dados
+    assert gateway.tokens_loaded_at == loaded_at
 
 
-def test_from_settings_auth_error_maps_to_reauth(monkeypatch, tmp_path):
-    """SYNC-25: 401 no login vira GarminAuthExpiredError."""
+def test_from_user_without_tokens_raises_reauth(db, fernet, monkeypatch) -> None:
+    """GTDB-03: usuário sem linha de tokens → GarminAuthExpiredError (o
+    job vira error com reauth_needed=true — canal SYNC-25)."""
+    user = User(display_name="Sem tokens")
+    db.add(user)
+    db.flush()
+    db.commit()
+    monkeypatch.setattr(client_module, "Garmin", lambda: FakeGarmin())
+
+    with pytest.raises(GarminAuthExpiredError) as exc:
+        GarminGateway.from_user(db, user.id, make_settings(token_encryption_key=TEST_TOKEN_ENCRYPTION_KEY))
+    assert "sem tokens" in str(exc.value)
+
+
+def test_from_user_undecryptable_blob_raises_without_blob_fragment(
+    db, fernet, monkeypatch
+) -> None:
+    """GTDB-03 + GTDB-15: blob ilegível (chave trocada) → reauth com
+    mensagem fixa — nenhum fragmento do blob na exceção."""
+    user = User(display_name="Chave antiga")
+    db.add(user)
+    db.flush()
+    _seed_tokens(db, user.id, USER_BLOB, Fernet(Fernet.generate_key()))  # outra chave
+    monkeypatch.setattr(client_module, "Garmin", lambda: FakeGarmin())
+
+    with pytest.raises(GarminAuthExpiredError) as exc:
+        GarminGateway.from_user(db, user.id, make_settings(token_encryption_key=TEST_TOKEN_ENCRYPTION_KEY))
+    message = str(exc.value)
+    assert "di-token-do-usuario" not in message
+    assert USER_BLOB not in message
+
+
+def test_from_user_lib_rejection_maps_to_reauth(db, fernet, monkeypatch) -> None:
+    """GTDB-03: blob decripta mas a lib rejeita (credenciais ausentes no
+    construtor) → GarminConnectAuthenticationError vira reauth."""
+    user = User(display_name="Blob morto")
+    db.add(user)
+    db.flush()
+    _seed_tokens(db, user.id, USER_BLOB, fernet)
     fake = FakeGarmin(failures=[GarminConnectAuthenticationError("error 401")])
     monkeypatch.setattr(client_module, "Garmin", lambda: fake)
+
     with pytest.raises(GarminAuthExpiredError):
-        GarminGateway.from_settings(make_settings(garmintokens=str(tmp_path / "tokens")))
+        GarminGateway.from_user(db, user.id, make_settings(token_encryption_key=TEST_TOKEN_ENCRYPTION_KEY))
+
+
+def test_session_blob_delegates_to_lib_client(fernet) -> None:
+    """GTDB-04: session_blob() é o `garmin.client.dumps()` — o blob
+    vigente da sessão que o persist-back grava no fim do job."""
+    fake = FakeGarmin()
+    gateway = GarminGateway(fake, make_settings(token_encryption_key=TEST_TOKEN_ENCRYPTION_KEY))
+    assert gateway.session_blob() == SESSION_BLOB
+    assert gateway.session_blob() == fake.client.dumps()
 
 
 def test_call_counts_and_sleeps_interval(sleeps):

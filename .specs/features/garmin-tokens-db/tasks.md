@@ -167,13 +167,13 @@ T6 → T11
 
 **Done when**:
 
-- [ ] `require_key` aceita chave Fernet válida; ausente e inválida → `TokenKeyError` com mensagem apontando o comando de geração
-- [ ] `save_blob` grava ciphertext (nunca plano); sem linha cria, com linha atualiza (`updated_at` avança); guard recusa (`False`) quando a linha mudou desde o carregamento
-- [ ] `get_blob` devolve `(blob, updated_at)` ou `None` sem linha; ciphertext de outra chave → exceção de decript (tratada pelos chamadores como "sem tokens")
-- [ ] `get_meta` devolve existência + `updated_at` sem decriptar
-- [ ] Nenhuma chamada de log no módulo (GTDB-15)
-- [ ] Gate check passes: `cd backend && uv run pytest tests/test_garmin_tokens_store.py -q`
-- [ ] Test count: ~8 testes novos
+- [x] `require_key` aceita chave Fernet válida; ausente e inválida → `TokenKeyError` com mensagem apontando o comando de geração
+- [x] `save_blob` grava ciphertext (nunca plano); sem linha cria, com linha atualiza (`updated_at` avança); guard recusa (`False`) quando a linha mudou desde o carregamento
+- [x] `get_blob` devolve `(blob, updated_at)` ou `None` sem linha; ciphertext de outra chave → exceção de decript (tratada pelos chamadores como "sem tokens")
+- [x] `get_meta` devolve existência + `updated_at` sem decriptar
+- [x] Nenhuma chamada de log no módulo (GTDB-15)
+- [x] Gate check passes: `cd backend && uv run pytest tests/test_garmin_tokens_store.py -q`
+- [x] Test count: ~8 testes novos
 
 **Tests**: unit
 **Gate**: quick
@@ -197,13 +197,13 @@ T6 → T11
 
 **Done when**:
 
-- [ ] `from_user` hidrata via `garmin.login(blob)` inline; `GarminConnectAuthenticationError` → `GarminAuthExpiredError`
-- [ ] Sem tokens / `InvalidToken` → `GarminAuthExpiredError` com mensagem sem fragmento de blob
-- [ ] `session_blob()` devolve `self._garmin.client.dumps()`; `tokens_loaded_at` devolve o `updated_at` visto no carregamento
-- [ ] `from_settings` deletado; nenhum import de `resolve_token_path`/`secure_token_dir` resta em `client.py`
-- [ ] `Settings` sem os campos legados; testes de gateway migrados (login ok, sem tokens, blob ilegível, lib rejeita)
-- [ ] Gate check passes: `cd backend && uv run pytest tests/test_garmin_gateway.py -q`
-- [ ] Test count: suite de gateway verde com ~4-5 testes de from_user (os 2 de from_settings migrados)
+- [x] `from_user` hidrata via `garmin.login(blob)` inline; `GarminConnectAuthenticationError` → `GarminAuthExpiredError`
+- [x] Sem tokens / `InvalidToken` → `GarminAuthExpiredError` com mensagem sem fragmento de blob
+- [x] `session_blob()` devolve `self._garmin.client.dumps()`; `tokens_loaded_at` devolve o `updated_at` visto no carregamento
+- [x] `from_settings` deletado; nenhum import de `resolve_token_path`/`secure_token_dir` resta em `client.py`
+- [x] `Settings` sem os campos legados; testes de gateway migrados (login ok, sem tokens, blob ilegível, lib rejeita)
+- [x] Gate check passes: `cd backend && uv run pytest tests/test_garmin_gateway.py -q`
+- [x] Test count: suite de gateway verde com ~4-5 testes de from_user (os 2 de from_settings migrados)
 
 **Tests**: unit
 **Gate**: quick
@@ -227,14 +227,14 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Job de usuário SEM tokens → `error` com `reauth_needed=true` (canal SYNC-25 intacto)
-- [ ] Job done → linha do banco contém o blob vigente do gateway (cifrado); job error genérico idem
-- [ ] Guard recusado (tokens mudaram no meio do job) → warning nos stats e linha mais nova PRESERVADA
-- [ ] Persist-back com exceção → warning nos stats, job segue para o status normal
-- [ ] Caminho reauth NÃO persiste (blob morto)
-- [ ] `FakeGateway` espelha a assinatura nova; suite inteira verde (nenhum site de teste quebrado)
-- [ ] Gate check passes: `cd backend && uv run pytest -q`
-- [ ] Test count: ~6 testes novos em test_garmin_service.py; 493 baseline + novos, zero deletados
+- [x] Job de usuário SEM tokens → `error` com `reauth_needed=true` (canal SYNC-25 intacto)
+- [x] Job done → linha do banco contém o blob vigente do gateway (cifrado); job error genérico idem
+- [x] Guard recusado (tokens mudaram no meio do job) → warning nos stats e linha mais nova PRESERVADA
+- [x] Persist-back com exceção → warning nos stats, job segue para o status normal
+- [x] Caminho reauth NÃO persiste (blob morto)
+- [x] `FakeGateway` espelha a assinatura nova; suite inteira verde (nenhum site de teste quebrado)
+- [x] Gate check passes: `cd backend && uv run pytest -q`
+- [x] Test count: ~6 testes novos em test_garmin_service.py; 493 baseline + novos, zero deletados
 
 **Tests**: unit
 **Gate**: full
@@ -258,14 +258,14 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Login válido (com e sem MFA) → linha do usuário criada/substituída com ciphertext
-- [ ] Email inexistente → mensagem clara, exit != 0, nenhuma gravação
-- [ ] Falha de credenciais/MFA/rate limit → erro, tokens existentes inalterados
-- [ ] Sessão sem `di_token` → erro "sem token DI", nada gravado
-- [ ] `GARMINTOKENS` removida do env do processo antes do login (fake registra `login(None)`)
-- [ ] Nenhum fragmento de token em mensagens de erro (GTDB-15)
-- [ ] Gate check passes: `cd backend && uv run pytest tests/test_garmin_login.py -q`
-- [ ] Test count: ~6 testes (reescrita completa do arquivo)
+- [x] Login válido (com e sem MFA) → linha do usuário criada/substituída com ciphertext
+- [x] Email inexistente → mensagem clara, exit != 0, nenhuma gravação
+- [x] Falha de credenciais/MFA/rate limit → erro, tokens existentes inalterados
+- [x] Sessão sem `di_token` → erro "sem token DI", nada gravado
+- [x] `GARMINTOKENS` removida do env do processo antes do login (fake registra `login(None)`)
+- [x] Nenhum fragmento de token em mensagens de erro (GTDB-15)
+- [x] Gate check passes: `cd backend && uv run pytest tests/test_garmin_login.py -q`
+- [x] Test count: ~6 testes (reescrita completa do arquivo)
 
 **Tests**: unit
 **Gate**: quick
@@ -290,12 +290,12 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Import válido (dir com `garmin_tokens.json` e arquivo direto) → linha do usuário 1 cifrada
-- [ ] Linha existente → recusa com orientação para `login --user`, exit != 0, linha intacta
-- [ ] Arquivo ausente/ilegível/JSON sem `di_token` → erro claro, nenhuma gravação
-- [ ] `--path` com default `~/.garminconnect` (seam de teste, sem `--user` — spec trava o usuário 1)
-- [ ] Gate check passes: `cd backend && uv run pytest tests/test_garmin_import.py -q`
-- [ ] Test count: ~5 testes novos
+- [x] Import válido (dir com `garmin_tokens.json` e arquivo direto) → linha do usuário 1 cifrada
+- [x] Linha existente → recusa com orientação para `login --user`, exit != 0, linha intacta
+- [x] Arquivo ausente/ilegível/JSON sem `di_token` → erro claro, nenhuma gravação
+- [x] `--path` com default `~/.garminconnect` (seam de teste, sem `--user` — spec trava o usuário 1)
+- [x] Gate check passes: `cd backend && uv run pytest tests/test_garmin_import.py -q`
+- [x] Test count: ~5 testes novos
 
 **Tests**: unit
 **Gate**: quick

@@ -11,9 +11,14 @@ TEST_DATABASE_URL = "postgresql+psycopg://ritmo:ritmo@localhost:5432/ritmo_test"
 
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 
-from helpers import ensure_postgres_available  # noqa: E402
+from helpers import TEST_TOKEN_ENCRYPTION_KEY, ensure_postgres_available  # noqa: E402
 
 ensure_postgres_available(TEST_DATABASE_URL)
+
+# Chave Fernet FIXA de teste (garmin-tokens-db) — antes de qualquer
+# import da app, como a DATABASE_URL acima: o persist-back do sync (T5)
+# e o fail-fast do startup (T8) leem TOKEN_ENCRYPTION_KEY
+os.environ["TOKEN_ENCRYPTION_KEY"] = TEST_TOKEN_ENCRYPTION_KEY
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

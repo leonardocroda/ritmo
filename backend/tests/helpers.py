@@ -8,6 +8,12 @@ POSTGRES_UP_HINT = "docker compose up -d postgres"
 # (proxy do Docker/WSL). O probe impõe teto próprio: falha "imediatamente" (INFRA-06).
 PROBE_CONNECT_TIMEOUT_S = 3
 
+# Chave Fernet FIXA de teste (feature garmin-tokens-db) — o conftest a
+# define no env antes de qualquer import da app (como DATABASE_URL) e os
+# testes que semear/decriptar tokens usam a MESMA constante (lição L-001:
+# literal, nunca derivada da implementação).
+TEST_TOKEN_ENCRYPTION_KEY = "PwOdC2xBJ_5wILp0Gub2J_D8Lz3KJYL91vD-o-6kRWA="
+
 
 def ensure_postgres_available(database_url: str) -> None:
     """Falha rápido e claro se o Postgres de testes não estiver acessível (INFRA-06).
