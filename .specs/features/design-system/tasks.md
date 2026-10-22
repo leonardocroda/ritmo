@@ -252,8 +252,8 @@ T9 → T10 → T11 → T12 → T13
 
 **Done when**:
 
-- [ ] HrvChart: status do card, banda e outliers preservados; cores do tema
-- [ ] RhrChart/StressChart na família alert; zero hex local nos 3 arquivos
+- [x] HrvChart: status do card, banda e outliers preservados; cores do tema
+- [x] RhrChart/StressChart na família alert; zero hex local nos 3 arquivos
 - [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none

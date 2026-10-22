@@ -10,7 +10,6 @@
 
 import {
   Area,
-  CartesianGrid,
   ComposedChart,
   Line,
   ResponsiveContainer,
@@ -22,13 +21,8 @@ import {
 import type { ScatterShapeProps } from "recharts";
 
 import type { HrvBlock, HrvPoint } from "@/lib/api";
+import { axisLine, chart, legendCaption, tick, tooltipCard } from "@/lib/chartTheme";
 import { formatVdot } from "@/lib/format";
-
-const AXIS_COLOR = "#3f3f46";
-const MUTED_COLOR = "#a1a1aa";
-const HRV_COLOR = "#38bdf8"; // HRV (mesma cor de fitness do PMC)
-const BAND_OPACITY = 0.12; // banda normal — fundo suave (padrão RemChart)
-const OUT_COLOR = "#fbbf24"; // noite fora da banda (HRV-13)
 
 /** "2026-04-20" -> "20/04" (wall clock, sem conversão de fuso). */
 function shortDay(date: string): string {
@@ -56,7 +50,7 @@ function HrvTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-ctl border border-border bg-card px-3 py-2 text-xs">
+    <div className={tooltipCard}>
       <p className="font-medium">{fullDay(point.date)}</p>
       <p className="mt-1 text-muted">
         {point.value != null ? `HRV ${formatVdot(point.value)} ms` : "sem captura"} ·
@@ -86,7 +80,7 @@ function NightDot(props: ScatterShapeProps) {
       cx={props.cx}
       cy={props.cy}
       r={2}
-      fill={out ? OUT_COLOR : HRV_COLOR}
+      fill={out ? chart.attention : chart.context}
       fillOpacity={0.8}
     />
   );
@@ -94,13 +88,13 @@ function NightDot(props: ScatterShapeProps) {
 
 function SeriesLegend() {
   const series = [
-    { label: "noite", color: HRV_COLOR, opacity: 0.8 },
-    { label: "noite fora da banda", color: OUT_COLOR, opacity: 0.8 },
-    { label: "média 7 dias", color: HRV_COLOR, opacity: 1 },
-    { label: "banda normal", color: HRV_COLOR, opacity: BAND_OPACITY },
+    { label: "noite", color: chart.context, opacity: 0.8 },
+    { label: "noite fora da banda", color: chart.attention, opacity: 0.8 },
+    { label: "média 7 dias", color: chart.subject, opacity: 1 },
+    { label: "banda normal", color: chart.subject, opacity: chart.bandOpacity },
   ];
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+    <div className={legendCaption}>
       {series.map((item) => (
         <span key={item.label} className="flex items-center gap-1.5">
           <span
@@ -155,19 +149,18 @@ export default function HrvChart({ hrv }: { hrv: HrvBlock }) {
       <div className="mt-3 h-56 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={AXIS_COLOR} strokeOpacity={0.35} />
             <XAxis
               dataKey="date"
               tickFormatter={shortDay}
               minTickGap={28}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={axisLine}
+              tick={tick}
               tickLine={false}
             />
             <YAxis
               width={38}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={false}
+              tick={tick}
               tickLine={false}
               tickFormatter={(value: number) => String(value)}
             />
@@ -187,8 +180,8 @@ export default function HrvChart({ hrv }: { hrv: HrvBlock }) {
               dataKey="bandSpan"
               stackId="band"
               stroke="none"
-              fill={HRV_COLOR}
-              fillOpacity={BAND_OPACITY}
+              fill={chart.subject}
+              fillOpacity={chart.bandOpacity}
               dot={false}
               activeDot={false}
               isAnimationActive={false}
@@ -200,7 +193,7 @@ export default function HrvChart({ hrv }: { hrv: HrvBlock }) {
               type="monotone"
               dataKey="avg7"
               name="média 7d"
-              stroke={HRV_COLOR}
+              stroke={chart.subject}
               strokeWidth={1.5}
               dot={false}
               connectNulls={false}
