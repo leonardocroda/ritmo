@@ -15,7 +15,7 @@ ritmo/
 │   ├── app/
 │   │   ├── core/       # config 100% por env vars
 │   │   ├── db/         # engine + modelos (user_id em TODA tabela)
-│   │   ├── garmin/     # token_utils portado do garmin_mcp (tokens existentes)
+│   │   ├── garmin/     # sync + tokens Garmin por usuário no banco (Fernet, AD-014)
 │   │   └── vdot/       # calibrate_vdot.py (portar p/ funções puras na Fase 1)
 │   ├── data/           # vdot_zones.json — zonas atuais (VDOT 50.2, teste 10K 41:15)
 │   └── tests/          # rodam no Postgres do compose (banco ritmo_test)
@@ -113,13 +113,41 @@ CLI — a UI nunca pede credenciais (decisão do spec: re-auth é CLI):
 
 ```bash
 cd backend
-uv run python -m app.garmin.login   # email via input, senha via getpass, MFA quando exigido
+uv run python -m app.garmin.login --user <email>   # senha via getpass, MFA quando exigido
 ```
 
-No compose: `docker compose exec backend python -m app.garmin.login` — os
-tokens do host (`~/.garminconnect`) já estão montados em `/garminconnect`.
+No compose: `docker compose exec backend python -m app.garmin.login --user <email>`.
 Depois do login, clicar de novo no botão retoma o sync incremental, sem
 backfill.
+
+### Conexão Garmin por usuário
+
+Os tokens de cada usuário vivem no **banco, cifrados com Fernet** sob
+`TOKEN_ENCRYPTION_KEY` (AD-014) — nenhum token em arquivo no caminho runtime e o
+refresh OAuth2 rotacionado pelo sync é gravado de volta na linha do usuário. Sem
+a chave o backend **não sobe** (fail-fast): gere uma e defina no `.env`/compose:
+
+```bash
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Dois CLIs cobrem a escrita — a UI nunca pede credenciais Garmin (o convidado não
+digita a senha no site):
+
+```bash
+cd backend
+# 1) transição do legado (run-once): importa ~/.garminconnect para o usuário 1
+uv run python -m app.garmin.import_tokens
+# 2) onboarding/renovação de qualquer usuário (upsert, MFA interativo)
+uv run python -m app.garmin.login --user <email>
+```
+
+`import_tokens` **recusa** se o usuário 1 já tem tokens (renove com
+`login --user` — nunca reimportar token velho sobre token novo); `login --user`
+substitui a linha do usuário (re-login legítimo). O estado da conexão aparece no
+`/perfil` ("Conexão Garmin"): **Conectado**, **Reautenticação necessária** (o
+último sync não conseguiu usar os tokens) ou **Não conectado** — o re-login
+continua sendo CLI.
 
 ### Acessando pela LAN
 
