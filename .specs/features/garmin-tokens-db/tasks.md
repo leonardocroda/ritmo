@@ -319,11 +319,11 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Lifespan valida a chave ANTES do `init_db()`; ausente/inválida → `TokenKeyError` com o comando de geração
-- [ ] conftest seta chave de teste fixa antes de qualquer import da app; suite inteira segue verde
-- [ ] Teste de integração: env sem a chave + `get_settings.cache_clear()` + entrar no TestClient → `TokenKeyError` (higiene de cache no próprio teste)
-- [ ] Gate check passes: `cd backend && uv run pytest -q`
-- [ ] Test count: +1 teste de startup; 493+ baseline, zero deletados
+- [x] Lifespan valida a chave ANTES do `init_db()`; ausente/inválida → `TokenKeyError` com o comando de geração
+- [x] conftest seta chave de teste fixa antes de qualquer import da app; suite inteira segue verde
+- [x] Teste de integração: env sem a chave + `get_settings.cache_clear()` + entrar no TestClient → `TokenKeyError` (higiene de cache no próprio teste)
+- [x] Gate check passes: `cd backend && uv run pytest -q`
+- [x] Test count: +1 teste de startup; 493+ baseline, zero deletados
 
 **Tests**: integration
 **Gate**: full
