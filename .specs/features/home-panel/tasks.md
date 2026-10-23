@@ -245,7 +245,7 @@ T14 → T15
 
 **Tests**: integration
 **Gate**: full
-**Commit**: `feat(home): endpoint GET /api/home/today com contrato HomeOut`
+**Commit**: `feat(home): endpoint GET /api/home/today com contrato HomeOut` (66b8229)
 
 ---
 
@@ -264,11 +264,11 @@ T14 → T15
 
 **Done when**:
 
-- [ ] `init_db` em banco zerado cria a meia; segunda execução não duplica
-- [ ] `days_left` calculado dinamicamente (teste não crava 16)
-- [ ] Caso "sem prova": arrange com `DELETE FROM races` → `countdown: null` no payload
-- [ ] Gate: `uv run pytest` verde (inclui `tests/test_home_seed.py`)
-- [ ] Test count: ≥4 testes novos (seed cria, 2× não duplica, days_left dinâmico, sem prova → null)
+- [x] `init_db` em banco zerado cria a meia; segunda execução não duplica
+- [x] `days_left` calculado dinamicamente (teste não crava 16)
+- [x] Caso "sem prova": arrange com `DELETE FROM races` → `countdown: null` no payload
+- [x] Gate: `uv run pytest` verde (inclui `tests/test_home_seed.py`)
+- [x] Test count: ≥4 testes novos (seed cria, 2× não duplica, days_left dinâmico, sem prova → null)
 
 **Tests**: integration
 **Gate**: full

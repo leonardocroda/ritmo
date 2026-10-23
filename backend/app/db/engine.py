@@ -64,7 +64,7 @@ def _migrate_schema() -> None:
 def init_db() -> None:
     """Cria as tabelas, migra esquemas antigos e semeia o usuário default."""
     from app.db import models  # noqa: F401 — registra os modelos no Base
-    from app.db.models import DEFAULT_USER_ID, HrZoneConfig, User
+    from app.db.models import DEFAULT_USER_ID, HrZoneConfig, Race, User
 
     Base.metadata.create_all(bind=engine)
     _migrate_schema()
@@ -72,6 +72,28 @@ def init_db() -> None:
     with SessionLocal() as db:
         if db.get(User, DEFAULT_USER_ID) is None:
             db.add(User(id=DEFAULT_USER_ID, display_name="Leonardo"))
+            db.commit()
+
+        # HOME-22/23: a meia do countdown é fato real, não métrica
+        # (decisão do spec) — semeada só quando o usuário 1 não tem
+        # prova nenhuma. Guard por usuário, padrão AD-019 do seed
+        # acima: re-executar não duplica, prova de outro usuário não
+        # bloqueia. Sem setval — id auto como nos demais seeds de dado.
+        if (
+            db.query(Race)
+            .filter(Race.user_id == DEFAULT_USER_ID)
+            .first()
+            is None
+        ):
+            db.add(
+                Race(
+                    user_id=DEFAULT_USER_ID,
+                    name="The Best Açaí",
+                    date=date(2026, 11, 8),
+                    distance_m=21097.5,
+                    goal_time_s=None,
+                )
+            )
             db.commit()
 
         # HRZ-07: o usuário 1 nasce com a config de zonas (lthr +

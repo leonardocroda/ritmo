@@ -223,8 +223,8 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 | HOME-19 | P1: Chips (último treino + rota) | Design | Verified |
 | HOME-20 | P1: Chips (volume vs média 4s) | Design | Verified |
 | HOME-21 | P1: Chips (delta zero = "—") | Design | Verified |
-| HOME-22 | P1: Chips (countdown hoje/passada) | Design | Pending |
-| HOME-23 | P1: Chips (seed idempotente da meia) | Design | Pending |
+| HOME-22 | P1: Chips (countdown hoje/passada) | Design | Verified |
+| HOME-23 | P1: Chips (seed idempotente da meia) | Design | Verified |
 | HOME-24 | P1: Chips (sem atividade = chip omitido) | Design | Verified |
 | HOME-25 | P1: Recomendações (1–3, shape + prioridade) | Design | Verified |
 | HOME-26 | P1: Recomendações (R1 qualidade) | Design | Verified |
