@@ -205,10 +205,10 @@
 ## Handoff
 
 - **Feature**: `home-panel` (branch nova no worktree `ritmo-design-system`) — spec confirmada pelo usuário (23/10/2026): 40 ACs; veredito determinístico (regras V1–V6 prioridade fixa) + recomendações R1–R5 com why + chips de roteamento + strip 7 dias + seed da The Best Açaí; habit tracker adiado (AD-024). Fundações: `garmin-tokens-db` e `design-system` concluídas, validadas e mescladas na main (`56ebec3`, com Next 16.4.2 — CVEs fechados)
-- **Phase / Task**: Design — spec aprovada, `design.md` em escrita
-- **Completed**: spec (26 EARS stories, gate `validate_spec.py` limpo) + AD-024/AD-025 registradas + supersede da AD-011
-- **In-progress**: design.md do home-panel (reuso health/potential, motor de veredito, nav 5 itens)
-- **Next step**: concluir design.md → aprovação do usuário → tasks → execute (sub-agents por batch)
-- **Blockers**: none
+- **Phase / Task**: Execute — Batch A (T1–T7, backend) em despacho; baseline da suite rodando em background
+- **Completed**: spec + design + tasks aprovadas pelo usuário (26 EARS ACs; 15 tasks, 4 fases; greps dos Success Criteria nos Done when). Commit chain: `361cabb` (spec) → `e6fbe54` (design) → `7de5b43` (tasks)
+- **In-progress**: Execute via sub-agents (aprovado pelo usuário): Batch A = T1–T7 backend (motor de veredito, app_tz, get_home, endpoint, seed) → Batch B = T8–T15 (frontend + P2); Verifier automático ao final
+- **Next step**: baseline verde → despachar Batch A → sumário compacto → Batch B → Verifier → `validate_state.py` → UAT visual do usuário
+- **Blockers**: baseline da suite em background (worktree novo: `uv sync` feito; Postgres do compose em localhost:5432/ritmo_test)
 - **Uncommitted files**: none (após o commit da spec)
 - **Branch**: `home-panel` (nova, a partir da main `56ebec3`; commits locais — merge/push só com go-ahead do usuário)
