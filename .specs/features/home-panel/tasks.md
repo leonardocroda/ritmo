@@ -272,7 +272,7 @@ T14 → T15
 
 **Tests**: integration
 **Gate**: full
-**Commit**: `feat(home): seed da the best acai para o countdown`
+**Commit**: `feat(home): seed da the best acai para o countdown` (62f6a1c)
 
 ---
 
