@@ -110,29 +110,41 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: UAT 21/10/2026 sync job 18/19 + fb98bbc (backend/app/garmin)
 - last seen: 2026-10-21T21:16:10Z
 
-### L-017 - Build-gate features with zero tests: structural greps must also pin token LITERAL values (e.g. git grep for B7F36B in globals.css/chartTheme.ts), otherwise palette-value regressions pass lint+build silently.
+### L-017 - Assert an exclusion path with the resource alive — a not-persisted assertion tested only where the gateway is None is vacuously true
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `garmin sync persist-back` · harmful: 0
+- features: garmin-tokens-db
+- evidence: mutant M6 / backend/app/garmin/service.py:458-463 (validation.md Sensor) (garmin sync persist-back)
+- last seen: 2026-10-22T22:18:59Z
+
+### L-018 - Give each error trigger listed in an AC its own test — a sibling test for a different trigger leaves the untested branch free to regress
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `backend error paths` · harmful: 0
+- features: garmin-tokens-db
+- evidence: GTDB-12 / backend/app/garmin/import_tokens.py:48-51 (validation.md AC table) (backend error paths)
+- last seen: 2026-10-22T22:19:29Z
+
+### L-019 - Build-gate features with zero tests: structural greps must also pin token LITERAL values (e.g. git grep for B7F36B in globals.css/chartTheme.ts), otherwise palette-value regressions pass lint+build silently.
 - signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend/design-system` · harmful: 0
 - features: design-system
 - evidence: ds-sensor mutation 3 (globals.css:9) (frontend/design-system)
-- last seen: 2026-10-22T23:46:28Z
+- last seen: 2026-10-23T00:51:28Z
 
-### L-018 - When a component's PRESENCE is an acceptance criterion (TabBar render, DSN-17), add a structural grep for its render site (e.g. '<TabBar />' in the layout) — lint+build cannot notice a removed render.
+### L-020 - When a component's PRESENCE is an acceptance criterion (TabBar render, DSN-17), add a structural grep for its render site (e.g. '<TabBar />' in the layout) — lint+build cannot notice a removed render.
 - signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend/design-system` · harmful: 0
 - features: design-system
 - evidence: ds-sensor mutation 4 ((app)/layout.tsx:17) (frontend/design-system)
-- last seen: 2026-10-22T23:46:52Z
+- last seen: 2026-10-23T00:51:28Z
 
-### L-019 - Spec wording that a later design refines (gradient area -> flat bandOpacity 0.06) must be reconciled: amend the AC text or note the refinement in the spec, so code and spec stop diverging on 'gradiente lime->transparente'.
+### L-021 - Spec wording that a later design refines (gradient area -> flat bandOpacity 0.06) must be reconciled: amend the AC text or note the refinement in the spec, so code and spec stop diverging on 'gradiente lime->transparente'.
 - signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend/design-system` · harmful: 0
 - features: design-system
 - evidence: DSN-14 (spec.md AC 14) (frontend/design-system)
-- last seen: 2026-10-22T23:47:05Z
+- last seen: 2026-10-23T00:51:28Z
 
-### L-020 - When a design-table detail collides with a pinned backend contract (SplitsChart hr_color #f8fafc, backend test test_activities_api.py:450), the contract wins — record the deviation in the design doc, not as a frontend change.
+### L-022 - When a design-table detail collides with a pinned backend contract (SplitsChart hr_color #f8fafc, backend test test_activities_api.py:450), the contract wins — record the deviation in the design doc, not as a frontend change.
 - signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `frontend/design-system` · harmful: 0
 - features: design-system
 - evidence: design.md SplitsChart mapping row (hrColor) (frontend/design-system)
-- last seen: 2026-10-22T23:47:16Z
+- last seen: 2026-10-23T00:51:29Z
 
 ## Quarantined (failed when applied - ignore)
 

@@ -3,12 +3,14 @@
 Suite roda contra o banco `ritmo_test` do compose (ver conftest).
 """
 
+import os
+
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import inspect, select
 
 from app.core.config import Settings
-from app.db.engine import SessionLocal
+from app.db.engine import SessionLocal, engine
 from app.db.models import DEFAULT_USER_ID, User
 from app.main import app
 from helpers import ensure_postgres_available
@@ -63,3 +65,32 @@ def test_fail_fast_message_when_postgres_down() -> None:
     with pytest.raises(RuntimeError) as exc_info:
         ensure_postgres_available(dead_url)
     assert "docker compose up -d postgres" in str(exc_info.value)
+
+
+def test_startup_fails_fast_without_token_encryption_key() -> None:
+    """GTDB-14 (T8): sem TOKEN_ENCRYPTION_KEY o backend NÃO sobe — o lifespan
+    levanta TokenKeyError apontando a geração da chave, ANTES do init_db
+    (nenhuma tabela é recriada). Higiene de cache: o teste seta a env VAZIA
+    (env var vence o .env do pydantic-settings) e restaura valor + cache no
+    fim — os demais testes dependem do cache com a chave boa do conftest."""
+    from app.core.config import get_settings
+    from app.garmin.tokens_store import TokenKeyError
+
+    original = os.environ.get("TOKEN_ENCRYPTION_KEY")
+    os.environ["TOKEN_ENCRYPTION_KEY"] = ""
+    get_settings.cache_clear()
+    try:
+        with pytest.raises(TokenKeyError) as exc_info:
+            with TestClient(app):
+                pass
+        # Literais do spec/design (L-001): mensagem aponta a correção
+        assert "TOKEN_ENCRYPTION_KEY" in str(exc_info.value)
+        assert "Fernet.generate_key()" in str(exc_info.value)
+        # Falhou ANTES do init_db: o fixture derrubou o schema e nada voltou
+        assert not inspect(engine).has_table("users")
+    finally:
+        if original is None:
+            os.environ.pop("TOKEN_ENCRYPTION_KEY", None)
+        else:
+            os.environ["TOKEN_ENCRYPTION_KEY"] = original
+        get_settings.cache_clear()

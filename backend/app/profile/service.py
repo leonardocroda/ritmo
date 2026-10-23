@@ -13,11 +13,12 @@ campo e motivo exatos; o router só mapeia para 422. Quem chama controla
 o commit.
 """
 
-from datetime import date
+from datetime import date, datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from app.db.models import HrZoneConfig, UserHrMetric, UserHrSyncPref
+from app.db.models import HrZoneConfig, SyncJob, UserHrMetric, UserHrSyncPref
+from app.garmin import tokens_store
 from app.profile.calc import zones_bpm
 
 # As 3 métricas fisiológicas da feature (spec P1)
@@ -199,3 +200,46 @@ def validate_metrics_set(
     fclthr = merged.get("fclthr")
     if fclthr is not None and fclthr >= fcmax:
         raise MetricValidationError("fclthr", "limiar acima da FC máxima")
+
+
+# ---------------------------------------------------------------
+# Conexão Garmin (feature garmin-tokens-db — GTDB-16/17)
+# ---------------------------------------------------------------
+
+
+def _as_utc_naive(dt: datetime) -> datetime:
+    """Colunas TIMESTAMP são naive; ``_utcnow`` é aware UTC — ambos os
+    lados da comparação passam aqui antes (design: risco de TypeError
+    silencioso na derivação de estado)."""
+    if dt.tzinfo is None:
+        return dt
+    return dt.astimezone(timezone.utc).replace(tzinfo=None)
+
+
+def garmin_connection(db: Session, user_id: int) -> tuple[str, datetime | None]:
+    """Estado da conexão Garmin — derivação PURA, só metadados (GTDB-16):
+    ``(state, tokens_updated_at)``, sem nunca decriptar o blob
+    (``tokens_store.get_meta``). Sem linha de tokens → ``not_connected``;
+    último job do usuário ``error`` com ``reauth_needed`` (SYNC-25) e
+    tokens NÃO atualizados depois do fim dele → ``reauth_needed``;
+    caso contrário → ``connected`` (emenda GTDB-16: re-login após o job
+    volta a exibir "Conectado"). Último job = maior id (jobs por usuário
+    são sequenciais, SYNC-02)."""
+    exists, tokens_updated_at = tokens_store.get_meta(db, user_id)
+    if not exists or tokens_updated_at is None:
+        return "not_connected", None
+    job = (
+        db.query(SyncJob)
+        .filter(SyncJob.user_id == user_id)
+        .order_by(SyncJob.id.desc())
+        .first()
+    )
+    if (
+        job is not None
+        and job.status == "error"
+        and job.finished_at is not None
+        and (job.stats_json or {}).get("reauth_needed") is True
+        and _as_utc_naive(job.finished_at) >= _as_utc_naive(tokens_updated_at)
+    ):
+        return "reauth_needed", tokens_updated_at
+    return "connected", tokens_updated_at

@@ -319,11 +319,11 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Lifespan valida a chave ANTES do `init_db()`; ausente/inválida → `TokenKeyError` com o comando de geração
-- [ ] conftest seta chave de teste fixa antes de qualquer import da app; suite inteira segue verde
-- [ ] Teste de integração: env sem a chave + `get_settings.cache_clear()` + entrar no TestClient → `TokenKeyError` (higiene de cache no próprio teste)
-- [ ] Gate check passes: `cd backend && uv run pytest -q`
-- [ ] Test count: +1 teste de startup; 493+ baseline, zero deletados
+- [x] Lifespan valida a chave ANTES do `init_db()`; ausente/inválida → `TokenKeyError` com o comando de geração
+- [x] conftest seta chave de teste fixa antes de qualquer import da app; suite inteira segue verde
+- [x] Teste de integração: env sem a chave + `get_settings.cache_clear()` + entrar no TestClient → `TokenKeyError` (higiene de cache no próprio teste)
+- [x] Gate check passes: `cd backend && uv run pytest -q`
+- [x] Test count: +1 teste de startup; 493+ baseline, zero deletados
 
 **Tests**: integration
 **Gate**: full
@@ -347,12 +347,12 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Sem linha → `not_connected`; linha + último job reauth (tokens não atualizados após o fim do job) → `reauth_needed`; caso contrário → `connected`
-- [ ] Tokens atualizados APÓS o job falho → `connected` (emenda GTDB-16)
-- [ ] Resposta contém apenas `state` + `tokens_updated_at` (nenhum fragmento de blob)
-- [ ] Sem sessão → 401 (padrão do include)
-- [ ] Gate check passes: `cd backend && uv run pytest tests/test_profile_connection_api.py -q`
-- [ ] Test count: ~4 testes novos (3 estados + 401)
+- [x] Sem linha → `not_connected`; linha + último job reauth (tokens não atualizados após o fim do job) → `reauth_needed`; caso contrário → `connected`
+- [x] Tokens atualizados APÓS o job falho → `connected` (emenda GTDB-16)
+- [x] Resposta contém apenas `state` + `tokens_updated_at` (nenhum fragmento de blob)
+- [x] Sem sessão → 401 (padrão do include)
+- [x] Gate check passes: `cd backend && uv run pytest tests/test_profile_connection_api.py -q`
+- [x] Test count: ~4 testes novos (3 estados + 401)
 
 **Tests**: integration
 **Gate**: quick
@@ -376,10 +376,10 @@ T6 → T11
 
 **Done when**:
 
-- [ ] Três estados renderizam com pill distinta (Conectado / Reautenticação necessária / Não conectado)
-- [ ] Seção no topo da página, sem índice, subtítulo sempre visível (mobile-first 390px)
-- [ ] `npm run lint` e `npm run build` verdes (Next 16 — seguir o guia em `node_modules/next/dist/docs/` se API nova for usada)
-- [ ] Gate check passes: `cd frontend && npm run lint && npm run build`
+- [x] Três estados renderizam com pill distinta (Conectado / Reautenticação necessária / Não conectado)
+- [x] Seção no topo da página, sem índice, subtítulo sempre visível (mobile-first 390px)
+- [x] `npm run lint` e `npm run build` verdes (Next 16 — seguir o guia em `node_modules/next/dist/docs/` se API nova for usada)
+- [x] Gate check passes: `cd frontend && npm run lint && npm run build`
 
 **Tests**: none
 **Gate**: build
@@ -404,12 +404,12 @@ T6 → T11
 
 **Done when**:
 
-- [ ] `docker-compose.yml` sem mount e sem `GARMINTOKENS`; `docker compose config` confirma
-- [ ] `.env.example` sem as linhas legadas e com `TOKEN_ENCRYPTION_KEY` documentada (comando de geração)
-- [ ] README com a seção "Conexão Garmin por usuário" (import run-once + login por convidado)
-- [ ] `token_utils.py` retém só `resolve_token_path`; `secure_token_dir`/`get_token_path`/`get_token_base64_path`/`token_exists`/`validate_tokens`/`remove_tokens`/`get_token_info` removidas sem referência restante
-- [ ] `grep -ri GARMINTOKENS` no repo só encontra o CLI de importação (e nenhum leitor runtime)
-- [ ] Gate check passes: `cd backend && uv run pytest -q` (493+ baseline, zero deletados)
+- [x] `docker-compose.yml` sem mount e sem `GARMINTOKENS`; `docker compose config` confirma
+- [x] `.env.example` sem as linhas legadas e com `TOKEN_ENCRYPTION_KEY` documentada (comando de geração)
+- [x] README com a seção "Conexão Garmin por usuário" (import run-once + login por convidado)
+- [x] `token_utils.py` retém só `resolve_token_path`; `secure_token_dir`/`get_token_path`/`get_token_base64_path`/`token_exists`/`validate_tokens`/`remove_tokens`/`get_token_info` removidas sem referência restante
+- [x] `grep -ri GARMINTOKENS` no repo só encontra o CLI de importação (e nenhum leitor runtime)
+- [x] Gate check passes: `cd backend && uv run pytest -q` (493+ baseline, zero deletados)
 
 **Tests**: none
 **Gate**: full

@@ -21,6 +21,7 @@ from app.evaluation.router import router as evaluation_router
 from app.evaluation.service import recover_stale_evaluations
 from app.garmin.router import router as sync_router
 from app.garmin.service import recover_stale_jobs
+from app.garmin.tokens_store import require_key
 from app.health.router import router as health_router
 from app.potential.router import router as potential_router
 from app.profile.router import router as profile_router
@@ -30,6 +31,9 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    # GTDB-14: fail-fast ANTES de tudo — sem a chave é impossível ler
+    # tokens nem garantir criptografia em repouso (AD-014)
+    require_key(get_settings())
     init_db()
     recover_stale_jobs()  # SYNC-02: nenhum 409 eterno após restart
     recover_stale_evaluations()  # EVAL-24: pending órfãs viram error "interrompida"

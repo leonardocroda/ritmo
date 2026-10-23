@@ -8,9 +8,11 @@ shape do GET — 422 por campo apontando o motivo (HRZ-04) e 422 com o
 primeiro ponto inválido nos bounds (HRZ-09); history lista as séries
 DESC por (valid_from, id) com data e fonte (HRZ-15). O commit é único
 no fim do PUT: 422 depois de um flush descarta a escrita parcial.
+A conexão Garmin (garmin-tokens-db) entra como GET de leitura — só
+metadados do estado (GTDB-17), derivação no service.
 """
 
-from datetime import date
+from datetime import date, datetime
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -93,6 +95,14 @@ class ConfigHistoryOut(BaseModel):
 class HrZonesHistoryOut(BaseModel):
     metrics: list[MetricHistoryOut]
     configs: list[ConfigHistoryOut]
+
+
+class ConnectionOut(BaseModel):
+    """GTDB-17: SÓ metadados da conexão — estado + data da última escrita
+    dos tokens; nunca o blob (fica no cofre cifrado do tokens_store)."""
+
+    state: Literal["connected", "reauth_needed", "not_connected"]
+    tokens_updated_at: datetime | None
 
 
 def _hr_zones_payload(db: Session, user_id: int) -> HrZonesOut:
@@ -254,3 +264,17 @@ def get_hr_zones_history(
             for row in config_rows
         ],
     )
+
+
+@router.get("/garmin-connection")
+def get_garmin_connection(
+    user: User = Depends(require_session),
+    db: Session = Depends(get_db),
+) -> ConnectionOut:
+    """GTDB-16: estado da conexão Garmin do usuário da sessão — só
+    exibição, sem ação (re-login é CLI do operador). A derivação pura
+    (3 estados, emenda incluída) vive no service; a resposta carrega
+    apenas metadados (GTDB-17). 401 sem sessão é dado pelo include no
+    main."""
+    state, tokens_updated_at = service.garmin_connection(db, user.id)
+    return ConnectionOut(state=state, tokens_updated_at=tokens_updated_at)
