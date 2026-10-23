@@ -19,4 +19,7 @@ COPY data ./data
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Render injeta PORT (default 10000) em todo web service — sem bind nele o
+# health check nunca passa. O compose local não injeta nada e segue no 8000
+# mapeado no docker-compose.yml. Shell form expande a env no boot.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

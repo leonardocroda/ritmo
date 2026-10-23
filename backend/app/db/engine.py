@@ -16,7 +16,20 @@ from app.profile.calc import DEFAULT_BOUNDS
 
 settings = get_settings()
 
-engine = create_engine(settings.database_url)
+# Neon (produção, docs/DEPLOY.md): a compute hiberna após 5 min sem queries
+# e encerra as conexões idle do pool — pre_ping recicla a conexão morta no
+# checkout em vez de estourar OperationalError na request (transparência
+# do scale-to-zero). Knobs do DRIVER, não de dialeto: o caminho continua
+# único (AD-007) e inofensivos no Postgres local do compose.
+engine = create_engine(
+    settings.database_url,
+    pool_pre_ping=True,
+    # A string pooled (-pooler) atravessa o PgBouncer do Neon em modo
+    # transaction: o prepare automático do psycopg3 (liga após 5 execuções
+    # da mesma query) quebra entre transações ("prepared statement already
+    # exists"). None desliga o prepare no cliente.
+    connect_args={"prepare_threshold": None},
+)
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 

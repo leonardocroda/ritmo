@@ -1,0 +1,42 @@
+# ============================================================
+# Ritmo — Blueprint Render (Fase 2.5: deploy na nuvem)
+# Backend FastAPI como web service Docker no plano free.
+#
+# O banco NÃO mora aqui: o Render Postgres free EXPIRA em 30 dias
+# (deleção após 14 de carência — render.com/docs/free). O Postgres é
+# o Neon, conectado pela DATABASE_URL: runbook completo em
+# docs/DEPLOY.md.
+#
+# Schema: https://render.com/docs/blueprint-spec
+# ============================================================
+
+services:
+  - type: web
+    name: ritmo-backend # define o subdomínio: ritmo-backend.onrender.com
+    runtime: docker
+    rootDir: backend # monorepo: Dockerfile e build context relativos a backend/
+    plan: free
+    region: virginia # região Render mais próxima do BR — e a MESMA do Neon (aws-us-east-1)
+    branch: main
+    healthCheckPath: /api/health # liveness que NÃO toca o banco (app/main.py)
+
+    envVars:
+      # --- segredos: o painel pede cada um no primeiro sync do Blueprint ---
+      - key: DATABASE_URL # string POOLED do Neon (host com -pooler) — docs/DEPLOY.md §1
+        sync: false
+      - key: TOKEN_ENCRYPTION_KEY # Fernet — sem ela o backend NÃO sobe (fail-fast GTDB-14)
+        sync: false
+      - key: NVIDIA_API_KEY # avaliação IA — sem ela o botão Avaliar responde 503
+        sync: false
+      - key: INVITE_CODE # vazio = registro fechado (403); preencha p/ abrir /registrar
+        sync: false
+
+      # --- valores que diferem dos defaults do código (app/core/config.py) ---
+      - key: APP_ENV
+        value: prod
+      - key: TZ # date.today() e janelas de sync no fuso de São Paulo
+        value: America/Sao_Paulo
+      - key: SESSION_COOKIE_SECURE # produção é HTTPS ponta a ponta (auth, Fase 2.5)
+        value: "true"
+      - key: CORS_ORIGINS # só p/ acesso browser DIRETO à API; o fluxo normal é
+        value: https://ritmo.vercel.app # same-origin (rewrite AD-020) — ajuste ao subdomínio real
