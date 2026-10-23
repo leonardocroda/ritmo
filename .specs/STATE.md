@@ -204,12 +204,12 @@
 
 ## Handoff
 
-- **Feature**: `home-panel` (branch `home-panel`) — **concluída e validada (PASS, 23/10/2026)**: 39/39 ACs P1+P2 com evidência `file:line` (0 gaps de precisão), sensor 5/5 mutações mortas (0 sobreviventes), suite **622/622** (baseline pré-feature 550, +72 testes, 7 arquivos `test_home_*`), frontend lint+build verdes, greps estruturais verdes; relatório em `.specs/features/home-panel/validation.md`. Pendências: UAT visual do usuário (390px + desktop contra o mock v0.3 — os 2 Success Criteria visuais marcados pending-user-UAT) e HOME-40 (P3 — RHR no porquê, deferido pela spec)
-- **Phase / Task**: Execute concluído — 15 tasks em 2 batches de sub-agents (Batch A T1 `3bf8f27` → T7 `62f6a1c`; Batch B T8 `7c96af5` → T15 `9e9b11d`; hashes por task em `tasks.md`) + Verifier PASS
-- **Completed**: motor de veredito determinístico V1–V6 (prioridade fixa, sinal nulo neutro, sem score/LLM — AD-025) + recomendações R1–R5 com why + taper ≤14d + `GET /api/home/today` com consistência AD-010 por construção (`get_health(8)`) + `app_tz()` extraído pro core + seed idempotente da The Best Açaí (08/11, countdown dinâmico) + Home na raiz `/` (tab "Home" em 1º, 5 itens, special-case da raiz no activePanel) + card-veredito herói (chips de sinal com data quando stale, strip 7 dias com lacunas zeradas) + chips de roteamento + cards de recomendação + mini de 10 semanas + digest de previsões (`ZoneConfigError → None`) + estados skeleton/vazio/erro
-- **In-progress**: UAT visual do usuário em dev server do worktree (backend local + next dev, dados reais)
-- **Next step**: UAT do usuário → ajustes se pedidos → go-ahead para merge `home-panel` → main (re-lembrar o push pendente da main: 2 commits + os da feature no mesmo go-ahead)
+- **Feature**: `home-panel` — **concluída, validada (PASS 39/39, sensor 5/5) e MESCLADA na main** (`2217aed`, 23/10/2026, UAT do usuário aprovado com "merge"). Compose rebuilt: stack da porta 3000 com a Home. Fix pós-merge no mesmo ciclo: proxy/login/registrar levavam `/treinos` como destino pós-login (herança AUTH-20, invisível pro Verifier — sem AC de proxy no spec); agora a raiz Home é a porta de frente
+- **Phase / Task**: feature encerrada — 15 tasks em 2 batches + Verifier PASS + fix pós-merge
+- **Completed**: veredito determinístico V1–V6 + recomendações R1–R5 + `GET /api/home/today` (consistência AD-010 por construção) + seed da The Best Açaí + Home em `/` (tab "Home" 1ª, 5 itens) + card-veredito/chips/strip/recomendações/digests + estados + fix do destino pós-login (proxy ×2, login, registrar)
+- **In-progress**: none
+- **Next step**: decisão de push (origin parado em `77bb801`; main tem merge + fix — go-ahead do usuário pendente) · próxima feature da fila a definir (habit tracker da AD-024 é a candidata natural com a visão de registro temporal de consumo)
 - **Blockers**: none
-- **Uncommitted files**: none (após o commit de fechamento)
-- **Branch**: `home-panel` (worktree `ritmo-design-system`; commits locais — merge/push só com go-ahead do usuário)
-- **Pendências menores vivas**: flake pré-existente `test_garmin_tokens_store` (monotonicidade de relógio no Windows, ~2/4 runs — reportado no batch A, não corrigido: fora do escopo) · habit tracker (AD-024 — feature futura com registro temporal de consumo) · advisory `braces` high dev-only · NVIDIA_MODEL default no `.env` · CLI `set_password` sem política ≥8 · 2 docstrings de teste defasadas
+- **Uncommitted files**: none (após o commit do fix)
+- **Branch**: `main` (worktree principal + worktree `ritmo-design-system` na branch `home-panel` sincronizada por merge)
+- **Pendências menores vivas**: flake pré-existente `test_garmin_tokens_store` (monotonicidade de relógio no Windows, ~2/4 runs) · habit tracker (AD-024 — feature futura) · advisory `braces` high dev-only · NVIDIA_MODEL default no `.env` · CLI `set_password` sem política ≥8 · 2 docstrings de teste defasadas

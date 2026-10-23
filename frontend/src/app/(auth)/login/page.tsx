@@ -35,8 +35,9 @@ function LoginForm() {
         String(data.get("email") ?? ""),
         String(data.get("password") ?? ""),
       );
-      // Aterrissa na rota original (AUTH-18); sem next, no painel principal.
-      router.replace(next ?? "/treinos");
+      // Aterrissa na rota original (AUTH-18); sem next, no painel principal
+      // — a Home, porta de frente desde a feature home-panel.
+      router.replace(next ?? "/");
     } catch (err) {
       setError(
         err instanceof ApiError

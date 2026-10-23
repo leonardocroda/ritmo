@@ -46,8 +46,9 @@ function RegisterForm() {
         password: String(data.get("password") ?? ""),
         invite_code: String(data.get("invite_code") ?? ""),
       });
-      // 201 já veio com cookie de sessão (auto-login): entra direto.
-      router.replace(next ?? "/treinos");
+      // 201 já veio com cookie de sessão (auto-login): entra direto na
+      // Home (porta de frente desde a feature home-panel).
+      router.replace(next ?? "/");
     } catch (err) {
       if (err instanceof AuthError) {
         setFieldErrors(err.fieldErrors);

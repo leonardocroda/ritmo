@@ -11,8 +11,8 @@ import type { NextRequest } from "next/server";
 const SESSION_COOKIE = "ritmo_session";
 
 // Telas protegidas (AUTH-17): painéis + /perfil (HRZ-16, feature
-// hr-zones); `/` é caso à parte: o next vira /treinos, para onde a
-// home autenticada já redireciona (AUTH-20).
+// hr-zones); `/` é a Home (home-panel, AD-025) — o next preserva a
+// rota pedida, login devolve o usuário pra onde ele estava.
 const PANEL_PREFIXES = ["/treinos", "/performance", "/saude", "/perfil"];
 const AUTH_ROUTES = ["/login", "/registrar"];
 
@@ -28,18 +28,19 @@ export function proxy(request: NextRequest) {
   const hasSession = request.cookies.has(SESSION_COOKIE);
 
   // Sem cookie em rota de painel → /login?next=<rota corrente> (AUTH-17).
-  // O next preserva query e é URL-encoded; o login volta à rota original.
+  // O next preserva query e é URL-encoded; o login volta à rota original
+  // — incluindo a raiz, que agora É o painel Home (AD-025).
   if (isPanelRoute(pathname) && !hasSession) {
-    const next = pathname === "/" ? "/treinos" : pathname + search;
+    const next = pathname + search;
     return NextResponse.redirect(
       new URL(`/login?next=${encodeURIComponent(next)}`, request.nextUrl),
     );
   }
 
   // Autenticado em tela de auth → painéis (AUTH-19); sem next: é a
-  // sessão falando, o destino natural é o painel principal.
+  // sessão falando, o destino natural é o painel principal — a Home.
   if (AUTH_ROUTES.includes(pathname) && hasSession) {
-    return NextResponse.redirect(new URL("/treinos", request.nextUrl));
+    return NextResponse.redirect(new URL("/", request.nextUrl));
   }
 
   return NextResponse.next();
