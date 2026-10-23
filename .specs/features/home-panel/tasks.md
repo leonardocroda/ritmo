@@ -162,7 +162,7 @@ T14 → T15
 
 **Tests**: unit
 **Gate**: quick
-**Commit**: `feat(home): delta de sono e volume semanal iso puros`
+**Commit**: `feat(home): delta de sono e volume semanal iso puros` (b264298)
 
 ---
 
@@ -181,10 +181,10 @@ T14 → T15
 
 **Done when**:
 
-- [ ] `app_tz()` com o mesmo comportamento do `_resolve_tz` (default + warning em valor inválido)
-- [ ] Health router delega sem mudança de comportamento; suite do health verde (não-regressão)
-- [ ] Gate: `uv run pytest` (suite cheia) verde
-- [ ] Test count: baseline 550 + os de T1–T3, zero falha — nenhuma exclusão silenciosa
+- [x] `app_tz()` com o mesmo comportamento do `_resolve_tz` (default + warning em valor inválido)
+- [x] Health router delega sem mudança de comportamento; suite do health verde (não-regressão)
+- [x] Gate: `uv run pytest` (suite cheia) verde
+- [x] Test count: baseline 550 + os de T1–T3, zero falha — nenhuma exclusão silenciosa
 
 **Tests**: unit (edge coberta pela suite existente do health + novo uso)
 **Gate**: full
