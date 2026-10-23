@@ -198,15 +198,17 @@
   topo do `/perfil` (PanelSection sem índice), tokenstore filesystem extinto
   (compose, .env.example, README, token_utils reduzido a resolve_token_path)
 - **In-progress**: none
-- **Next step**: `garmin-tokens-db` **100% entregue e validada (22/10/2026)**.
-  Operação pós-merge no host: gerar `TOKEN_ENCRYPTION_KEY` no `backend/.env`,
-  rodar `uv run python -m app.garmin.import_tokens` UMA vez (importa os tokens
-  atuais do usuário 1 sem MFA) e reiniciar a stack. Próxima feature da fila:
-  `user-profile`. Lições L-017/L-018 registradas (persist-reauth e import
-  ilegível). Pendências menores vivas: CLI `set_password` sem política de senha
-  ≥8; 2 docstrings de teste defasadas (cosmético); decisão aberta de produto:
-  NVIDIA_MODEL default no `.env`; Next 16.4 oferece "security upgrade" no build
-  (não executado — fora do escopo da feature)
+- **Next step**: `garmin-tokens-db` **entregue, validada e UAT-confirmada (22/10/2026)**:
+  operação real no host (chave gerada, `import_tokens` run-once, stack no ar) e sync
+  do usuário 1 concluído `done` sem nenhum pedido de reconexão — tokens só no banco.
+  Observações de UAT ainda por vir: on-board do primeiro convidado via
+  `login --user` (criterio de sucesso restante) e um sync pós-rotação de refresh
+  (prova direta da persistência — hoje coberta por teste + sinal indireto).
+  Próxima feature da fila: `user-profile`. Lições L-017/L-018 registradas
+  (persist-reauth e import ilegível). Pendências menores vivas: CLI `set_password`
+  sem política de senha ≥8; 2 docstrings de teste defasadas (cosmético); decisão
+  aberta de produto: NVIDIA_MODEL default no `.env`; Next 16.4 oferece "security
+  upgrade" no build (não executado — fora do escopo da feature)
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main (commits locais; push só com go-ahead do usuário)

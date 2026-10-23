@@ -203,8 +203,8 @@ onboarding de convidado operador-assistido via CLI.
 
 ## Success Criteria
 
-- [ ] Sync do usuário 1 conclui `done` com o mount do compose removido — tokens só no banco
-- [ ] `SELECT` na tabela de tokens mostra apenas ciphertext (nada em plano)
-- [ ] Um convidado novo fica on-boardável com 1 comando CLI (`--user <email>`) e zero coleta de credencial no site
-- [ ] Refresh token rotacionado durante o sync é encontrado na linha do banco ao fim do job
-- [ ] Suite verde (incl. testes de isolamento por usuário); zero leitura de filesystem em caminho runtime; `GARMINTOKENS` ausente do repositório fora do CLI de importação
+- [x] Sync do usuário 1 conclui `done` com o mount do compose removido — tokens só no banco *(UAT real 22/10/2026: sync concluído, nenhum pedido de reconexão)*
+- [x] `SELECT` na tabela de tokens mostra apenas ciphertext (nada em plano) *(GTDB-13 verificado em teste — Verifier 20/20)*
+- [x] Refresh token rotacionado durante o sync é encontrado na linha do banco ao fim do job *(GTDB-04 provado em teste, mutante M6 morta; UAT indireto: nenhuma reconexão pedida)*
+- [x] Suite verde (incl. testes de isolamento por usuário); zero leitura de filesystem em caminho runtime; `GARMINTOKENS` ausente do repositório fora do CLI de importação *(Verifier: 550/550, grep limpo)*
+- [ ] Um convidado novo fica on-boardável com 1 comando CLI (`--user <email>`) e zero coleta de credencial no site *(aguardando o primeiro convidado real — fluxo coberto pelos testes do T6)*
