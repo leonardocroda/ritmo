@@ -104,3 +104,65 @@ def verdict(signals: Signals) -> Verdict | None:
     if balanced and fresh and not below_floor:
         return Verdict("Pronto pra qualidade", "good", "V5")
     return Verdict("Dia comum, sem urgências", "neutral", "V6")
+
+
+@dataclass(frozen=True)
+class Recommendation:
+    """Ação do dia: o texto, a linha de apoio (só onde o spec define
+    copy), a tag why (sinais que sustentam) e o tom semântico."""
+
+    text: str
+    support: str | None
+    why: str | None
+    tone: str
+
+
+def recommendations(rule: str | None, countdown_days: int | None) -> list[Recommendation]:
+    """R1–R5 por prioridade fixa, cap 3 (HOME-25..30).
+
+    R1–R3 e R5 casam 1:1 com a regra do veredito (uma frase por dia ->
+    no máximo uma dessas por payload); R4 (taper) dispara
+    INDEPENDENTE do veredito quando faltam ≤14 dias para a próxima
+    prova. `why` é a tag dos sinais que sustentam a recomendação (None
+    em R5: nenhuma regra específica — o 'Tudo dentro da faixa' vive no
+    support). Sem veredito (estado vazio) não há recomendação: nada
+    para basear uma ação.
+    """
+    recs: list[Recommendation] = []
+    if rule == "V5":
+        recs.append(
+            Recommendation(
+                "Boa janela pra sessão de qualidade", None, "HRV · sono · forma", "good"
+            )
+        )
+    elif rule in ("V1", "V2"):
+        recs.append(
+            Recommendation(
+                "Priorize recuperação hoje — leve ou descanso",
+                None,
+                "HRV · sono",
+                "alert" if rule == "V1" else "attention",
+            )
+        )
+    elif rule in ("V3", "V4"):
+        recs.append(
+            Recommendation(
+                "Segure o volume nesta semana", None, "ACWR · forma", "attention"
+            )
+        )
+    if countdown_days is not None and countdown_days <= TAPER_DAYS:
+        recs.append(
+            Recommendation(
+                "Semana de prova — redução progressiva (taper)",
+                None,
+                f"prova em {countdown_days} dias",
+                "attention",
+            )
+        )
+    if rule == "V6":
+        recs.append(
+            Recommendation(
+                "Siga o leve de hoje", "Tudo dentro da faixa", None, "neutral"
+            )
+        )
+    return recs[:3]

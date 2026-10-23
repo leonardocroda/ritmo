@@ -110,7 +110,7 @@ T14 → T15
 
 **Tests**: unit
 **Gate**: quick
-**Commit**: `feat(home): motor de veredito v1-v6 puro com regras de prioridade`
+**Commit**: `feat(home): motor de veredito v1-v6 puro com regras de prioridade` (3bf8f27)
 
 ---
 
@@ -129,10 +129,10 @@ T14 → T15
 
 **Done when**:
 
-- [ ] R1 (janela de qualidade), R2 (recuperação), R3 (segurar volume), R4 (taper), R5 (leve de hoje) com textos/why da spec
-- [ ] R4 (taper) dispara independentemente do veredito; cap 3 respeitado por prioridade
-- [ ] Gate: `uv run pytest tests/test_home_recommendations.py` verde
-- [ ] Test count: ≥8 testes novos (R1–R5, taper com/sem prova, cap 3, why correto por regra)
+- [x] R1 (janela de qualidade), R2 (recuperação), R3 (segurar volume), R4 (taper), R5 (leve de hoje) com textos/why da spec
+- [x] R4 (taper) dispara independentemente do veredito; cap 3 respeitado por prioridade
+- [x] Gate: `uv run pytest tests/test_home_recommendations.py` verde
+- [x] Test count: ≥8 testes novos (R1–R5, taper com/sem prova, cap 3, why correto por regra)
 
 **Tests**: unit
 **Gate**: quick

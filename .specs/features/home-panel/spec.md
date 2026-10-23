@@ -226,12 +226,12 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 | HOME-22 | P1: Chips (countdown hoje/passada) | Design | Pending |
 | HOME-23 | P1: Chips (seed idempotente da meia) | Design | Pending |
 | HOME-24 | P1: Chips (sem atividade = chip omitido) | Design | Pending |
-| HOME-25 | P1: Recomendações (1–3, shape + prioridade) | Design | Pending |
-| HOME-26 | P1: Recomendações (R1 qualidade) | Design | Pending |
-| HOME-27 | P1: Recomendações (R2 recuperação) | Design | Pending |
-| HOME-28 | P1: Recomendações (R3 volume) | Design | Pending |
-| HOME-29 | P1: Recomendações (R4 taper ≤14d) | Design | Pending |
-| HOME-30 | P1: Recomendações (R5 leve) | Design | Pending |
+| HOME-25 | P1: Recomendações (1–3, shape + prioridade) | Design | Verified |
+| HOME-26 | P1: Recomendações (R1 qualidade) | Design | Verified |
+| HOME-27 | P1: Recomendações (R2 recuperação) | Design | Verified |
+| HOME-28 | P1: Recomendações (R3 volume) | Design | Verified |
+| HOME-29 | P1: Recomendações (R4 taper ≤14d) | Design | Verified |
+| HOME-30 | P1: Recomendações (R5 leve) | Design | Verified |
 | HOME-31 | P1: Recomendações (card abaixo da dobra) | Design | Pending |
 | HOME-32 | P1: Rota (Home em `/`, `/hoje` 404) | Design | Pending |
 | HOME-33 | P1: Nav (5 itens, Home 1ª) | Design | Pending |
