@@ -350,7 +350,7 @@ T14 → T15
 
 **Tests**: none (build gate + greps estruturais)
 **Gate**: build
-**Commit**: `feat(frontend): card-veredito heroi com chips e strip de 7 dias`
+**Commit**: `feat(frontend): card-veredito heroi com chips e strip de 7 dias` (6798e64)
 
 ---
 
@@ -369,11 +369,11 @@ T14 → T15
 
 **Done when**:
 
-- [ ] Chips como `Link` com alvo ≥44px; um dado, um verbo, um destino
-- [ ] Volume com avg4 == 0 renderiza "—"; sem atividade → chip de último treino omitido
-- [ ] Countdown "é hoje" quando `days_left == 0`
-- [ ] Cards de recomendação com why em tag, tom semântico no dot
-- [ ] Gate: `npm run lint` + `npm run build` verdes
+- [x] Chips como `Link` com alvo ≥44px; um dado, um verbo, um destino
+- [x] Volume com avg4 == 0 renderiza "—"; sem atividade → chip de último treino omitido
+- [x] Countdown "é hoje" quando `days_left == 0`
+- [x] Cards de recomendação com why em tag, tom semântico no dot
+- [x] Gate: `npm run lint` + `npm run build` verdes
 
 **Tests**: none (build gate)
 **Gate**: build
