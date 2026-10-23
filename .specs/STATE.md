@@ -208,7 +208,7 @@
 - **Phase / Task**: feature encerrada — 15 tasks em 2 batches + Verifier PASS + fix pós-merge
 - **Completed**: veredito determinístico V1–V6 + recomendações R1–R5 + `GET /api/home/today` (consistência AD-010 por construção) + seed da The Best Açaí + Home em `/` (tab "Home" 1ª, 5 itens) + card-veredito/chips/strip/recomendações/digests + estados + fix do destino pós-login (proxy ×2, login, registrar)
 - **In-progress**: none
-- **Next step**: decisão de push (origin parado em `77bb801`; main tem merge + fix — go-ahead do usuário pendente) · próxima feature da fila a definir (habit tracker da AD-024 é a candidata natural com a visão de registro temporal de consumo)
+- **Next step**: próxima feature da fila a definir — a **AD-024 (habit tracker com registro temporal de consumo)** é a candidata natural (tese Whoop-of-Garmin; desenhar com o usuário). Push executado neste commit com go-ahead explícito do usuário (23/10)
 - **Blockers**: none
 - **Uncommitted files**: none (após o commit do fix)
 - **Branch**: `main` (worktree principal + worktree `ritmo-design-system` na branch `home-panel` sincronizada por merge)
