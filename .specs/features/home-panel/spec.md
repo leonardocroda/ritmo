@@ -214,7 +214,7 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 | HOME-10 | P1: Veredito (sinal nulo = neutro + chip vazio) | Design | Verified |
 | HOME-11 | P1: Veredito (401) | Design | Verified |
 | HOME-12 | P1: Veredito (edge timezone) | Design | Verified |
-| HOME-13 | P1: Card (composição herói) | Design | Pending |
+| HOME-13 | P1: Card (composição herói) | Design | Verified |
 | HOME-14 | P1: Card (strip 7 dias) | Design | Verified |
 | HOME-15 | P1: Card (dia sem carga = barra zero) | Design | Verified |
 | HOME-16 | P1: Card (stale mostra data) | Design | Verified |

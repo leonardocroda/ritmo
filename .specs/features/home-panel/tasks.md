@@ -323,7 +323,7 @@ T14 → T15
 
 **Tests**: none (build gate + greps estruturais)
 **Gate**: build
-**Commit**: `feat(frontend): nav ganha home em primeiro com 5 itens`
+**Commit**: `feat(frontend): nav ganha home em primeiro com 5 itens` (987018b)
 
 ---
 
@@ -342,11 +342,11 @@ T14 → T15
 
 **Done when**:
 
-- [ ] Composição do mock: herói raised, eyebrow, display 38–40px, chips, strip + caption `"carga · últimos 7 dias"`
-- [ ] Chip stale mostra a data do dado; sinal null mostra estado vazio ("coletando linha de base"/"sem dado")
-- [ ] Barra de dia sem carga tem altura zero (não omitida)
-- [ ] Zero cor literal: `git grep -nE "#[0-9A-Fa-f]{6}" -- frontend/src/components/home` vazio
-- [ ] Gate: `npm run lint` + `npm run build` verdes
+- [x] Composição do mock: herói raised, eyebrow, display 38–40px, chips, strip + caption `"carga · últimos 7 dias"`
+- [x] Chip stale mostra a data do dado; sinal null mostra estado vazio ("coletando linha de base"/"sem dado")
+- [x] Barra de dia sem carga tem altura zero (não omitida)
+- [x] Zero cor literal: `git grep -nE "#[0-9A-Fa-f]{6}" -- frontend/src/components/home` vazio
+- [x] Gate: `npm run lint` + `npm run build` verdes
 
 **Tests**: none (build gate + greps estruturais)
 **Gate**: build
