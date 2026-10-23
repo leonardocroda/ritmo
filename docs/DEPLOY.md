@@ -99,18 +99,34 @@ No primeiro boot o `init_db()` cria o schema no Neon e semeia o usuário
 default — a mesma sequência do compose local, zero passo extra. A cada
 cold start ele roda de novo (idempotente por design).
 
-### CLIs dentro do Render
+### CLIs: na sua máquina, não no Render (o Shell é pago)
 
 O bootstrap de senha e o re-login Garmin (decisão travada: re-auth é CLI)
-rodam no **Shell** do serviço (Dashboard → ritmo-backend → aba *Shell*):
+**não precisam rodar no Render** — as CLIs só precisam alcançar o banco, e
+o Neon é público: a connection string vale de qualquer máquina. Rode no
+seu terminal de sempre, em `backend/`, apontando o `DATABASE_URL`
+**da sessão** para a produção:
 
-```bash
-python -m app.auth.set_password           # bootstrap/reset do dono (email+senha)
-python -m app.garmin.login --user <email> # tokens Garmin — MFA interativo funciona no Shell
+```powershell
+cd backend
+$env:DATABASE_URL = "postgresql+psycopg://user:pass@ep-xxxx-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require"
+
+uv run python -m app.auth.set_password             # bootstrap/reset do dono
+uv run python -m app.garmin.login --user <email>   # login Garmin — MFA no terminal
 ```
 
-O container sobe com o venv do uv no `PATH` e `WORKDIR /app` — os comandos
-são os mesmos do README.
+Regras do fluxo:
+
+- A env vive **só na sessão do PowerShell** — fechou o terminal, volta ao
+  `.env` local; os ambientes nunca se misturam em arquivo.
+- **Pré-requisito**: o backend precisa ter bootado ao menos uma vez — o
+  `init_db()` do primeiro deploy cria as tabelas no Neon (a CLI não cria).
+- **Fernet**: o login Garmin cifras o token na SUA máquina e o backend
+  decifra no Render — a `TOKEN_ENCRYPTION_KEY` local tem que ser a
+  **mesma** do Render. Senha de login não usa Fernet (argon2), então o
+  `set_password` funciona com qualquer chave.
+- Validado ponta a ponta (out/2026): env da sessão + `set_password` numa
+  base recém-criada → seed id=1 vinculado ao email com hash argon2.
 
 ## 3. Vercel — publicar o frontend
 
@@ -135,14 +151,15 @@ fluxo normal nem passa por CORS, é same-origin.
 
 ## 4. Bootstrap e primeiro uso
 
-1. Render **Shell** → `python -m app.auth.set_password` (email+senha do
-   usuário seed — o "Leonardo" criado pelo `init_db`).
+1. No seu terminal (§ *CLIs: na sua máquina*): `uv run python -m
+   app.auth.set_password` — vincula email+senha ao usuário seed (o
+   "Leonardo" criado pelo `init_db`).
 2. Entre em `https://ritmo.vercel.app/login`.
-3. Conecte o Garmin: Render Shell →
-   `python -m app.garmin.login --user <email>` (tokens cifrados no banco
-   com a `TOKEN_ENCRYPTION_KEY`) → botão **Puxar do Garmin** no `/perfil`.
-   O backfill de 180d roda inteiro num request só (~10 min) — o Render
-   aguenta (timeout de 100 min), só não feche a aba.
+3. Conecte o Garmin: `uv run python -m app.garmin.login --user <email>`
+   com o `DATABASE_URL` da sessão apontando pro Neon (tokens cifrados no
+   banco com a `TOKEN_ENCRYPTION_KEY`) → botão **Puxar do Garmin** no
+   `/perfil`. O backfill de 180d roda inteiro num request só (~10 min) —
+   o Render aguenta (timeout de 100 min), só não feche a aba.
 4. Convidados: preencha `INVITE_CODE` no Render e compartilhe
    `https://ritmo.vercel.app/registrar` + o código.
 
@@ -211,4 +228,6 @@ mais), Neon **Launch** pay-as-you-go (sem mensalidade mínima), Vercel
 | Login volta pro `/login` em loop | `SESSION_COOKIE_SECURE` requer HTTPS — no local ele é `false` |
 | 403 no `/registrar` | `INVITE_CODE` vazio = registro fechado (comportamento esperado) |
 | Frontend no ar, API 404 | `BACKEND_URL` definida DEPOIS do build — redeploy na Vercel |
+| CLI: `relation "users" does not exist` | backend nunca bootou no Neon — faça o deploy primeiro (init_db cria as tabelas) |
+| Sync dá `reauth_needed` logo após o login da sua máquina | `TOKEN_ENCRYPTION_KEY` local ≠ a do Render — o token foi cifrado com outra chave |
 | Primeiro clique lento (~1 min) | backend acordando — os próximos são instantâneos |
