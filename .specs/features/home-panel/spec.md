@@ -251,11 +251,11 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 
 How we know the feature is successful:
 
-- [ ] `GET /api/home/today` devolve o mesmo veredito para o mesmo estado de banco (teste de determinismo: duas execuções, payload idêntico)
-- [ ] O status de HRV da Home é idêntico ao do painel Saúde para a mesma data — mesma função AD-010, não reimplementação (teste de consistência)
-- [ ] `git grep -n "redirect" -- frontend/src/app/(app)/page.tsx` → vazio (raiz é a Home)
-- [ ] `git grep -nE "#[0-9A-Fa-f]{6}" -- frontend/src/components/home` → vazio (só tokens)
-- [ ] `git grep -n "Carregando" -- frontend/src/app/(app)/page.tsx frontend/src/components/home` → vazio (skeletons)
-- [ ] Suite backend verde com testes novos: cada regra V1–V6 ≥1 teste, cada recomendação R1–R5 ≥1 teste, seed idempotente ≥1 teste, 401 ≥1 teste, timezone edge ≥1 teste
+- [x] `GET /api/home/today` devolve o mesmo veredito para o mesmo estado de banco (teste de determinismo: duas execuções, payload idêntico)
+- [x] O status de HRV da Home é idêntico ao do painel Saúde para a mesma data — mesma função AD-010, não reimplementação (teste de consistência)
+- [x] `git grep -n "redirect" -- frontend/src/app/(app)/page.tsx` → vazio (raiz é a Home)
+- [x] `git grep -nE "#[0-9A-Fa-f]{6}" -- frontend/src/components/home` → vazio (só tokens)
+- [x] `git grep -n "Carregando" -- frontend/src/app/(app)/page.tsx frontend/src/components/home` → vazio (skeletons)
+- [x] Suite backend verde com testes novos: cada regra V1–V6 ≥1 teste, cada recomendação R1–R5 ≥1 teste, seed idempotente ≥1 teste, 401 ≥1 teste, timezone edge ≥1 teste
 - [ ] Lint + build do frontend verdes com a Home compondo em 390px sem scroll acima da dobra (veredito + chips + strip visíveis)
 - [ ] UAT visual do usuário contra o mock v0.3 (o "olho" dele é o critério final de aceite)

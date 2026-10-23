@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/home-panel/design.md`
-**Status**: In Progress
+**Status**: Done
 
 ---
 
@@ -458,7 +458,7 @@ T14 → T15
 
 **Tests**: none (build gate + greps estruturais)
 **Gate**: build
-**Commit**: `feat(frontend): mini de volume e digest de previsoes abaixo da dobra`
+**Commit**: `feat(frontend): mini de volume e digest de previsoes abaixo da dobra` (b8bd1f3)
 
 ---
 
@@ -477,14 +477,14 @@ T14 → T15
 
 **Done when**:
 
-- [ ] README descreve Home como raiz e a nav de 5 itens; nada de `/hoje`
-- [ ] Varredura final verde: `git grep -n "redirect" -- "frontend/src/app/(app)/page.tsx"` vazio · `git grep -nE "#[0-9A-Fa-f]{6}" -- frontend/src/components/home` vazio · `git grep -n "Carregando" -- "frontend/src/app/(app)/page.tsx" frontend/src/components/home` vazio · `git grep -n "SyncButton" -- frontend/src/components/home` vazio
-- [ ] Gate build final: suite backend cheia + lint + build verdes
-- [ ] `git grep -n "grid-cols-4" -- frontend/src/components/Nav.tsx` vazio
+- [x] README descreve Home como raiz e a nav de 5 itens; nada de `/hoje`
+- [x] Varredura final verde: `git grep -n "redirect" -- "frontend/src/app/(app)/page.tsx"` vazio · `git grep -nE "#[0-9A-Fa-f]{6}" -- frontend/src/components/home` vazio · `git grep -n "Carregando" -- "frontend/src/app/(app)/page.tsx" frontend/src/components/home` vazio · `git grep -n "SyncButton" -- frontend/src/components/home` vazio
+- [x] Gate build final: suite backend cheia + lint + build verdes
+- [x] `git grep -n "grid-cols-4" -- frontend/src/components/Nav.tsx` vazio
 
 **Tests**: none (docs — varredura é o gate)
 **Gate**: build
-**Commit**: `docs(home-panel): readme e varredura final de greps`
+**Commit**: `docs(home-panel): readme e varredura final de greps` (pending-hash)
 
 ---
 

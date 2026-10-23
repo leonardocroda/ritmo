@@ -1,11 +1,14 @@
 # Ritmo
 
-Plataforma pessoal de corrida: sync do Garmin, painéis que importam
-(**Treinos · Performance · Saúde**) e avaliação de treino com IA sob demanda.
+Plataforma pessoal de corrida: sync do Garmin, o dia respondido em uma
+frase na **Home** (raiz `/`), painéis que aprofundam (**Treinos ·
+Saúde · Performance**) e avaliação de treino com IA sob demanda —
+navegação de 5 itens (**Home · Treinos · Saúde · Performance ·
+Perfil**), tab bar inferior no mobile e top bar no desktop.
 
 > Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
 >
-> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-017) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · painel Hoje adiado e fora da nav (AD-011/AD-016 — volta pós-08/11, redesenhado com uso real) · **Fase 1.5 em andamento** (AD-012..015): **auth próprio + convite ✅** (login, sessão sliding 30d, Sair no header, bootstrap por CLI — §Login e acesso) · **user-scope ✅** (toda query por usuário da sessão + isolamento A×B) · **zonas de FC (hr-zones) ✅** (métricas com histórico effective-dated, fase physio no sync, tela `/perfil` — §Zonas de FC no /perfil) · cofre de tokens Garmin criptografado a seguir.
+> Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-017) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · **painel Home ✅** (raiz `/` com o veredito do dia — AD-025 supersede a AD-011; a rota antiga "Hoje" segue 404) · **Fase 1.5 em andamento** (AD-012..015): **auth próprio + convite ✅** (login, sessão sliding 30d, Sair no header, bootstrap por CLI — §Login e acesso) · **user-scope ✅** (toda query por usuário da sessão + isolamento A×B) · **zonas de FC (hr-zones) ✅** (métricas com histórico effective-dated, fase physio no sync, tela `/perfil` — §Zonas de FC no /perfil) · cofre de tokens Garmin criptografado a seguir.
 
 ## Estrutura
 
@@ -201,10 +204,46 @@ nome; email desconhecido cria conta nova.
 > `user_id` do usuário da sessão — painéis, sync e avaliações são isolados por dono
 > (teste A×B ponta a ponta na suíte). O registro via convite pode ser ligado.
 
+## Painel Home
+
+"O que eu faço hoje?" — a raiz `/` responde antes do primeiro scroll
+(spec home-panel; a AD-011 do antigo "painel Hoje" é superseded pela
+AD-025 — o painel voltou redesenhado, com nome **Home**, e a rota
+antiga deletada segue 404: nada revive). Um round-trip: `GET
+/api/home/today` traz o dia inteiro (AD-009) e a Home **roteia** —
+nunca duplica painel.
+
+- **Veredito** — card-herói com a frase em sentence case, uma por dia,
+  do motor puro V1–V6 (determinístico, zero LLM no caminho diário —
+  AD-003: dívida de recuperação → HRV fora → carga alta → fadiga →
+  janela de qualidade → dia comum) sustentada por 3 chips de sinal
+  (HRV, sono, forma — dado antigo mostra a data, nunca passa por
+  hoje) e pela strip de carga dos últimos 7 dias (neutra, só hoje
+  acesa; dia sem carga = barra zero — descanso é informação).
+- **Chips que roteiam** — um dado, um verbo, um destino: último treino
+  → `/treinos/{id}` (selo "avaliado ✓"), volume da semana e countdown
+  → `/performance`. O countdown lê a tabela `races` (a próxima prova
+  com data ≥ hoje; "é hoje" quando faltam 0, chip omitido quando a
+  prova passa) — o `init_db` semeia a The Best Açaí (08/11/2026,
+  21097,5m) de forma idempotente quando não há prova para o usuário 1.
+- **Recomendações** — 1–3 cards `Recomendação · regra` abaixo da dobra,
+  cada um com a tag do porquê; o taper de prova (≤14 dias) dispara
+  independente do veredito.
+- **Digests P2** — mini de volume das últimas 10 semanas (semana
+  corrente acesa, sentença `Xkm · ±Y% vs média de 4 semanas · ACWR`) e
+  a linha de previsões de 10K/meia com "ver Performance →"; bloco
+  omitido quando não há o que dizer (calibração indisponível degrada,
+  a Home nunca 500 por bloco P2).
+
+Estados desenhados pro dia todo: skeletons no carregamento (DSN-23),
+erro com a mensagem do contrato, banco vazio orientando o primeiro
+sync no `/perfil` (CLR-11 — sem botão de sync na Home, AD-023) e o dia
+comum que fala baixo ("Dia comum, sem urgências" — sem lime gritando).
+
 ## Painel Treinos
 
-A lista de corridas em `/treinos` (navegação no header: **Treinos ·
-Performance · Saúde**). Tudo lido do banco próprio: **nenhuma chamada à API do Garmin**
+A lista de corridas em `/treinos` (nav de 5 itens: **Home · Treinos ·
+Saúde · Performance · Perfil**). Tudo lido do banco próprio: **nenhuma chamada à API do Garmin**
 ao navegar (AD-002).
 
 - **Lista**: corridas ordenadas da mais recente, com tipo inferido
