@@ -239,8 +239,8 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 | HOME-35 | P1: Estados (erro) | Design | Verified |
 | HOME-36 | P1: Tokens/44px/tabular-nums | Design | Verified |
 | HOME-37 | P2: Mini volume 10 semanas | - | Verified |
-| HOME-38 | P2: Digest previsões | - | Pending |
-| HOME-39 | P2: Predição ausente omitida | - | Pending |
+| HOME-38 | P2: Digest previsões | - | Verified |
+| HOME-39 | P2: Predição ausente omitida | - | Verified |
 | HOME-40 | P3: RHR no porquê | - | Pending |
 
 **Coverage:** 40 total, 36 mapped to P1/P2 stories, 4 mapped to P3 (P3 é nice-to-have) ⚠️ 0 unmapped

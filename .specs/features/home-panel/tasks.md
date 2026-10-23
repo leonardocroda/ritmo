@@ -404,7 +404,7 @@ T14 → T15
 
 **Tests**: none (build gate + greps estruturais dos Success Criteria)
 **Gate**: build
-**Commit**: `feat(frontend): homepanel na raiz com estados vazio erro skeleton`
+**Commit**: `feat(frontend): homepanel na raiz com estados vazio erro skeleton` (163d0cc)
 
 ---
 
@@ -423,12 +423,12 @@ T14 → T15
 
 **Done when**:
 
-- [ ] `get_potential` usa `get_predictions` (suite do potential verde — não-regressão)
-- [ ] `predictions` com 10K e meia quando há dado; evento sem predição omitido (nunca "—")
-- [ ] `ZoneConfigError` → `predictions: null` no payload (a Home não 500 por bloco P2)
-- [ ] `volume_weeks` com exatamente as 10 últimas semanas ISO
-- [ ] Gate: `uv run pytest` verde (inclui `tests/test_home_predictions.py` + suite do potential); `npm run lint` + `npm run build` verdes (tipos P2)
-- [ ] Test count: ≥6 testes novos (digest por evento, omitido sem dado, zone error → null, série 10, potential não-regressão)
+- [x] `get_potential` usa `get_predictions` (suite do potential verde — não-regressão)
+- [x] `predictions` com 10K e meia quando há dado; evento sem predição omitido (nunca "—")
+- [x] `ZoneConfigError` → `predictions: null` no payload (a Home não 500 por bloco P2)
+- [x] `volume_weeks` com exatamente as 10 últimas semanas ISO
+- [x] Gate: `uv run pytest` verde (inclui `tests/test_home_predictions.py` + suite do potential); `npm run lint` + `npm run build` verdes (tipos P2)
+- [x] Test count: ≥6 testes novos (digest por evento, omitido sem dado, zone error → null, série 10, potential não-regressão)
 
 **Tests**: integration
 **Gate**: build

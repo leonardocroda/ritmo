@@ -577,8 +577,9 @@ export type HomePrediction = { event: string; time_s: number };
 
 /** Espelho do `HomeOut` (backend/app/home/router.py) — o painel inteiro
  * em 1 payload (AD-009): cada campo renderiza na Home, nenhum bloco de
- * outro painel. Os blocos P2 (`volume_weeks`, `predictions`) chegam
- * null até a task T13 semear no backend. */
+ * outro painel. Os blocos P2 (`volume_weeks`, `predictions`) são
+ * opcionais: null sem corridas na janela ou com a calibração VDOT
+ * indisponível (a Home nunca 500 por bloco P2). */
 export type HomeToday = {
   date: string;
   verdict: HomeVerdict | null;

@@ -232,8 +232,10 @@ def test_last_activity_none_without_runs(db, fixed_today) -> None:
 
 def test_volume_weekly_from_running_types(db, fixed_today) -> None:
     """AC HOME-20: semana corrente vs média das 4 completas (só corrida
-    conta — força não entra); P2 (volume_weeks/predictions) fica None
-    até T13."""
+    conta — força não entra); P2 (T13): a série de 10 semanas vem junto
+    no volume_weeks e o digest de previsões usa a equivalência do VDOT
+    corrente (sem PRs/predições semeadas — pins do arquivo de
+    calibração)."""
     user = _new_user(db)
     _seed_activity(db, user.id, "v1", date(2026, 9, 21), distance_m=20000.0)
     _seed_activity(db, user.id, "v2", date(2026, 9, 28), distance_m=30000.0)
@@ -251,8 +253,19 @@ def test_volume_weekly_from_running_types(db, fixed_today) -> None:
         "avg4_km": 35.0,
         "delta_pct": -71.4,
     }
-    assert payload["volume_weeks"] is None
-    assert payload["predictions"] is None
+    weeks = payload["volume_weeks"]
+    assert len(weeks) == 10
+    assert weeks[-1] == {"week_start": MONDAY, "km": 10.0}
+    assert {(w["week_start"], w["km"]) for w in weeks} >= {
+        (date(2026, 9, 21), 20.0),
+        (date(2026, 9, 28), 30.0),
+        (date(2026, 10, 5), 40.0),
+        (date(2026, 10, 12), 50.0),  # 45k de 12/10 + 5k de 18/10 (domingo)
+    }
+    assert payload["predictions"] == [
+        {"event": "10K", "time_s": 2471.1},
+        {"event": "HALF_MARATHON", "time_s": 5472.3},
+    ]
 
 
 def test_volume_none_without_recent_runs(db, fixed_today) -> None:

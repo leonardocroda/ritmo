@@ -12,19 +12,31 @@ pergunta.
 
 from dataclasses import asdict
 from datetime import date, datetime, time, timedelta
+from logging import getLogger
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.activities.service import RUNNING_TYPES
+from app.core.config import get_settings
 from app.db.models import Activity, DailyLoad, Race
 from app.garmin.pmc import aggregate_daily_loads
 from app.health.service import get_health
 from app.home import calc
+from app.potential.service import get_predictions
+from app.vdot.calibration import load_calibration
+from app.vdot.zones import ZoneConfigError
+
+logger = getLogger(__name__)
 
 # Janela do volume semanal: 10 semanas ISO (série) + a corrente
 VOLUME_WINDOW_DAYS = 70
+
+# P2 (T13): eventos do digest de previsões — 10K (referência corrente)
+# e meia (objetivo ativo, spec §Assumptions); 5K/maratona moram no
+# painel Performance — a Home roteia, nunca duplica painel.
+PREDICTION_EVENTS = ("10K", "HALF_MARATHON")
 
 
 def _today(tz: ZoneInfo) -> date:
@@ -96,7 +108,7 @@ def get_home(db: Session, user_id: int, tz: ZoneInfo) -> dict:
 
     # Volume semanal: corridas da janela das 10 semanas ISO; sem
     # corrida na janela não há volume a dizer (bloco nulo). A série de
-    # 10 semanas (weeks) é o bloco P2 `volume_weeks` — T13 assume.
+    # 10 semanas (weeks) alimenta o bloco P2 `volume_weeks` (T13).
     run_rows = db.execute(
         select(Activity.start_time, Activity.distance_m)
         .where(
@@ -107,6 +119,7 @@ def get_home(db: Session, user_id: int, tz: ZoneInfo) -> dict:
         )
     ).all()
     volume = None
+    volume_weeks = None
     if run_rows:
         wv = calc.weekly_volume([(t.date(), m) for t, m in run_rows], today)
         volume = {
@@ -114,6 +127,7 @@ def get_home(db: Session, user_id: int, tz: ZoneInfo) -> dict:
             "avg4_km": wv["avg4_km"],
             "delta_pct": wv["delta_pct"],
         }
+        volume_weeks = wv["weeks"]
 
     # Countdown: próxima prova com date >= hoje ("é hoje" quando 0; a
     # passada é ignorada — o chip some quando a prova passa)
@@ -137,6 +151,24 @@ def get_home(db: Session, user_id: int, tz: ZoneInfo) -> dict:
         v.rule if v is not None else None,
         countdown["days_left"] if countdown is not None else None,
     )
+
+    # P2 (T13): digest de previsões — a MESMA montagem do painel
+    # Performance (get_predictions extraído) com a MESMA calibração
+    # (uma fonte de verdade); evento sem predição é omitido (HOME-39).
+    # Arquivo de calibração ausente/inválido degrada o bloco para None:
+    # a Home NUNCA 500 por causa de um bloco P2 (design §Erros).
+    predictions = None
+    try:
+        calibration = load_calibration(get_settings().vdot_zones_path)
+    except ZoneConfigError as exc:
+        logger.warning("digest de previsões omitido na Home: %s", exc)
+    else:
+        rows = get_predictions(db, user_id, calibration)
+        predictions = [
+            {"event": event, "time_s": rows[event]["average_s"]}
+            for event in PREDICTION_EVENTS
+            if rows[event]["average_s"] is not None
+        ]
 
     return {
         "date": today,
@@ -167,7 +199,8 @@ def get_home(db: Session, user_id: int, tz: ZoneInfo) -> dict:
         "volume": volume,
         "countdown": countdown,
         "recommendations": [asdict(r) for r in recommendations],
-        # P2 (T13): digests abaixo da dobra — ficam None até lá
-        "volume_weeks": None,
-        "predictions": None,
+        # P2 (T13): digests abaixo da dobra — série de 10 semanas e
+        # previsões de 10K/meia (None quando não há o que dizer)
+        "volume_weeks": volume_weeks,
+        "predictions": predictions,
     }

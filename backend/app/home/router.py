@@ -3,8 +3,10 @@
 Um endpoint, um payload: cada campo renderiza na Home, nenhum bloco de
 outro painel. Sessão obrigatória (401 pela dependency antes de
 qualquer query — padrão dos demais routers); o fuso vem do resolvedor
-único `app_tz()`. Os blocos P2 (`volume_weeks`, `predictions`) já
-existem no contrato e ficam None até a task que os semeia.
+único `app_tz()`. Os blocos P2 (`volume_weeks`, `predictions`) são
+semeados pelo service: série das 10 semanas ISO e digest de 10K/meia
+pela mesma leitura do painel Performance (None quando não há o que
+dizer ou a calibração falha).
 """
 
 from datetime import date

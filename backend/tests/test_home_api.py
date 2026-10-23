@@ -144,8 +144,20 @@ def test_today_happy_path_full_contract(session_client) -> None:
     recs = body["recommendations"]
     assert 1 <= len(recs) <= 3
     assert all(set(r) == {"text", "support", "why", "tone"} for r in recs)
-    assert body["volume_weeks"] is None
-    assert body["predictions"] is None
+    # P2 (T13): série das 10 semanas ISO terminando na corrente (a
+    # corrida de hoje na última, a de 10 dias atrás na semana dela) e o
+    # digest de previsões — sem PRs/predições semeadas, só a equivalência
+    # do VDOT corrente entra na média (pins do arquivo de calibração).
+    weeks = body["volume_weeks"]
+    assert len(weeks) == 10
+    assert weeks[-1]["week_start"] == (today - timedelta(days=today.weekday())).isoformat()
+    assert weeks[-1]["km"] == 5.0  # a corrida de hoje
+    assert 30.0 in [w["km"] for w in weeks]  # a de 10 dias atrás, na semana dela
+    assert sum(w["km"] for w in weeks) == 35.0
+    assert body["predictions"] == [
+        {"event": "10K", "time_s": 2471.1},
+        {"event": "HALF_MARATHON", "time_s": 5472.3},
+    ]
 
 
 def test_today_requires_session() -> None:
