@@ -215,14 +215,14 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 | HOME-11 | P1: Veredito (401) | Design | Pending |
 | HOME-12 | P1: Veredito (edge timezone) | Design | Pending |
 | HOME-13 | P1: Card (composição herói) | Design | Pending |
-| HOME-14 | P1: Card (strip 7 dias) | Design | Pending |
+| HOME-14 | P1: Card (strip 7 dias) | Design | Verified |
 | HOME-15 | P1: Card (dia sem carga = barra zero) | Design | Pending |
 | HOME-16 | P1: Card (stale mostra data) | Design | Pending |
 | HOME-17 | P1: Card (skeletons) | Design | Pending |
 | HOME-18 | P1: Card (sem sync na Home) | Design | Pending |
 | HOME-19 | P1: Chips (último treino + rota) | Design | Pending |
-| HOME-20 | P1: Chips (volume vs média 4s) | Design | Pending |
-| HOME-21 | P1: Chips (delta zero = "—") | Design | Pending |
+| HOME-20 | P1: Chips (volume vs média 4s) | Design | Verified |
+| HOME-21 | P1: Chips (delta zero = "—") | Design | Verified |
 | HOME-22 | P1: Chips (countdown hoje/passada) | Design | Pending |
 | HOME-23 | P1: Chips (seed idempotente da meia) | Design | Pending |
 | HOME-24 | P1: Chips (sem atividade = chip omitido) | Design | Pending |
@@ -238,7 +238,7 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 | HOME-34 | P1: Estados (vazio orientando sync) | Design | Pending |
 | HOME-35 | P1: Estados (erro) | Design | Pending |
 | HOME-36 | P1: Tokens/44px/tabular-nums | Design | Pending |
-| HOME-37 | P2: Mini volume 10 semanas | - | Pending |
+| HOME-37 | P2: Mini volume 10 semanas | - | Verified |
 | HOME-38 | P2: Digest previsões | - | Pending |
 | HOME-39 | P2: Predição ausente omitida | - | Pending |
 | HOME-40 | P3: RHR no porquê | - | Pending |

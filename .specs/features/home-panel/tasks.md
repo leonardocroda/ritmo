@@ -136,7 +136,7 @@ T14 → T15
 
 **Tests**: unit
 **Gate**: quick
-**Commit**: `feat(home): recomendacoes r1-r5 deterministicas com why`
+**Commit**: `feat(home): recomendacoes r1-r5 deterministicas com why` (93f7daf)
 
 ---
 
@@ -155,10 +155,10 @@ T14 → T15
 
 **Done when**:
 
-- [ ] `sleep_delta`: ignora noites sem dado na média; sem noite anterior → `None`
-- [ ] `weekly_volume`: semanas ISO a partir de `(date, meters)`; média de 4 semanas COMPLETAS; avg4 == 0 → `delta_pct` `None` (chip "—")
-- [ ] Gate: `uv run pytest tests/test_home_volume.py` verde
-- [ ] Test count: ≥8 testes novos (delta normal/sem-dado/uma-noite, ISO boundary, avg4 zero, série 10, semana parcial)
+- [x] `sleep_delta`: ignora noites sem dado na média; sem noite anterior → `None`
+- [x] `weekly_volume`: semanas ISO a partir de `(date, meters)`; média de 4 semanas COMPLETAS; avg4 == 0 → `delta_pct` `None` (chip "—")
+- [x] Gate: `uv run pytest tests/test_home_volume.py` verde
+- [x] Test count: ≥8 testes novos (delta normal/sem-dado/uma-noite, ISO boundary, avg4 zero, série 10, semana parcial)
 
 **Tests**: unit
 **Gate**: quick

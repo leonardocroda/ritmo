@@ -14,7 +14,7 @@ módulo continua sem DB/IO.
 """
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 
 from app.health.calc import SLEEP_FLOOR_S
 
@@ -166,3 +166,54 @@ def recommendations(rule: str | None, countdown_days: int | None) -> list[Recomm
             )
         )
     return recs[:3]
+
+
+def sleep_delta(durations: list[float | None]) -> float | None:
+    """Delta da última noite vs a média das 7 noites anteriores COM
+    dado (HOME-20): noite sem dado fica fora da média; sem noite
+    anterior -> None (nada para comparar — nunca um número inventado).
+    """
+    if not durations or durations[-1] is None:
+        return None
+    previous = [d for d in durations[:-1] if d is not None][-7:]
+    if not previous:
+        return None
+    return durations[-1] - sum(previous) / len(previous)
+
+
+def weekly_volume(runs: list[tuple[date, float]], today: date) -> dict:
+    """Volume semanal ISO (segunda-feira) sobre (data, metros):
+    corrente, média das 4 semanas COMPLETAS anteriores, delta % e a
+    série das 10 últimas semanas (HOME-14/20/37).
+
+    A corrente é parcial por natureza — o ponto é mostrar o rumo
+    (design §Riscos); média das 4 zerada -> delta None (nunca divisão
+    por zero, nunca % inventado). Semanas sem corrida seguem na série
+    com 0.0: descanso é informação.
+    """
+    by_week: dict[date, float] = {}
+    for day, meters in runs:
+        monday = day - timedelta(days=day.weekday())
+        by_week[monday] = by_week.get(monday, 0.0) + meters
+
+    def km(week: date) -> float:
+        return round(by_week.get(week, 0.0) / 1000, 1)
+
+    current = today - timedelta(days=today.weekday())
+    week_m = by_week.get(current, 0.0)
+    avg4_m = (
+        sum(by_week.get(current - timedelta(days=7 * i), 0.0) for i in range(1, 5)) / 4
+    )
+    delta_pct = round((week_m - avg4_m) / avg4_m * 100, 1) if avg4_m > 0 else None
+    return {
+        "week_km": km(current),
+        "avg4_km": round(avg4_m / 1000, 1),
+        "delta_pct": delta_pct,
+        "weeks": [
+            {
+                "week_start": current - timedelta(days=7 * i),
+                "km": km(current - timedelta(days=7 * i)),
+            }
+            for i in range(9, -1, -1)
+        ],
+    }
