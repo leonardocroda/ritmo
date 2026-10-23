@@ -77,6 +77,18 @@ services:
 Dentro do compose nada muda (o backend usa o hostname `postgres`); apenas o
 `DATABASE_URL` do `.env` passa a apontar para `localhost:5433`.
 
+## Deploy (produção — Fase 2.5)
+
+[`docs/DEPLOY.md`](docs/DEPLOY.md) — **Vercel** (frontend) + **Render**
+(backend Docker, Blueprint do `render.yaml`) + **Neon** (Postgres):
+US$ 0/mês, sem cartão em nenhum deles. Neon pela longevidade do free (sem
+expiração nem restore manual — o Postgres free do Render expira em 30
+dias), Render pelos requests longos do sync (100 min vs ≤300 s do
+serverless), Vercel porque o Next.js é deles. O frontend só precisa de
+`BACKEND_URL` no build (rewrite same-origin do AD-020); o backend recebe
+tudo por env vars (requisito travado), incluindo a `DATABASE_URL` pooled
+do Neon — o engine já trata o scale-to-zero (`pool_pre_ping`).
+
 ## Sync do Garmin
 
 O botão **Puxar do Garmin** (na aba **Perfil**, dentro da seção **Conexão Garmin**) roda
