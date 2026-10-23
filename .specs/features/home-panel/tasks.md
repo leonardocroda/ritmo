@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/home-panel/design.md`
-**Status**: Draft
+**Status**: In Progress
 
 ---
 
@@ -102,11 +102,11 @@ T14 → T15
 
 **Done when**:
 
-- [ ] V1..V6 cada uma com frase, tom e regra exatamente como na spec
-- [ ] Prioridade fixa V1→V6: primeiro casamento vence, uma frase por dia
-- [ ] Sinal ausente nunca dispara regra (neutro); banco sem sinal → `None`
-- [ ] Gate: `uv run pytest tests/test_home_verdict.py` verde (workdir `backend/`)
-- [ ] Test count: ≥10 testes novos (V1–V6 individual, prioridade, null-neutro, sem-dado, determinismo — 2 chamadas idênticas → mesmo resultado)
+- [x] V1..V6 cada uma com frase, tom e regra exatamente como na spec
+- [x] Prioridade fixa V1→V6: primeiro casamento vence, uma frase por dia
+- [x] Sinal ausente nunca dispara regra (neutro); banco sem sinal → `None`
+- [x] Gate: `uv run pytest tests/test_home_verdict.py` verde (workdir `backend/`)
+- [x] Test count: ≥10 testes novos (V1–V6 individual, prioridade, null-neutro, sem-dado, determinismo — 2 chamadas idênticas → mesmo resultado)
 
 **Tests**: unit
 **Gate**: quick

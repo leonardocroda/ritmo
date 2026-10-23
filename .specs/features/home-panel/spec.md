@@ -203,15 +203,15 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------- |
 | HOME-01 | P1: Veredito (endpoint) | Design | Pending |
-| HOME-02 | P1: Veredito (pureza determinística) | Design | Pending |
-| HOME-03 | P1: Veredito (regra V1) | Design | Pending |
-| HOME-04 | P1: Veredito (regra V2) | Design | Pending |
-| HOME-05 | P1: Veredito (regra V3) | Design | Pending |
-| HOME-06 | P1: Veredito (regra V4) | Design | Pending |
-| HOME-07 | P1: Veredito (regra V5) | Design | Pending |
-| HOME-08 | P1: Veredito (regra V6) | Design | Pending |
-| HOME-09 | P1: Veredito (prioridade fixa, frase única) | Design | Pending |
-| HOME-10 | P1: Veredito (sinal nulo = neutro + chip vazio) | Design | Pending |
+| HOME-02 | P1: Veredito (pureza determinística) | Design | Verified |
+| HOME-03 | P1: Veredito (regra V1) | Design | Verified |
+| HOME-04 | P1: Veredito (regra V2) | Design | Verified |
+| HOME-05 | P1: Veredito (regra V3) | Design | Verified |
+| HOME-06 | P1: Veredito (regra V4) | Design | Verified |
+| HOME-07 | P1: Veredito (regra V5) | Design | Verified |
+| HOME-08 | P1: Veredito (regra V6) | Design | Verified |
+| HOME-09 | P1: Veredito (prioridade fixa, frase única) | Design | Verified |
+| HOME-10 | P1: Veredito (sinal nulo = neutro + chip vazio) | Design | Verified |
 | HOME-11 | P1: Veredito (401) | Design | Pending |
 | HOME-12 | P1: Veredito (edge timezone) | Design | Pending |
 | HOME-13 | P1: Card (composição herói) | Design | Pending |
