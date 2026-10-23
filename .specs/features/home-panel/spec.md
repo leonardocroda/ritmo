@@ -234,7 +234,7 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 | HOME-30 | P1: Recomendações (R5 leve) | Design | Verified |
 | HOME-31 | P1: Recomendações (card abaixo da dobra) | Design | Pending |
 | HOME-32 | P1: Rota (Home em `/`, `/hoje` 404) | Design | Pending |
-| HOME-33 | P1: Nav (5 itens, Home 1ª) | Design | Pending |
+| HOME-33 | P1: Nav (5 itens, Home 1ª) | Design | Verified |
 | HOME-34 | P1: Estados (vazio orientando sync) | Design | Pending |
 | HOME-35 | P1: Estados (erro) | Design | Pending |
 | HOME-36 | P1: Tokens/44px/tabular-nums | Design | Pending |

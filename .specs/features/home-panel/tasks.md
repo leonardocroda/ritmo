@@ -297,7 +297,7 @@ T14 → T15
 
 **Tests**: none (matrix: frontend = build gate)
 **Gate**: build
-**Commit**: `feat(frontend): tipo hometoday e fetcher no cliente de api`
+**Commit**: `feat(frontend): tipo hometoday e fetcher no cliente de api` (7c96af5)
 
 ---
 
@@ -316,10 +316,10 @@ T14 → T15
 
 **Done when**:
 
-- [ ] 5 itens com Home em 1º, mesmo estilo de ícone/label dos demais
-- [ ] Special-case raiz no `activePanel` — Home ativo SÓ em `/` (o `startsWith("/")` cru casaria tudo)
-- [ ] Tab bar 5 colunas sem quebra em 390px (alvo de toque ≥44px preservado)
-- [ ] Gate: `npm run lint` + `npm run build` verdes; `git grep -n "grid-cols-5" -- frontend/src/components/Nav.tsx` não-vazio e `grid-cols-4` vazio no TabBar
+- [x] 5 itens com Home em 1º, mesmo estilo de ícone/label dos demais
+- [x] Special-case raiz no `activePanel` — Home ativo SÓ em `/` (o `startsWith("/")` cru casaria tudo)
+- [x] Tab bar 5 colunas sem quebra em 390px (alvo de toque ≥44px preservado)
+- [x] Gate: `npm run lint` + `npm run build` verdes; `git grep -n "grid-cols-5" -- frontend/src/components/Nav.tsx` não-vazio e `grid-cols-4` vazio no TabBar
 
 **Tests**: none (build gate + greps estruturais)
 **Gate**: build
