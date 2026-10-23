@@ -512,6 +512,94 @@ export async function getHealthSummary(days = 60): Promise<HealthSummaryOut> {
   return (await res.json()) as HealthSummaryOut;
 }
 
+// ---- Painel Home: contratos do design home-panel ----
+
+/** Espelho do `VerdictOut` — a frase, o tom semântico e a regra que a emitiu. */
+export type HomeVerdict = { phrase: string; tone: string; rule: string };
+
+/** HRV do último dia com dado — status null = "coletando linha de base"
+ * (mesmo modelo AD-010 do painel Saúde, consistência por construção). */
+export type HomeHrvSignal = { value: number; status: string | null; as_of: string };
+
+/** Última noite dormida + delta vs média das 7 anteriores com dado. */
+export type HomeSleepSignal = {
+  duration_s: number;
+  delta_s: number | null;
+  as_of: string;
+};
+
+/** Forma: última linha da PMC — tsb/acwr null quando a janela é incompleta. */
+export type HomeFitnessSignal = {
+  tsb: number | null;
+  acwr: number | null;
+  as_of: string;
+};
+
+/** Os 3 sinais que sustentam o veredito; cada um null = sem dado (chip vazio). */
+export type HomeSignals = {
+  hrv: HomeHrvSignal | null;
+  sleep: HomeSleepSignal | null;
+  fitness: HomeFitnessSignal | null;
+};
+
+/** Um dia da strip de carga — dia sem atividade = load 0 (descanso é
+ * informação, barra de altura zero, não omitida). */
+export type HomeStripPoint = { date: string; load: number };
+
+/** Última corrida (RUNNING_TYPES) — o chip roteia para /treinos/{id}. */
+export type HomeLastActivity = {
+  id: number;
+  date: string;
+  distance_m: number;
+  evaluated: boolean;
+};
+
+/** Semana corrente vs média das 4 completas — delta null = avg4 zero ("—"). */
+export type HomeVolume = { week_km: number; avg4_km: number; delta_pct: number | null };
+
+/** Próxima prova (date >= hoje) — null sem prova futura (chip omitido). */
+export type HomeCountdown = { name: string; date: string; days_left: number };
+
+/** Ação do dia: texto, linha de apoio (só na R5), tag why e tom. */
+export type HomeRecommendation = {
+  text: string;
+  support: string | null;
+  why: string | null;
+  tone: string;
+};
+
+/** P2 (T13): uma semana ISO da série de volume (km zero = descanso). */
+export type HomeWeekPoint = { week_start: string; km: number };
+
+/** P2 (T13): um evento de predição (10K/meia) — evento sem predição é
+ * omitido do digest, nunca exibido como "—". */
+export type HomePrediction = { event: string; time_s: number };
+
+/** Espelho do `HomeOut` (backend/app/home/router.py) — o painel inteiro
+ * em 1 payload (AD-009): cada campo renderiza na Home, nenhum bloco de
+ * outro painel. Os blocos P2 (`volume_weeks`, `predictions`) chegam
+ * null até a task T13 semear no backend. */
+export type HomeToday = {
+  date: string;
+  verdict: HomeVerdict | null;
+  signals: HomeSignals;
+  strip: HomeStripPoint[];
+  last_activity: HomeLastActivity | null;
+  volume: HomeVolume | null;
+  countdown: HomeCountdown | null;
+  recommendations: HomeRecommendation[];
+  volume_weeks: HomeWeekPoint[] | null;
+  predictions: HomePrediction[] | null;
+};
+
+/** O dia em 1 round-trip (HOME-01): veredito, sinais, strip, roteamento,
+ * recomendações e os digests P2 abaixo da dobra. */
+export async function getHomeToday(): Promise<HomeToday> {
+  const res = await apiFetch("/api/home/today", { cache: "no-store" });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as HomeToday;
+}
+
 // ---- Auth: contratos do design auth (feature auth) ----
 
 /** Espelho do `MeOut` (backend/app/auth/schemas.py) — corpo de

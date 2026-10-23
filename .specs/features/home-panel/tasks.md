@@ -291,9 +291,9 @@ T14 → T15
 
 **Done when**:
 
-- [ ] `HomeToday` espelha campo a campo o `HomeOut` do backend (incl. unions `| null`)
-- [ ] `getHomeToday()` segue o padrão de fetch/erro dos fetchers existentes
-- [ ] Gate: `npm run lint` + `npm run build` verdes (workdir `frontend/`)
+- [x] `HomeToday` espelha campo a campo o `HomeOut` do backend (incl. unions `| null`)
+- [x] `getHomeToday()` segue o padrão de fetch/erro dos fetchers existentes
+- [x] Gate: `npm run lint` + `npm run build` verdes (workdir `frontend/`)
 
 **Tests**: none (matrix: frontend = build gate)
 **Gate**: build
