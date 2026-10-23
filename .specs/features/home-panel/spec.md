@@ -212,7 +212,7 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 | HOME-08 | P1: Veredito (regra V6) | Design | Verified |
 | HOME-09 | P1: Veredito (prioridade fixa, frase única) | Design | Verified |
 | HOME-10 | P1: Veredito (sinal nulo = neutro + chip vazio) | Design | Verified |
-| HOME-11 | P1: Veredito (401) | Design | Pending |
+| HOME-11 | P1: Veredito (401) | Design | Verified |
 | HOME-12 | P1: Veredito (edge timezone) | Design | Verified |
 | HOME-13 | P1: Card (composição herói) | Design | Pending |
 | HOME-14 | P1: Card (strip 7 dias) | Design | Verified |

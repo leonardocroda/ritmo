@@ -217,7 +217,7 @@ T14 → T15
 
 **Tests**: integration
 **Gate**: full
-**Commit**: `feat(home): servico monta payload de hoje das fontes existentes`
+**Commit**: `feat(home): servico monta payload de hoje das fontes existentes` (c91740e)
 
 ---
 
@@ -236,12 +236,12 @@ T14 → T15
 
 **Done when**:
 
-- [ ] `GET /api/home/today` 200 com payload completo no happy path (fixture com dados)
-- [ ] 401 sem sessão antes de qualquer query
-- [ ] Estado vazio: banco sem dado de saúde/carga/atividade → `verdict: null` + blocos nulos (sem frase)
-- [ ] Contrato 1:1: cada campo do `HomeOut` renderiza no painel (checagem estrutural no teste)
-- [ ] Gate: `uv run pytest` verde (inclui `tests/test_home_api.py`)
-- [ ] Test count: ≥8 testes novos (happy, 401, vazio, date no payload = hoje no fuso, recomendações 1..3)
+- [x] `GET /api/home/today` 200 com payload completo no happy path (fixture com dados)
+- [x] 401 sem sessão antes de qualquer query
+- [x] Estado vazio: banco sem dado de saúde/carga/atividade → `verdict: null` + blocos nulos (sem frase)
+- [x] Contrato 1:1: cada campo do `HomeOut` renderiza no painel (checagem estrutural no teste)
+- [x] Gate: `uv run pytest` verde (inclui `tests/test_home_api.py`)
+- [x] Test count: ≥8 testes novos (happy, 401, vazio, date no payload = hoje no fuso, recomendações 1..3)
 
 **Tests**: integration
 **Gate**: full
