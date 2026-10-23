@@ -46,6 +46,12 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Âncoras do site público (feature site) — navegação suave entre
+   seções da landing. */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Skeleton (DSN-23): bloco neutro pulsando ~1,6s no gradiente
    raised→deep. O raio fica por conta da composição (rounded-ctl /
    rounded-card) — o raio só existe como utilitário do @theme inline. */

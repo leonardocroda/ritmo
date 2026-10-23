@@ -14,6 +14,10 @@ node_modules/
 .next/
 out/
 
+# Sessão do script de prints do site (scripts/site/capture.py) —
+# cookie de usuário real, nunca versionado.
+.site-session.json
+
 # OS / editor
 .DS_Store
 Thumbs.db
