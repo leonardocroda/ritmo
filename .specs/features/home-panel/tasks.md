@@ -377,7 +377,7 @@ T14 → T15
 
 **Tests**: none (build gate)
 **Gate**: build
-**Commit**: `feat(frontend): chips de roteamento e cards de recomendacao`
+**Commit**: `feat(frontend): chips de roteamento e cards de recomendacao` (d23d8a9)
 
 ---
 
@@ -396,11 +396,11 @@ T14 → T15
 
 **Done when**:
 
-- [ ] `/` renderiza o painel: `git grep -n "redirect" -- "frontend/src/app/(app)/page.tsx"` vazio
-- [ ] `empty` (verdict null + strip vazia + sem atividade) orienta o primeiro sync com link `/perfil`
-- [ ] `error` com mensagem (contrato existente); loading = skeletons, sem spinner e sem "Carregando": `git grep -n "Carregando" -- "frontend/src/app/(app)/page.tsx" frontend/src/components/home` vazio
-- [ ] Sem ação de sync na Home (AD-023): `git grep -n "SyncButton" -- frontend/src/components/home` vazio
-- [ ] Gate: `npm run lint` + `npm run build` verdes + greps acima
+- [x] `/` renderiza o painel: `git grep -n "redirect" -- "frontend/src/app/(app)/page.tsx"` vazio
+- [x] `empty` (verdict null + strip vazia + sem atividade) orienta o primeiro sync com link `/perfil`
+- [x] `error` com mensagem (contrato existente); loading = skeletons, sem spinner e sem "Carregando": `git grep -n "Carregando" -- "frontend/src/app/(app)/page.tsx" frontend/src/components/home` vazio
+- [x] Sem ação de sync na Home (AD-023): `git grep -n "SyncButton" -- frontend/src/components/home` vazio
+- [x] Gate: `npm run lint` + `npm run build` verdes + greps acima
 
 **Tests**: none (build gate + greps estruturais dos Success Criteria)
 **Gate**: build

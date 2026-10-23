@@ -218,8 +218,8 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 | HOME-14 | P1: Card (strip 7 dias) | Design | Verified |
 | HOME-15 | P1: Card (dia sem carga = barra zero) | Design | Verified |
 | HOME-16 | P1: Card (stale mostra data) | Design | Verified |
-| HOME-17 | P1: Card (skeletons) | Design | Pending |
-| HOME-18 | P1: Card (sem sync na Home) | Design | Pending |
+| HOME-17 | P1: Card (skeletons) | Design | Verified |
+| HOME-18 | P1: Card (sem sync na Home) | Design | Verified |
 | HOME-19 | P1: Chips (último treino + rota) | Design | Verified |
 | HOME-20 | P1: Chips (volume vs média 4s) | Design | Verified |
 | HOME-21 | P1: Chips (delta zero = "—") | Design | Verified |
@@ -232,12 +232,12 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 | HOME-28 | P1: Recomendações (R3 volume) | Design | Verified |
 | HOME-29 | P1: Recomendações (R4 taper ≤14d) | Design | Verified |
 | HOME-30 | P1: Recomendações (R5 leve) | Design | Verified |
-| HOME-31 | P1: Recomendações (card abaixo da dobra) | Design | Pending |
-| HOME-32 | P1: Rota (Home em `/`, `/hoje` 404) | Design | Pending |
+| HOME-31 | P1: Recomendações (card abaixo da dobra) | Design | Verified |
+| HOME-32 | P1: Rota (Home em `/`, `/hoje` 404) | Design | Verified |
 | HOME-33 | P1: Nav (5 itens, Home 1ª) | Design | Verified |
-| HOME-34 | P1: Estados (vazio orientando sync) | Design | Pending |
-| HOME-35 | P1: Estados (erro) | Design | Pending |
-| HOME-36 | P1: Tokens/44px/tabular-nums | Design | Pending |
+| HOME-34 | P1: Estados (vazio orientando sync) | Design | Verified |
+| HOME-35 | P1: Estados (erro) | Design | Verified |
+| HOME-36 | P1: Tokens/44px/tabular-nums | Design | Verified |
 | HOME-37 | P2: Mini volume 10 semanas | - | Verified |
 | HOME-38 | P2: Digest previsões | - | Pending |
 | HOME-39 | P2: Predição ausente omitida | - | Pending |
