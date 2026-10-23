@@ -484,7 +484,7 @@ T14 → T15
 
 **Tests**: none (docs — varredura é o gate)
 **Gate**: build
-**Commit**: `docs(home-panel): readme e varredura final de greps` (pending-hash)
+**Commit**: `docs(home-panel): readme e varredura final de greps` (`9e9b11d`)
 
 ---
 
