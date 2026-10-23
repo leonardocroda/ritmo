@@ -9,7 +9,10 @@ import type { NextConfig } from "next";
 const backendUrl = process.env.BACKEND_URL ?? "http://localhost:8000";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // standalone gera o server.js autocontido para o Docker/compose. Na
+  // Vercel não há self-hosting: o build deles (VERCEL=1) segue o output
+  // nativo da plataforma — standalone lá só desperdiçaria build.
+  output: process.env.VERCEL ? undefined : "standalone",
   cacheComponents: true,
   partialPrefetching: true,
   async rewrites() {
