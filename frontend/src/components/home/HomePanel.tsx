@@ -13,9 +13,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { getHomeToday, type HomeToday } from "@/lib/api";
+import PredictionsDigest from "@/components/home/PredictionsDigest";
 import RecommendationCards from "@/components/home/RecommendationCards";
 import RoutingChips from "@/components/home/RoutingChips";
 import VerdictCard from "@/components/home/VerdictCard";
+import VolumeMini from "@/components/home/VolumeMini";
 import Skeleton from "@/components/Skeleton";
 
 type PanelState =
@@ -107,6 +109,19 @@ export default function HomePanel() {
       />
       {data.recommendations.length > 0 && (
         <RecommendationCards recommendations={data.recommendations} />
+      )}
+      {/* Digests P2 abaixo da dobra — bloco omitido quando não há o que
+          dizer (volume_weeks null sem corridas; predictions null com a
+          calibração indisponível) */}
+      {data.volume_weeks !== null && data.volume !== null && (
+        <VolumeMini
+          volume={data.volume}
+          weeks={data.volume_weeks}
+          acwr={data.signals.fitness?.acwr ?? null}
+        />
+      )}
+      {data.predictions !== null && (
+        <PredictionsDigest predictions={data.predictions} />
       )}
     </div>
   );

@@ -432,7 +432,7 @@ T14 → T15
 
 **Tests**: integration
 **Gate**: build
-**Commit**: `feat(home): digest de previsoes e series de 10 semanas no payload`
+**Commit**: `feat(home): digest de previsoes e series de 10 semanas no payload` (6b066c0)
 
 ---
 
@@ -451,10 +451,10 @@ T14 → T15
 
 **Done when**:
 
-- [ ] Mini com 10 barras, corrente acesa, sentença com os valores do payload
-- [ ] Digest de previsões com link para `/performance`; bloco omitido quando `predictions: null`
-- [ ] Zero cor literal no diretório `components/home` (grep)
-- [ ] Gate: `npm run lint` + `npm run build` verdes
+- [x] Mini com 10 barras, corrente acesa, sentença com os valores do payload
+- [x] Digest de previsões com link para `/performance`; bloco omitido quando `predictions: null`
+- [x] Zero cor literal no diretório `components/home` (grep)
+- [x] Gate: `npm run lint` + `npm run build` verdes
 
 **Tests**: none (build gate + greps estruturais)
 **Gate**: build
