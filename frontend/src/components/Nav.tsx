@@ -4,7 +4,8 @@
 // duas renderizações CSS-only da mesma verdade — Nav (top bar no
 // header, ≥768px) e TabBar (tab bar inferior fixa, <768px). Ícones
 // SVG line 22px inline (sem lib nova); item ativo por activePanel
-// (pathname === href ou startsWith(href + "/")), pill lime/15 na top
+// (pathname === href ou startsWith(href + "/"), com a raiz "/" em
+// special-case — ativa só no pathname exato), pill lime/15 na top
 // bar e lime/12 na tab bar — continuidade do padrão de pill.
 //
 // usePathname suspende no prerender de rotas com parâmetro dinâmico
@@ -17,6 +18,24 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
+
+function HomeIcon() {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 11l8-7 8 7v8.5h-5.5V14h-5v5.5H4Z" />
+    </svg>
+  );
+}
 
 function TreinosIcon() {
   return (
@@ -93,6 +112,7 @@ function PerfilIcon() {
 }
 
 const PANELS = [
+  { href: "/", label: "Home", Icon: HomeIcon },
   { href: "/treinos", label: "Treinos", Icon: TreinosIcon },
   { href: "/saude", label: "Saúde", Icon: SaudeIcon },
   { href: "/performance", label: "Performance", Icon: PerformanceIcon },
@@ -100,9 +120,13 @@ const PANELS = [
 ];
 
 function activePanel(pathname: string): string | null {
+  // A raiz é special-case (design §Integrações): `startsWith("/")` casaria
+  // TODA rota e deixaria a Home sempre ativa — só o pathname exato liga.
   return (
-    PANELS.find(
-      (panel) => pathname === panel.href || pathname.startsWith(panel.href + "/"),
+    PANELS.find((panel) =>
+      panel.href === "/"
+        ? pathname === "/"
+        : pathname === panel.href || pathname.startsWith(panel.href + "/"),
     )?.href ?? null
   );
 }
@@ -145,7 +169,7 @@ function NavLinks({ activeHref }: { activeHref: string | null }) {
 
 function TabBarLinks({ activeHref }: { activeHref: string | null }) {
   return (
-    <ul className="grid grid-cols-4">
+    <ul className="grid grid-cols-5">
       {PANELS.map(({ href, label, Icon }) => {
         const active = href === activeHref;
         return (
@@ -201,8 +225,8 @@ export default function Nav() {
   );
 }
 
-// Tab bar inferior (<768px): fixa, 4 colunas, alvo de toque ≥44px
-// (pt-2 + envoltório size-9 + label) e respiro inferior fixo de
+// Tab bar inferior (<768px): fixa, 5 colunas (Home em 1º), alvo de toque
+// ≥44px (pt-2 + envoltório size-9 + label) e respiro inferior fixo de
 // 18px + safe-area (DSN-22). Some a partir de md.
 export function TabBar() {
   return (

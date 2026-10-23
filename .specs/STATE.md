@@ -88,7 +88,7 @@
 - **Trade-off**: Perde-se o countdown da The Best Açaí durante os 22 dias finais do bloco em troca de não pagar design especulativo sem evidência; após 08/11 o countdown hibernaria até o próximo objetivo de qualquer forma.
 - **Scope**: Roadmap Fase 1 (§6 do plano), `/hoje` (permanece placeholder), qualquer spec futura do painel Hoje — retomar exige spec novo a partir de uso observado.
 - **Date**: 2026-10-17
-- **Status**: active
+- **Status**: superseded by AD-025 (a Home volta antes da meia, como painel-raiz com spec própria `home-panel`)
 
 ### AD-012
 - **Decision**: Criada a **Fase 1.5 — Identidade e dados por usuário** no roadmap (antes da Fase 2), antecipando o núcleo da Fase 2.5: auth, perfil, zonas no banco, LTHR por usuário e cofre de tokens Garmin. O MVP continua no PC/LAN, sem HTTPS — deploy em nuvem, fila de sync multiusuário e LGPD completa seguem na Fase 2.5.
@@ -186,13 +186,30 @@
 - **Date**: 2026-10-22
 - **Status**: active
 
+### AD-024
+- **Decision**: **Habit tracker adiado para feature própria** — a visão é registro temporal de consumo com estimativa de dose (hora do café + cafeína estimada, álcool, leitura etc.) cruzado com os outputs automáticos do Garmin (a tese "Whoop-of-Garmin"); nada de quick-log raso de checkboxes na Home v1. O card "Padrão observado" (correlação hábito×sono) fica adiado junto — depende desses dados acumulados.
+- **Reason**: Decisão do usuário (23/10/2026) na spec do home-panel: a feature merece desenho de dados próprio (timestamp + dose por hábito) e está imatura para começar; o bloco de registro do mock v0.3 §03 não vira código agora.
+- **Trade-off**: A Home v1 perde o "registro de 10 segundos" do mock e adia o flywheel de dados manuais em troca de não travar o modelo com um design apressado; a composição da Home dispensa o bloco (veredito + chips + recomendações sustentam o above-the-fold).
+- **Scope**: mock v0.3 §03 (quick-log), specs futuras de habit tracker/insights, `docs/design/` — o bloco volta pela spec da feature própria.
+- **Date**: 2026-10-23
+- **Status**: active
+
+### AD-025
+- **Decision**: **A Home volta antes da meia como painel-raiz** (supersede a AD-011): `/` renderiza o painel Home (o redirect para `/treinos` sai; a rota `/hoje` permanece 404 — AD-016 segue ativa), tab "Home" em primeiro lugar (nome "Hoje" rejeitado pelo usuário), veredito diário por **regras determinísticas em Python** (tabela curada V1–V6, prioridade fixa, sinal nulo é neutro, sem score e sem LLM — AD-003 intacta), 1–3 recomendações por regra com why, chips que roteiam e countdown com **seed da The Best Açaí** no `init_db` (08/11/2026, idempotente).
+- **Reason**: Decisão do usuário (23/10/2026): pediu a spec antes da meia; a evidência que a AD-011 pedia chegou por outro caminho — o pivot estratégico (saúde/recuperação primeiro) e o mock v0.3 aprovado definiram a composição com precisão de pixel.
+- **Trade-off**: A composição nasce antes de evidência de uso real em troca do produto diário funcionando já no bloco da meia; o risco é contido porque o veredito é auditável — regras puras, baratas de ajustar, e o countdown some sozinho pós-prova.
+- **Scope**: `frontend/src/app/(app)/page.tsx`, `frontend/src/components/Nav.tsx`, `frontend/src/components/home/` (novo), `backend/app/home/` (novo), `backend/app/db/engine.py` (seed), roadmap Fase 1.
+- **Date**: 2026-10-23
+- **Status**: active
+
 ## Handoff
 
-- **Feature**: `garmin-tokens-db` (main) — **concluída e validada (PASS, 22/10/2026)**: 20/20 ACs com evidência spec-anchored `file:line`, sensor da rodada 2 com 4/4 mutantes mortas (fix round 1: `7ab580c`, `cf64f9d`), suite 550/550 (baseline real pré-feature 508, +42), frontend lint+build OK, `validate_state.py` exit 0; relatório em `.specs/features/garmin-tokens-db/validation.md`. **E** `design-system` (este branch) — **concluída e validada (PASS, 22/10/2026)**: 26/26 ACs com evidência `file:line`, sensor 5 mutações (3 mortas; 2 sobreviventes = gaps de instrumento documentados), lint+build verdes, `validate_state.py` exit 0; relatório em `.specs/features/design-system/validation.md`
-- **Phase / Task**: Execute concluído nas duas — garmin-tokens-db: 11 tasks em 2 batches + fix round do Verifier; design-system: 13 tasks em 3 batches de sub-agents (T1 `baf3d89` → T13 `c0a8fd3`; hashes por task em `.specs/features/design-system/tasks.md`)
-- **Completed**: (garmin-tokens-db) tokens por usuário no banco + cofre Fernet (`tokens_store`) + `GarminGateway.from_user` + persist-back com guard otimista + CLIs `login --user`/`import_tokens` + fail-fast da `TOKEN_ENCRYPTION_KEY` + `GET /api/profile/garmin-connection` + ConnectionCard no topo do `/perfil` + extinção do tokenstore filesystem. (design-system) tokens v0.3 + semânticas de saúde + Instrument Sans + tema de gráfico nos 11 charts (zonas VDOT intactas) + navegação responsiva (tab bar/top bar) + wordmark com pulso/favicon + skeletons + polimento; mudança de UAT: Puxar do Garmin no /perfil, header enxuto (AD-023)
-- **In-progress**: none
-- **Next step**: `garmin-tokens-db` **entregue, validada e UAT-confirmada (22/10/2026)** — operação real no host concluída (chave gerada, `import_tokens` run-once, stack no ar) e sync do usuário 1 `done` sem nenhum pedido de reconexão (tokens só no banco). Observações de UAT ainda por vir: on-board do primeiro convidado via `login --user` e um sync pós-rotação de refresh. `design-system` **mesclado na main neste commit** (UAT visual aprovado pelo usuário; emenda AD-023 aplicada). Gaps de instrumento (opcional): greps de valor literal de token e de render-site do TabBar. `next upgrade` executado (23/10, go-ahead do usuário): Next 16.4.0 → 16.4.2 — 3 CVEs críticos fechados (GHSA-2464-fhr4-w9xw RCE em Image Optimization, GHSA-p3m5-59mp-jv5r DoS em Server Actions, GHSA-673q-mjm6-r5xr RCE em use cache), nudge de security extinto do build (lint+build verdes sem retry). Decisões abertas: NVIDIA_MODEL default no `.env` · CLI `set_password` sem política de senha ≥8 · 2 docstrings de teste defasadas (cosmético) · advisory `braces` high na cadeia dev de lint (fix disponível fora do range atual — decidir depois). Próxima feature da fila: `home-panel` (supersede AD-011)
+- **Feature**: `home-panel` (branch `home-panel`) — **concluída e validada (PASS, 23/10/2026)**: 39/39 ACs P1+P2 com evidência `file:line` (0 gaps de precisão), sensor 5/5 mutações mortas (0 sobreviventes), suite **622/622** (baseline pré-feature 550, +72 testes, 7 arquivos `test_home_*`), frontend lint+build verdes, greps estruturais verdes; relatório em `.specs/features/home-panel/validation.md`. Pendências: UAT visual do usuário (390px + desktop contra o mock v0.3 — os 2 Success Criteria visuais marcados pending-user-UAT) e HOME-40 (P3 — RHR no porquê, deferido pela spec)
+- **Phase / Task**: Execute concluído — 15 tasks em 2 batches de sub-agents (Batch A T1 `3bf8f27` → T7 `62f6a1c`; Batch B T8 `7c96af5` → T15 `9e9b11d`; hashes por task em `tasks.md`) + Verifier PASS
+- **Completed**: motor de veredito determinístico V1–V6 (prioridade fixa, sinal nulo neutro, sem score/LLM — AD-025) + recomendações R1–R5 com why + taper ≤14d + `GET /api/home/today` com consistência AD-010 por construção (`get_health(8)`) + `app_tz()` extraído pro core + seed idempotente da The Best Açaí (08/11, countdown dinâmico) + Home na raiz `/` (tab "Home" em 1º, 5 itens, special-case da raiz no activePanel) + card-veredito herói (chips de sinal com data quando stale, strip 7 dias com lacunas zeradas) + chips de roteamento + cards de recomendação + mini de 10 semanas + digest de previsões (`ZoneConfigError → None`) + estados skeleton/vazio/erro
+- **In-progress**: UAT visual do usuário em dev server do worktree (backend local + next dev, dados reais)
+- **Next step**: UAT do usuário → ajustes se pedidos → go-ahead para merge `home-panel` → main (re-lembrar o push pendente da main: 2 commits + os da feature no mesmo go-ahead)
 - **Blockers**: none
-- **Uncommitted files**: none
-- **Branch**: `main` (merge do `design-system` concluído; worktree `ritmo-design-system` sincronizado depois; push só com go-ahead do usuário)
+- **Uncommitted files**: none (após o commit de fechamento)
+- **Branch**: `home-panel` (worktree `ritmo-design-system`; commits locais — merge/push só com go-ahead do usuário)
+- **Pendências menores vivas**: flake pré-existente `test_garmin_tokens_store` (monotonicidade de relógio no Windows, ~2/4 runs — reportado no batch A, não corrigido: fora do escopo) · habit tracker (AD-024 — feature futura com registro temporal de consumo) · advisory `braces` high dev-only · NVIDIA_MODEL default no `.env` · CLI `set_password` sem política ≥8 · 2 docstrings de teste defasadas

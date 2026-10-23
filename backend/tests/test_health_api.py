@@ -26,6 +26,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from app.auth.security import hash_password
+from app.core import tz as core_tz
 from app.db.engine import SessionLocal, init_db
 from app.db.models import Activity, DailyLoad, Hrv, Rhr, Sleep, Stress, User
 from app.health import router as health_router
@@ -662,17 +663,18 @@ def test_api_window_cuts_oldest_points(session_client) -> None:
 def test_api_invalid_app_timezone_falls_back_with_warning(session_client, monkeypatch, caplog) -> None:
     """Edge do spec (HLT-05): APP_TIMEZONE inválida -> fallback
     America/Sao_Paulo com warning log, sem crash — 22:16 local, nunca o
-    GMT de 01:16."""
+    GMT de 01:16. (T4: o resolvedor mudou-se para core/tz — o patch
+    acompanha o código; as asserções são as mesmas.)"""
     client, user_id = session_client
     monkeypatch.setattr(
-        health_router, "get_settings", lambda: SimpleNamespace(app_timezone="Mars/Phobos")
+        core_tz, "get_settings", lambda: SimpleNamespace(app_timezone="Mars/Phobos")
     )
     with SessionLocal() as db:
         _seed_sleep(db, user_id, date(2026, 10, 15), 23400,
                     bed=datetime(2026, 10, 15, 1, 16), wake=datetime(2026, 10, 15, 8, 2))
         db.commit()
 
-    with caplog.at_level(logging.WARNING, logger="app.health.router"):
+    with caplog.at_level(logging.WARNING, logger="app.core.tz"):
         response = client.get("/api/health/summary")
 
     assert response.status_code == 200

@@ -23,6 +23,26 @@ from app.vdot.calibration import Calibration
 RUNNING_TYPES = ("running", "trail_running")
 
 
+def get_predictions(db: Session, user_id: int, calibration: Calibration) -> dict[str, dict]:
+    """As 4 estimativas por distância canônica — a leitura única
+    compartilhada (design home-panel §Reuses): o painel Performance
+    monta o bloco inteiro e a Home filtra 10K/meia no digest P2 (zero
+    duplicação da montagem). PRs e predições do Garmin são lidos aqui
+    pela 2ª vez quando `get_potential` chama (ele precisa dos próprios
+    PRs para timeline/decay — escala pessoal, custo desprezível).
+    `average_s` None = evento sem estimativa (o digest omite, nunca
+    exibe "—" — HOME-39)."""
+    prs = (
+        db.execute(
+            select(PersonalRecord).where(PersonalRecord.user_id == user_id)
+        )
+        .scalars()
+        .all()
+    )
+    pr_5k_s = next((pr.value for pr in prs if pr.event == "FASTEST_5K"), None)
+    return predictions(_garmin_by_event(db, user_id), pr_5k_s, calibration.vdot, prs)
+
+
 def _garmin_by_event(db: Session, user_id: int) -> dict[str, float]:
     """Snapshot latest das predições por evento do usuário; linha sem tempo = ausente."""
     rows = (
@@ -157,7 +177,6 @@ def get_potential(db: Session, user_id: int, calibration: Calibration) -> dict:
         if block_demonstrated is not None
         else None
     )
-    pr_5k_s = next((pr.value for pr in prs if pr.event == "FASTEST_5K"), None)
 
     return {
         "vdot": {
@@ -170,7 +189,8 @@ def get_potential(db: Session, user_id: int, calibration: Calibration) -> dict:
             "gap_pct": gap_pct,
             "timeline": points,
         },
-        "predictions": predictions(_garmin_by_event(db, user_id), pr_5k_s, calibration.vdot, prs),
+        # A mesma leitura do digest da Home (extraída) — uma montagem só
+        "predictions": get_predictions(db, user_id, calibration),
         "vo2max": _vo2max_block(activities),
         "decay": decay(prs, calibration.vdot),
         "pmc": _pmc_block(db, user_id),

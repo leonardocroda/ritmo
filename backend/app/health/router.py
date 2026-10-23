@@ -8,25 +8,20 @@ inválido -> fallback America/Sao_Paulo + warning (edge do spec, sem
 crash).
 """
 
-import logging
 from datetime import date
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.auth.deps import require_session
-from app.core.config import get_settings
+from app.core.tz import app_tz
 from app.db.engine import get_db
 from app.db.models import User
 from app.health import service
 
-logger = logging.getLogger(__name__)
-
 router = APIRouter(prefix="/api/health")
-
-DEFAULT_TIMEZONE = "America/Sao_Paulo"
 
 
 class SleepPoint(BaseModel):
@@ -157,16 +152,9 @@ class HealthSummaryOut(BaseModel):
 
 
 def _resolve_tz() -> ZoneInfo:
-    """Fuso da conversão de deitar/acordar: APP_TIMEZONE; valor inválido
-    -> default + warning (edge do spec — o painel segue no fuso default)."""
-    name = get_settings().app_timezone
-    try:
-        return ZoneInfo(name)
-    except (ZoneInfoNotFoundError, ValueError):
-        logger.warning(
-            "APP_TIMEZONE inválida (%s) — usando %s", name, DEFAULT_TIMEZONE
-        )
-        return ZoneInfo(DEFAULT_TIMEZONE)
+    """Delega no resolvedor único (core.tz) — mesmo comportamento da
+    edge do spec: inválida -> default + warning."""
+    return app_tz()
 
 
 @router.get("/summary")
