@@ -204,11 +204,12 @@
 
 ## Handoff
 
-- **Feature**: `home-panel` (branch nova no worktree `ritmo-design-system`) — spec confirmada pelo usuário (23/10/2026): 40 ACs; veredito determinístico (regras V1–V6 prioridade fixa) + recomendações R1–R5 com why + chips de roteamento + strip 7 dias + seed da The Best Açaí; habit tracker adiado (AD-024). Fundações: `garmin-tokens-db` e `design-system` concluídas, validadas e mescladas na main (`56ebec3`, com Next 16.4.2 — CVEs fechados)
-- **Phase / Task**: Execute — Batch A (T1–T7, backend) em despacho; baseline da suite rodando em background
-- **Completed**: spec + design + tasks aprovadas pelo usuário (26 EARS ACs; 15 tasks, 4 fases; greps dos Success Criteria nos Done when). Commit chain: `361cabb` (spec) → `e6fbe54` (design) → `7de5b43` (tasks)
-- **In-progress**: Execute via sub-agents (aprovado pelo usuário): Batch A = T1–T7 backend (motor de veredito, app_tz, get_home, endpoint, seed) → Batch B = T8–T15 (frontend + P2); Verifier automático ao final
-- **Next step**: baseline verde → despachar Batch A → sumário compacto → Batch B → Verifier → `validate_state.py` → UAT visual do usuário
-- **Blockers**: baseline da suite em background (worktree novo: `uv sync` feito; Postgres do compose em localhost:5432/ritmo_test)
-- **Uncommitted files**: none (após o commit da spec)
-- **Branch**: `home-panel` (nova, a partir da main `56ebec3`; commits locais — merge/push só com go-ahead do usuário)
+- **Feature**: `home-panel` (branch `home-panel`) — **concluída e validada (PASS, 23/10/2026)**: 39/39 ACs P1+P2 com evidência `file:line` (0 gaps de precisão), sensor 5/5 mutações mortas (0 sobreviventes), suite **622/622** (baseline pré-feature 550, +72 testes, 7 arquivos `test_home_*`), frontend lint+build verdes, greps estruturais verdes; relatório em `.specs/features/home-panel/validation.md`. Pendências: UAT visual do usuário (390px + desktop contra o mock v0.3 — os 2 Success Criteria visuais marcados pending-user-UAT) e HOME-40 (P3 — RHR no porquê, deferido pela spec)
+- **Phase / Task**: Execute concluído — 15 tasks em 2 batches de sub-agents (Batch A T1 `3bf8f27` → T7 `62f6a1c`; Batch B T8 `7c96af5` → T15 `9e9b11d`; hashes por task em `tasks.md`) + Verifier PASS
+- **Completed**: motor de veredito determinístico V1–V6 (prioridade fixa, sinal nulo neutro, sem score/LLM — AD-025) + recomendações R1–R5 com why + taper ≤14d + `GET /api/home/today` com consistência AD-010 por construção (`get_health(8)`) + `app_tz()` extraído pro core + seed idempotente da The Best Açaí (08/11, countdown dinâmico) + Home na raiz `/` (tab "Home" em 1º, 5 itens, special-case da raiz no activePanel) + card-veredito herói (chips de sinal com data quando stale, strip 7 dias com lacunas zeradas) + chips de roteamento + cards de recomendação + mini de 10 semanas + digest de previsões (`ZoneConfigError → None`) + estados skeleton/vazio/erro
+- **In-progress**: UAT visual do usuário em dev server do worktree (backend local + next dev, dados reais)
+- **Next step**: UAT do usuário → ajustes se pedidos → go-ahead para merge `home-panel` → main (re-lembrar o push pendente da main: 2 commits + os da feature no mesmo go-ahead)
+- **Blockers**: none
+- **Uncommitted files**: none (após o commit de fechamento)
+- **Branch**: `home-panel` (worktree `ritmo-design-system`; commits locais — merge/push só com go-ahead do usuário)
+- **Pendências menores vivas**: flake pré-existente `test_garmin_tokens_store` (monotonicidade de relógio no Windows, ~2/4 runs — reportado no batch A, não corrigido: fora do escopo) · habit tracker (AD-024 — feature futura com registro temporal de consumo) · advisory `braces` high dev-only · NVIDIA_MODEL default no `.env` · CLI `set_password` sem política ≥8 · 2 docstrings de teste defasadas
