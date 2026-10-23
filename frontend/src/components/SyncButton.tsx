@@ -1,6 +1,8 @@
 "use client";
 
-// SyncButton — o botão "Puxar do Garmin" (SYNC-08/26).
+// SyncButton — o botão "Puxar do Garmin" (SYNC-08/26), morando no
+// /perfil dentro da seção "Conexão Garmin" (AD-023 — saiu do header
+// no UAT do design-system, 22/10).
 // Estados: idle → running (disabled + stats.message) → done (resumo
 // PT-BR dos contadores) | error (mensagem) | reauth ("Reconectar
 // Garmin" + instrução da CLI no lugar do resumo). O progresso vem
@@ -79,7 +81,7 @@ export default function SyncButton() {
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col items-start gap-1">
       <button
         type="button"
         onClick={handleSync}
@@ -94,12 +96,12 @@ export default function SyncButton() {
       </button>
 
       {failure !== null && (
-        <p className="max-w-xs text-right text-xs text-muted">{failure}</p>
+        <p className="max-w-xs text-left text-xs text-muted">{failure}</p>
       )}
 
       {/* SYNC-26: "Reconectar Garmin" + CLI no lugar do resumo */}
       {reauth && (
-        <p className="max-w-xs text-right text-xs text-muted">
+        <p className="max-w-xs text-left text-xs text-muted">
           Reconectar Garmin: rode{" "}
           <code className="font-mono text-foreground">python -m app.garmin.login</code>{" "}
           e clique de novo.
@@ -107,11 +109,11 @@ export default function SyncButton() {
       )}
 
       {job?.status === "error" && !reauth && (
-        <p className="max-w-xs text-right text-xs text-muted">{job.error}</p>
+        <p className="max-w-xs text-left text-xs text-muted">{job.error}</p>
       )}
 
       {job?.status === "done" && stats !== null && (
-        <div className="max-w-xs text-right text-xs text-muted">
+        <div className="max-w-xs text-left text-xs text-muted">
           <p>{summarize(stats)}</p>
           {stats.warnings.map((warning) => (
             <p key={warning.tipo}>

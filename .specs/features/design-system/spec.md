@@ -39,7 +39,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 | Fonte de interface | Instrument Sans 400–700 via `next/font/google` (`display: swap`); Geist Mono permanece para mono | O mock v0.3 aprovado usa Instrument Sans; Geist é exatamente a default que se quer trocar | y (aprovação visual 22/10) |
 | Compatibilidade de classes | Tokens atuais (`--background`, `--accent`, `--card`, `--muted`, `--foreground`) continuam existindo como aliases com valores v0.3 | Os 100+ usos de `bg-card`/`text-muted`/`accent` seguem funcionando sem refactor |
 | Tab bar começa com 4 itens | Treinos · Saúde · Performance · Perfil — o "Hoje" entra com a spec da Home | Não existe destino `/hoje` ainda; tab fantasma quebraria o princípio "a Home roteia" |
-| Perfil na tab bar | `/perfil` vira 4ª tab; o link de nome sai do header (fica wordmark + sync + menu Sair) | Navegação única ao alcance do polegar; o topo vira conteúdo (v0.3 §06) |
+| Perfil na tab bar | `/perfil` vira 4ª tab; o link de nome e o botão de sync saem do header (fica wordmark + menu Sair — AD-023) | Navegação única ao alcance do polegar; o topo vira conteúdo (v0.3 §06) |
 | Tema aplicado a TODOS os gráficos agora | Os 11 componentes migram ao módulo central nesta feature | Consistência imediata; mudança é de estilo, não de dado — risco baixo |
 | SplitsChart | Mantém cores de zona VDOT; ganha só eixo/caption/tooltip do tema | Regra de coexistência v0.3 + AD-009 |
 | Semânticas de saúde | `--good`/`--attention`/`--alert` definidos agora, consumidos pela Home depois | Barato agora; evita reabrir o arquivo na feature da Home |
@@ -119,7 +119,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica implicitamente i
 18. WHILE uma tab está ativa THEN o item SHALL ter alvo de toque ≥44px e marcação `aria-current="page"` (padrão da `Nav` atual — `activePanel` por `startsWith`). <!-- state-driven -->
 19. WHEN a tela tem 390px de largura THEN as 4 tabs SHALL caber sem scroll horizontal. <!-- event-driven -->
 20. WHEN o viewport é de 768px ou mais THEN the system SHALL exibir a navegação no header (top bar) com os mesmos 4 itens — mesmos ícones e labels do mobile, mesmo padrão de ativo — e a tab bar inferior SHALL desaparecer. <!-- event-driven -->
-21. WHEN `/perfil` é alcançado pela navegação THEN o header SHALL reter apenas wordmark + sync + menu do usuário (Sair) em qualquer largura — o link de nome sai do header. <!-- event-driven -->
+21. WHEN `/perfil` é alcançado pela navegação THEN o header SHALL reter apenas wordmark + menu do usuário (Sair) — o link de nome e o botão de sync saem do header; o "Puxar do Garmin" vive no `/perfil`, na seção Conexão Garmin (emenda de UAT 22/10, AD-023). <!-- event-driven -->
 22. The system SHALL adicionar 18px de respiro inferior fixo abaixo da tab bar no mobile (safe-area em telas que expõem inset). <!-- ubiquitous -->
 
 **Independent Test**: em 390px, navegar pelos 4 destinos com a tab inferior (ativo com pill lime, `/perfil` ao polegar, sem scroll horizontal); redimensionar para ≥768px → a navegação migra para o header com os mesmos itens e o item ativo preservado; a tab inferior some.

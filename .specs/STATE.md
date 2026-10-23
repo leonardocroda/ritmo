@@ -178,13 +178,21 @@
 - **Date**: 2026-10-22
 - **Status**: active
 
+### AD-023
+- **Decision**: **O botão "Puxar do Garmin" sai do header global e passa a viver no `/perfil`, dentro da seção "Conexão Garmin"** — status de conexão (ConnectionCard) e ação de sync no mesmo lugar; o header fica com wordmark + menu do usuário (Sair) em qualquer largura, sem ações globais. Emende a DSN-21 do design-system.
+- **Reason**: Decisão do usuário no UAT do design-system (22/10/2026): no mobile o botão de sync no topo ficava estranho ao lado da top bar; sync é ato de configuração da conexão, não de navegação diária — coerente morar junto do status da conexão (ConnectionCard, feature garmin-tokens-db).
+- **Trade-off**: O sync deixa de estar a um clique de qualquer painel (agora: 1 tap na tab Perfil) em troca de um header limpo e da coerência semântica do lugar do botão.
+- **Scope**: `frontend/src/components/Header.tsx` (remove), `frontend/src/components/SyncButton.tsx` (alinhamento), `frontend/src/app/(app)/perfil/page.tsx` (seção Conexão), `README.md` §Sync, spec design-system (emenda DSN-21).
+- **Date**: 2026-10-22
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: `garmin-tokens-db` (main) — **concluída e validada (PASS, 22/10/2026)**: 20/20 ACs com evidência spec-anchored `file:line`, sensor da rodada 2 com 4/4 mutantes mortas (fix round 1: `7ab580c`, `cf64f9d`), suite 550/550 (baseline real pré-feature 508, +42), frontend lint+build OK, `validate_state.py` exit 0; relatório em `.specs/features/garmin-tokens-db/validation.md`. **E** `design-system` (este branch) — **concluída e validada (PASS, 22/10/2026)**: 26/26 ACs com evidência `file:line`, sensor 5 mutações (3 mortas; 2 sobreviventes = gaps de instrumento documentados), lint+build verdes, `validate_state.py` exit 0; relatório em `.specs/features/design-system/validation.md`
 - **Phase / Task**: Execute concluído nas duas — garmin-tokens-db: 11 tasks em 2 batches + fix round do Verifier; design-system: 13 tasks em 3 batches de sub-agents (T1 `baf3d89` → T13 `c0a8fd3`; hashes por task em `.specs/features/design-system/tasks.md`)
-- **Completed**: (garmin-tokens-db) tokens por usuário no banco + cofre Fernet (`tokens_store`) + `GarminGateway.from_user` + persist-back com guard otimista + CLIs `login --user`/`import_tokens` + fail-fast da `TOKEN_ENCRYPTION_KEY` + `GET /api/profile/garmin-connection` + ConnectionCard no topo do `/perfil` + extinção do tokenstore filesystem. (design-system) tokens v0.3 + semânticas de saúde + Instrument Sans + tema de gráfico nos 11 charts (zonas VDOT intactas) + navegação responsiva (tab bar/top bar) + wordmark com pulso/favicon + skeletons + polimento
-- **In-progress**: mudança de UAT do design-system (22/10, pedido do usuário): botão "Puxar do Garmin" sai do header e passa a viver no `/perfil` junto à seção Conexão Garmin
-- **Next step**: pós-merge no host: gerar `TOKEN_ENCRYPTION_KEY` no `backend/.env`, rodar `uv run python -m app.garmin.import_tokens` UMA vez e reiniciar a stack (garmin-tokens-db; detalhes no README). Design-system: concluir a mudança do SyncButton → merge `design-system` → `main` após o UAT visual 390px↔desktop. Gaps de instrumento (opcional): greps de valor literal de token e de render-site do TabBar. Decisões abertas: `next upgrade` (CVE do Next 16.4.0 — precisa de go-ahead do usuário e coordenação) · NVIDIA_MODEL default no `.env` · CLI `set_password` sem política de senha ≥8. Próxima feature da fila: `home-panel` (supersede AD-011)
+- **Completed**: (garmin-tokens-db) tokens por usuário no banco + cofre Fernet (`tokens_store`) + `GarminGateway.from_user` + persist-back com guard otimista + CLIs `login --user`/`import_tokens` + fail-fast da `TOKEN_ENCRYPTION_KEY` + `GET /api/profile/garmin-connection` + ConnectionCard no topo do `/perfil` + extinção do tokenstore filesystem. (design-system) tokens v0.3 + semânticas de saúde + Instrument Sans + tema de gráfico nos 11 charts (zonas VDOT intactas) + navegação responsiva (tab bar/top bar) + wordmark com pulso/favicon + skeletons + polimento; mudança de UAT: Puxar do Garmin no /perfil, header enxuto (AD-023)
+- **In-progress**: none
+- **Next step**: pós-merge no host: gerar `TOKEN_ENCRYPTION_KEY` no `backend/.env`, rodar `uv run python -m app.garmin.import_tokens` UMA vez e reiniciar a stack (garmin-tokens-db; detalhes no README). Design-system: merge `design-system` → `main` após o UAT visual 390px↔desktop. Gaps de instrumento (opcional): greps de valor literal de token e de render-site do TabBar. Decisões abertas: `next upgrade` (CVE do Next 16.4.0 — precisa de go-ahead do usuário e coordenação) · NVIDIA_MODEL default no `.env` · CLI `set_password` sem política de senha ≥8. Próxima feature da fila: `home-panel` (supersede AD-011)
 - **Blockers**: none
 - **Uncommitted files**: none (após o commit de validação)
 - **Branch**: `design-system` (worktree `ritmo-design-system`; commits locais — push/merge só com go-ahead do usuário)

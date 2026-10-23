@@ -79,7 +79,7 @@ Dentro do compose nada muda (o backend usa o hostname `postgres`); apenas o
 
 ## Sync do Garmin
 
-O botão **Puxar do Garmin** (header global, visível de qualquer painel) roda
+O botão **Puxar do Garmin** (na aba **Perfil**, dentro da seção **Conexão Garmin**) roda
 um job sequencial que popula o banco: atividades + splits, sono, HRV, RHR,
 body battery, stress, recordes de corrida, a série de carga
 (CTL/ATL/TSB/ACWR, calculada localmente a partir do `training_load` — zero

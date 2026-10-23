@@ -2,8 +2,8 @@
 
 // /perfil — nasce aqui com a tela de zonas de FC (feature hr-zones):
 // "Conexão Garmin" no topo (sem índice — pré-requisito, não passo do
-// fio condutor) e 1 "Valores", 2 "Método e zonas" e 3 "Histórico"
-// (HRZ-13/14/15).
+// fio condutor; abriga o botão "Puxar do Garmin" — AD-023) e 1
+// "Valores", 2 "Método e zonas" e 3 "Histórico" (HRZ-13/14/15).
 // Página client no padrão do /login: o proxy protege a rota (sem
 // cookie → /login?next=/perfil, HRZ-16) e o apiFetch redireciona na
 // sessão expirada em uso. O GET carrega o shape completo e o
@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import PanelSection from "@/components/PanelSection";
 import ConnectionCard from "@/components/profile/ConnectionCard";
 import Skeleton from "@/components/Skeleton";
+import SyncButton from "@/components/SyncButton";
 import HrHistoryList from "@/components/profile/HrHistoryList";
 import HrMethodCard from "@/components/profile/HrMethodCard";
 import HrValuesCard from "@/components/profile/HrValuesCard";
@@ -100,6 +101,10 @@ export default function PerfilPage() {
               state={state.connection.state}
               tokensUpdatedAt={state.connection.tokens_updated_at}
             />
+            {/* Status de conexão e ação de sync no mesmo lugar (AD-023) */}
+            <div className="mt-4">
+              <SyncButton />
+            </div>
           </PanelSection>
           <PanelSection
             index={1}
