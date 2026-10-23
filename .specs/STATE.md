@@ -170,45 +170,29 @@
 - **Date**: 2026-10-20
 - **Status**: active
 
+### AD-022
+- **Decision**: **Identidade visual v0.3 adotada como sistema de design da plataforma** — referência canônica: `docs/design/identidade-visual-v0.3.html` (mock aprovado: tokens + Home 390px): paleta tinted dark (Night `#0B0F12` · Surface `#121815` · Forest `#1B241A` · Lime `#B7F36B` como acento funcional, nunca fundo geral), borda decorativa `#354039` vs interativa `#4A574E`, Instrument Sans 400–700 com números tabulares, tema de gráfico **"contexto em neutro, um único destaque lime"**, semântica de saúde própria (bom=lime · atenção `#E9B44C` · alerta `#EF6757`, sempre com texto) e shell de app **responsivo** — **tab bar inferior no mobile (<768px), top bar no header no desktop**, com os mesmos itens (ícones + labels) e o mesmo padrão de ativo. Cores das zonas VDOT **mantidas e restritas a contexto de treino** (regra de coexistência: lime da marca ≠ verde-easy de zona). Interface em **sentence case** — caps só em eyebrow. Materialização = feature `design-system` (tokens, tipografia, tema de gráfico, tab bar, skeletons); Home e retrofits de composição seguem em specs próprias.
+- **Reason**: Decisão do usuário (22/10/2026): o mock v0.3 — Home 390px inteira na linguagem nova — foi aprovado visualmente e o usuário pediu o início da spec. A identidade sai de "direção visual" e vira fundação de código antes das features que a consomem (Home, que supersede a AD-011); o produto migra de "métricas pra especialista" para "decisão diária pra corredor comum" e precisa ser reconhecível no primeiro olhar — os defaults da stack (zinc/lime-400, Geist, Recharts cru) produzem exatamente o "cara de dashboard" que se quer eliminar. Emenda do usuário na revisão da spec (22/10): em telas largas a navegação permanece no topo — tab bar inferior em desktop ficaria estranha.
+- **Trade-off**: Re-pele geral via swap de tokens (toda a superfície muda de pele de uma vez) em vez de redesign gradual por painel — mudança visual grande num commit, em troca de consistência imediata e zero retrofit de cor depois. Zonas VDOT fora do sistema de cor (dupla linguagem de verde, documentada) em vez de unificação — preserva o significado semântico das zonas nos treinos.
+- **Scope**: `frontend/src/app/globals.css` (tokens + `@theme inline`), `frontend/src/app/layout.tsx` (fonte, themeColor, favicon), novo `frontend/src/lib/chartTheme.ts`, `frontend/src/components/Nav.tsx` (tab bar), os 11 componentes de gráfico (estilo, não dado), `docs/design/`; features futuras (home-panel, retrofit de painéis) consomem os tokens.
+- **Date**: 2026-10-22
+- **Status**: active
 
+### AD-023
+- **Decision**: **O botão "Puxar do Garmin" sai do header global e passa a viver no `/perfil`, dentro da seção "Conexão Garmin"** — status de conexão (ConnectionCard) e ação de sync no mesmo lugar; o header fica com wordmark + menu do usuário (Sair) em qualquer largura, sem ações globais. Emende a DSN-21 do design-system.
+- **Reason**: Decisão do usuário no UAT do design-system (22/10/2026): no mobile o botão de sync no topo ficava estranho ao lado da top bar; sync é ato de configuração da conexão, não de navegação diária — coerente morar junto do status da conexão (ConnectionCard, feature garmin-tokens-db).
+- **Trade-off**: O sync deixa de estar a um clique de qualquer painel (agora: 1 tap na tab Perfil) em troca de um header limpo e da coerência semântica do lugar do botão.
+- **Scope**: `frontend/src/components/Header.tsx` (remove), `frontend/src/components/SyncButton.tsx` (alinhamento), `frontend/src/app/(app)/perfil/page.tsx` (seção Conexão), `README.md` §Sync, spec design-system (emenda DSN-21).
+- **Date**: 2026-10-22
+- **Status**: active
 
 ## Handoff
 
-- **Feature**: `garmin-tokens-db` — **concluída e validada (PASS, 22/10/2026)**:
-  20/20 ACs com evidência spec-anchored `file:line`, sensor da rodada 2 com 4/4
-  mutantes mortas (persist-back no reauth com gateway vivo e import ilegível
-  fechados na fix round 1; guard otimista e `from_user` adversariais mantidos
-  mortos), suite 550/550 (baseline real pré-feature 508; +42 testes; o "493" do
-  handoff anterior estava defasado), frontend lint+build OK, `validate_state.py`
-  exit 0; relatório em `.specs/features/garmin-tokens-db/validation.md`
-- **Phase / Task**: Execute concluído — 11 tasks em 2 batches (Batch 1: T1 models
-  `d49438f` → T2 config `9e35873` → T3 tokens_store `4a1e2ab` → T4 gateway+call
-  site `b3901c5` → T5 persist-back `c2dacdd` → T6 login CLI `7d98f9d` → T7 import
-  CLI `653cc13`; Batch 2: T8 fail-fast `d77902c` → T9 endpoint `15aa875` → T10
-  frontend `f745de1` → T11 extinção `82d5348`) + fix round 1 do Verifier (`7ab580c`,
-  `cf64f9d`)
-- **Completed**: tokens por usuário no banco (`garmin_tokens`, unique + FK
-  CASCADE), cofre Fernet (`tokens_store`: require_key/get_blob/save_blob/get_meta),
-  `GarminGateway.from_user` + `session_blob`/`tokens_loaded_at`, persist-back no
-  fim do sync com guard otimista (`synchronize_session=False` — evita a identity
-  map ressuscitar ciphertext recusado), CLI `login --user` (pop GARMINTOKENS,
-  valida di_token, upsert) e `import_tokens --path` (recusa linha existente),
-  fail-fast da `TOKEN_ENCRYPTION_KEY` no lifespan, `GET /api/profile/
-  garmin-connection` (3 estados + emenda re-login pós-job), `ConnectionCard` no
-  topo do `/perfil` (PanelSection sem índice), tokenstore filesystem extinto
-  (compose, .env.example, README, token_utils reduzido a resolve_token_path)
+- **Feature**: `garmin-tokens-db` (main) — **concluída e validada (PASS, 22/10/2026)**: 20/20 ACs com evidência spec-anchored `file:line`, sensor da rodada 2 com 4/4 mutantes mortas (fix round 1: `7ab580c`, `cf64f9d`), suite 550/550 (baseline real pré-feature 508, +42), frontend lint+build OK, `validate_state.py` exit 0; relatório em `.specs/features/garmin-tokens-db/validation.md`. **E** `design-system` (este branch) — **concluída e validada (PASS, 22/10/2026)**: 26/26 ACs com evidência `file:line`, sensor 5 mutações (3 mortas; 2 sobreviventes = gaps de instrumento documentados), lint+build verdes, `validate_state.py` exit 0; relatório em `.specs/features/design-system/validation.md`
+- **Phase / Task**: Execute concluído nas duas — garmin-tokens-db: 11 tasks em 2 batches + fix round do Verifier; design-system: 13 tasks em 3 batches de sub-agents (T1 `baf3d89` → T13 `c0a8fd3`; hashes por task em `.specs/features/design-system/tasks.md`)
+- **Completed**: (garmin-tokens-db) tokens por usuário no banco + cofre Fernet (`tokens_store`) + `GarminGateway.from_user` + persist-back com guard otimista + CLIs `login --user`/`import_tokens` + fail-fast da `TOKEN_ENCRYPTION_KEY` + `GET /api/profile/garmin-connection` + ConnectionCard no topo do `/perfil` + extinção do tokenstore filesystem. (design-system) tokens v0.3 + semânticas de saúde + Instrument Sans + tema de gráfico nos 11 charts (zonas VDOT intactas) + navegação responsiva (tab bar/top bar) + wordmark com pulso/favicon + skeletons + polimento; mudança de UAT: Puxar do Garmin no /perfil, header enxuto (AD-023)
 - **In-progress**: none
-- **Next step**: `garmin-tokens-db` **entregue, validada e UAT-confirmada (22/10/2026)**:
-  operação real no host (chave gerada, `import_tokens` run-once, stack no ar) e sync
-  do usuário 1 concluído `done` sem nenhum pedido de reconexão — tokens só no banco.
-  Observações de UAT ainda por vir: on-board do primeiro convidado via
-  `login --user` (criterio de sucesso restante) e um sync pós-rotação de refresh
-  (prova direta da persistência — hoje coberta por teste + sinal indireto).
-  Próxima feature da fila: `user-profile`. Lições L-017/L-018 registradas
-  (persist-reauth e import ilegível). Pendências menores vivas: CLI `set_password`
-  sem política de senha ≥8; 2 docstrings de teste defasadas (cosmético); decisão
-  aberta de produto: NVIDIA_MODEL default no `.env`; Next 16.4 oferece "security
-  upgrade" no build (não executado — fora do escopo da feature)
+- **Next step**: `garmin-tokens-db` **entregue, validada e UAT-confirmada (22/10/2026)** — operação real no host concluída (chave gerada, `import_tokens` run-once, stack no ar) e sync do usuário 1 `done` sem nenhum pedido de reconexão (tokens só no banco). Observações de UAT ainda por vir: on-board do primeiro convidado via `login --user` e um sync pós-rotação de refresh. `design-system` **mesclado na main neste commit** (UAT visual aprovado pelo usuário; emenda AD-023 aplicada). Gaps de instrumento (opcional): greps de valor literal de token e de render-site do TabBar. Em andamento agora (23/10, go-ahead do usuário): `next upgrade` para resolver as CVEs críticas do 16.4.0. Decisões abertas: NVIDIA_MODEL default no `.env` · CLI `set_password` sem política de senha ≥8 · 2 docstrings de teste defasadas (cosmético). Próxima feature da fila: `home-panel` (supersede AD-011)
 - **Blockers**: none
 - **Uncommitted files**: none
-- **Branch**: main (commits locais; push só com go-ahead do usuário)
+- **Branch**: `main` (merge do `design-system` concluído; worktree `ritmo-design-system` sincronizado depois; push só com go-ahead do usuário)

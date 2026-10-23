@@ -2,11 +2,22 @@
 
 /* Ritmo — tema escuro permanente (plano: mobile-first, dark) */
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --accent: #a3e635; /* lime-400 — cor das zonas/ritmo */
-  --muted: #a1a1aa;
-  --card: #18181b; /* zinc-900 */
+  /* Identidade v0.3 (AD-022) — referência: docs/design/identidade-visual-v0.3.html */
+  /* Nomes canônicos mantidos: os usos de bg-card/text-muted/accent seguem intactos (DSN-02) */
+  --background: #0B0F12;    /* v0.3 "Night" */
+  --foreground: #F5F7F2;    /* v0.3 "Soft White" */
+  --accent: #B7F36B;        /* v0.3 "Lime" — acento funcional, nunca fundo geral */
+  --muted: #A1AAA9;
+  --card: #121815;          /* v0.3 "Surface" */
+  --raised: #1B241A;        /* v0.3 "Forest" — cartão-herói */
+  --deep: #273323;          /* badges, chips de numeral */
+  --border: #354039;        /* borda decorativa (1,8:1 — nunca o único sinal) */
+  --border-hover: #4A574E;  /* borda de interativos (hover/focus) */
+  --on-accent: #182014;     /* texto sobre lime */
+  /* semântica de saúde (consumida pela Home em spec própria) */
+  --good: #B7F36B;
+  --attention: #E9B44C;
+  --alert: #EF6757;
 }
 
 @theme inline {
@@ -15,7 +26,17 @@
   --color-accent: var(--accent);
   --color-muted: var(--muted);
   --color-card: var(--card);
-  --font-sans: var(--font-geist-sans);
+  --color-raised: var(--raised);
+  --color-deep: var(--deep);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-on-accent: var(--on-accent);
+  --color-good: var(--good);
+  --color-attention: var(--attention);
+  --color-alert: var(--alert);
+  --radius-card: 16px;
+  --radius-ctl: 12px;
+  --font-sans: var(--font-instrument-sans);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -23,4 +44,23 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Skeleton (DSN-23): bloco neutro pulsando ~1,6s no gradiente
+   raised→deep. O raio fica por conta da composição (rounded-ctl /
+   rounded-card) — o raio só existe como utilitário do @theme inline. */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.skeleton {
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  background: linear-gradient(90deg, var(--raised), var(--deep), var(--raised));
+  background-size: 200% 100%;
 }

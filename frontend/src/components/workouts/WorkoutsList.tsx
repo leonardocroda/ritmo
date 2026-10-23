@@ -20,6 +20,7 @@ import {
   formatKm,
   formatPace,
 } from "@/lib/format";
+import Skeleton from "@/components/Skeleton";
 
 const PAGE_SIZE = 30;
 
@@ -37,7 +38,7 @@ function Item({ item }: { item: ActivityListItem }) {
     <li>
       <Link
         href={`/treinos/${item.id}`}
-        className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-card px-4 py-3 hover:border-accent/40"
+        className="flex items-center justify-between gap-3 rounded-card border border-border bg-card px-4 py-3 hover:border-accent/40"
       >
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-2">
@@ -57,7 +58,7 @@ function Item({ item }: { item: ActivityListItem }) {
             {item.distance_m > 0 && ` · ${formatKm(item.distance_m)}`}
           </p>
         </div>
-        <div className="shrink-0 text-right text-sm">
+        <div className="shrink-0 text-right text-sm tabular-nums">
           <p>
             {item.pace_s !== null
               ? `${formatPace(item.pace_s)}/km`
@@ -164,16 +165,24 @@ export default function WorkoutsList() {
         })}
       </div>
 
-      {loading && <p className="mt-6 text-sm text-muted">Carregando treinos…</p>}
+      {loading && (
+        // Skeleton no lugar do texto de carregamento (DSN-23): três
+        // linhas de cartão no lugar da lista que chega.
+        <div className="mt-6 space-y-2">
+          <Skeleton className="h-14 w-full rounded-card" />
+          <Skeleton className="h-14 w-full rounded-card" />
+          <Skeleton className="h-14 w-full rounded-card" />
+        </div>
+      )}
 
       {!loading && error !== null && (
-        <p className="mt-6 rounded-xl border border-white/10 bg-card px-4 py-3 text-sm text-muted">
+        <p className="mt-6 rounded-card border border-border bg-card px-4 py-3 text-sm text-muted">
           Não foi possível carregar os treinos: {error}
         </p>
       )}
 
       {!loading && error === null && total === 0 && (
-        <p className="mt-6 rounded-xl border border-white/10 bg-card px-4 py-6 text-sm text-muted">
+        <p className="mt-6 rounded-card border border-border bg-card px-4 py-6 text-sm text-muted">
           Nenhuma atividade por aqui. Use o botão &ldquo;Puxar do Garmin&rdquo; no topo
           para sincronizar seus dados.
         </p>
@@ -195,11 +204,11 @@ export default function WorkoutsList() {
             disabled={loadingMore}
             className={
               loadingMore
-                ? "rounded-full border border-white/10 bg-card px-4 py-1.5 text-sm font-medium text-muted"
+                ? "rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium text-muted"
                 : "rounded-full border border-accent/30 px-4 py-1.5 text-sm font-medium text-accent hover:bg-accent/10"
             }
           >
-            {loadingMore ? "Carregando…" : "Carregar mais"}
+            {loadingMore ? <Skeleton className="h-4 w-20 rounded-ctl" /> : "Carregar mais"}
           </button>
         </div>
       )}

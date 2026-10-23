@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ritmo — Identidade visual v0.3 · tokens + Home 390px</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#0B0F12;--surface:#121815;--raised:#1B241A;--deep:#273323;
+  --border:#354039;--border-hover:#4A574E;
+  --lime:#B7F36B;--on-lime:#182014;
+  --text:#F5F7F2;--muted:#A1AAA9;
+  --amber:#E9B44C;--coral:#EF6757;
+  --r-card:16px;--r-ctl:12px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--night);color:var(--text);font-family:'Instrument Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+::selection{background:var(--lime);color:var(--on-lime)}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
+.wrap{width:min(1080px,100% - 40px);margin:0 auto}
+.doc-header{padding:56px 0 36px;border-bottom:1px solid var(--border)}
+.eyebrow{color:var(--lime);font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+h1{font-size:clamp(2rem,4.8vw,3.4rem);line-height:1.04;letter-spacing:-.03em;font-weight:650;margin:12px 0 14px}
+h1 span{color:var(--lime)}
+.lede{color:var(--muted);font-size:1.02rem;max-width:72ch;margin:0 0 10px}
+.note{font-size:.85rem;color:var(--muted);margin:0}
+section{margin:46px 0}
+h2{font-size:1.45rem;letter-spacing:-.02em;font-weight:650;margin:0 0 6px}
+h2 .idx{color:var(--lime);font-variant-numeric:tabular-nums;font-size:.78em;margin-right:10px;letter-spacing:.06em}
+.slead{color:var(--muted);font-size:.95rem;margin:0 0 18px;max-width:80ch}
+h3{font-size:16px;font-weight:650;margin:0 0 10px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:20px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:14px 0}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+ul{padding-left:18px;margin:8px 0}
+li{margin:6px 0;font-size:.92rem}
+pre{background:#080B0D;border:1px solid var(--border);border-radius:12px;padding:16px;font-size:.82rem;color:#DDE4D8;overflow:auto;line-height:1.6;font-family:'SFMono-Regular',Consolas,'Liberation Mono',monospace}
+.callout{margin-top:14px;padding:12px 14px;border-left:3px solid var(--lime);background:var(--raised);border-radius:0 10px 10px 0;font-size:.9rem}
+.swatches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+.swatch{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface)}
+.swatch .c{height:52px}
+.swatch .i{padding:8px 10px;font-size:.72rem;line-height:1.35}
+.swatch .i strong{display:block;font-size:.78rem}
+.swatch .i code{color:var(--muted)}
+.trow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid var(--border)}
+.trow:last-child{border-bottom:0}
+.tmeta{font-size:.72rem;color:var(--muted);white-space:nowrap}
+.stage{overflow-x:auto;padding:6px 0 4px}
+.phones{display:flex;flex-direction:column;align-items:center;min-width:392px;margin:0 auto}
+.device{width:392px;background:#05080B;border:1px solid #232E28;border-radius:48px;padding:11px;box-shadow:0 32px 90px rgba(0,0,0,.55);position:relative}
+.dtag{position:absolute;top:16px;right:-10px;z-index:6;background:var(--night);border:1px solid var(--lime);color:var(--lime);font-size:.62rem;font-weight:700;border-radius:999px;padding:4px 10px;letter-spacing:.08em;text-transform:uppercase}
+.screen{border-radius:38px;background:var(--night);height:800px;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.statusbar{height:36px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-size:13.5px;font-weight:600;flex:none}
+.statusbar .ic{display:flex;gap:6px;align-items:center;opacity:.9}
+.app-head{display:flex;justify-content:space-between;align-items:center;padding:2px 18px 10px;flex:none}
+.wordmark{display:flex;align-items:center;gap:7px;font-size:17px;font-weight:650;letter-spacing:-.01em}
+.syncbtn{width:34px;height:34px;border-radius:999px;border:1px solid var(--border);display:grid;place-items:center;color:var(--muted)}
+.content{flex:1;padding:2px 16px 16px;display:flex;flex-direction:column;gap:13px;overflow:hidden}
+.a-dot{position:absolute;top:-10px;right:-10px;width:21px;height:21px;border-radius:999px;background:var(--night);border:1px solid var(--lime);color:var(--lime);font-size:.68rem;font-weight:700;display:grid;place-items:center;z-index:4;box-shadow:0 0 0 3px var(--night)}
+.a-dot.b{top:auto;bottom:-10px}
+.verdict{position:relative;background:var(--raised);border:1px solid var(--border);border-radius:var(--r-card);padding:16px 16px 14px}
+.v-eyebrow{font-size:.62rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.v-display{font-size:38px;line-height:1.05;font-weight:650;letter-spacing:-.025em;margin:10px 0 12px}
+.v-line{position:relative;display:flex;flex-wrap:wrap;gap:6px}
+.v-line .a-dot{top:-8px;right:-8px}
+.schip{display:inline-flex;align-items:center;gap:6px;background:var(--night);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:11.5px;color:var(--muted)}
+.schip .d{width:6px;height:6px;border-radius:999px;background:var(--lime);flex:none}
+.strip{position:relative;display:flex;align-items:flex-end;gap:6px;height:46px;margin-top:14px}
+.strip i{flex:1;background:var(--border);border-radius:4px}
+.strip i.today{background:var(--lime)}
+.strip-cap{font-size:10.5px;color:var(--muted);margin-top:6px}
+.qlog{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:14px 16px}
+.q-eyebrow{font-size:.62rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.q-title{font-size:16px;font-weight:650;margin:7px 0 10px}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);padding:8px 0;font-size:13px;font-weight:600;font-family:inherit}
+.seg button.on{background:var(--lime);border-color:var(--lime);color:var(--on-lime)}
+.q-label{font-size:11px;color:var(--muted);margin:12px 0 6px}
+.pillrow{display:flex;gap:6px;flex-wrap:wrap}
+.hpill{border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:12px;color:var(--muted)}
+.q-cap{font-size:10.5px;color:var(--muted);margin-top:10px}
+.chips3{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.chip{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-ctl);padding:10px 12px}
+.chip .l{font-size:9px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.chip .v{font-size:12.5px;font-weight:650;margin-top:4px}
+.chip .v .ok{color:var(--lime)}
+.spacer{flex:1}
+.tabbar{position:relative;background:rgba(11,15,18,.92);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);padding:8px 4px 6px;flex:none}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted)}
+.tab .ticon{display:grid;place-items:center;width:30px;height:26px;border-radius:999px}
+.tab .tlabel{font-size:9.5px;font-weight:600}
+.tab.on{color:var(--lime)}
+.tab.on .ticon{background:rgba(183,243,107,.14)}
+.tab.on .tlabel{font-weight:700}
+.safebar{height:18px;display:grid;place-items:center;background:rgba(11,15,18,.92);flex:none}
+.home-ind{width:110px;height:4px;border-radius:999px;background:var(--border-hover)}
+.fold-label{text-align:center;font-size:11px;color:var(--muted);margin:14px 0 10px;letter-spacing:.08em}
+.fold{width:392px;background:var(--night);border:1px solid var(--border);border-radius:26px 26px 42px 42px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.icard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:14px 16px}
+.ihead{display:flex;align-items:center;gap:7px}
+.dot{width:7px;height:7px;border-radius:999px;flex:none}
+.dot.g{background:var(--lime)}.dot.a{background:var(--amber)}.dot.c{background:var(--coral)}
+.i-eyebrow{font-size:.62rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.icard h4{font-size:16px;font-weight:650;margin:8px 0 6px}
+.icard p{font-size:12.5px;line-height:1.55;color:var(--muted);margin:0}
+.tag{display:inline-flex;border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:.7rem;color:#DDE4D8;margin-top:10px}
+.fpanel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:14px 16px}
+.flabel{font-size:9.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.vbars{display:flex;align-items:flex-end;gap:5px;height:64px;margin:12px 0 10px}
+.vbars i{flex:1;background:var(--border);border-radius:4px 4px 0 0}
+.vbars i.cur{background:var(--lime)}
+.fsentence{font-size:12.5px;color:var(--muted);line-height:1.5}
+.fsentence b{color:var(--text);font-weight:650}
+.pred{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:8px}
+.pred .pv{font-size:15px;font-weight:650}
+.pred .pl{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.legend{max-width:640px;margin:22px auto 0;display:grid;gap:9px;font-size:.9rem;color:var(--muted)}
+.legend>div{display:flex;gap:10px;align-items:baseline}
+.key{flex:none;display:inline-grid;place-items:center;width:20px;height:20px;border:1px solid var(--lime);border-radius:999px;color:var(--lime);font-size:.68rem;font-weight:700}
+.skel .sk{background:linear-gradient(90deg,var(--raised),var(--deep),var(--raised));background-size:200% 100%;animation:skpulse 1.6s ease-in-out infinite;border-radius:8px}
+@keyframes skpulse{0%,100%{opacity:.55}50%{opacity:1}}
+.demo-strip{display:flex;align-items:flex-end;gap:4px;height:36px;margin:12px 0 6px}
+.demo-strip i{flex:1;background:var(--border);border-radius:3px}
+.demo-strip i.hot{background:var(--lime)}
+.mini-v{font-size:20px;font-weight:650;letter-spacing:-.02em;line-height:1.15;margin:10px 0 6px}
+#hrv text{fill:var(--muted);font-size:9px}
+#hrv text.cur{fill:var(--text);font-size:9.5px;font-weight:650}
+.chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.status-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:.72rem;color:var(--muted)}
+.status-chip .d{width:6px;height:6px;border-radius:999px;background:var(--lime);flex:none}
+.chg{margin-top:18px}
+.chg ul{margin:6px 0 0}
+.chg li{margin:4px 0;font-size:.9rem;color:var(--muted)}
+.chg li b{color:var(--text);font-weight:650}
+footer{border-top:1px solid var(--border);padding:22px 0 36px;color:var(--muted);font-size:.82rem}
+@media (max-width:820px){.grid2,.grid3{grid-template-columns:1fr}.swatches{grid-template-columns:repeat(2,minmax(0,1fr))}.doc-header{padding:36px 0 26px}section{margin:34px 0}}
+</style>
+</head>
+<body>
+
+<header class="doc-header">
+  <div class="wrap">
+    <div class="eyebrow">Ritmo / Identidade visual · v0.3 · tokens + Home 390px</div>
+    <h1>A identidade, provada em <span>tela.</span></h1>
+    <p class="lede">A v0.2 definiu atmosfera, posicionamento e tom — e acertou. A v0.3 mantém tudo isso e fecha a camada de execução que faltava: tema de gráfico, sistema numérico, semântica com hex real e shell de app. Desta vez nada em cartões abstratos: a identidade inteira é demonstrada numa Home real de 390px.</p>
+    <p class="note">Este documento usa o registro de produto — sentence case, números tabulares, um destaque por gráfico. A identidade se aplica a si mesma.</p>
+    <div class="panel chg">
+      <h3 style="margin:0">O que muda da v0.2 → v0.3</h3>
+      <ul>
+        <li><b>Tema de gráfico próprio</b> — princípio "neutro com um destaque lime" (a lacuna nº1)</li>
+        <li><b>Sistema numérico</b> — tabulares, tratamento de unidade, escala tipográfica com valores</li>
+        <li><b>Semântica de saúde</b> — hex real + regra de coexistência com as zonas VDOT</li>
+        <li><b>Shell de app</b> — tab bar inferior, alvos ≥44px, safe-area, skeletons na linguagem</li>
+        <li><b>Interface em sentence case</b> — o registro sai do cartaz e entra na conversa</li>
+        <li><b>Instrument Sans</b> no lugar de Inter (a default da era)</li>
+        <li><b>Estado "dia comum" desenhado</b> — a Home precisa falar todos os dias</li>
+        <li>= Mantidos da v0.2: paleta Night/Forest/Lime, tom de voz e arquitetura do produto</li>
+      </ul>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <h2><span class="idx">01</span>Assinatura</h2>
+    <p class="slead">Assinatura não é enfeite — é um dispositivo repetido com disciplina em toda superfície. São três.</p>
+    <div class="grid3">
+      <div class="panel">
+        <h3>O card-veredito</h3>
+        <div class="mini-v">Pronto pra qualidade</div>
+        <p class="muted small" style="margin:0 0 8px">Frase display em sentence case, o porquê numa linha de chips e o strip de 7 dias. É a anatomia que o usuário memoriza.</p>
+      </div>
+      <div class="panel">
+        <h3>Neutro com um destaque</h3>
+        <div class="demo-strip"><i style="height:46%"></i><i style="height:58%"></i><i style="height:32%"></i><i style="height:66%"></i><i style="height:52%"></i><i style="height:60%"></i><i class="hot" style="height:40%"></i></div>
+        <p class="muted small" style="margin:0">Todo gráfico em cinza-esverdeado discreto; um único elemento aceso em lime — o que importa agora. Repetido em cada gráfico, vira assinatura.</p>
+      </div>
+      <div class="panel">
+        <h3>O pulso</h3>
+        <svg width="64" height="24" viewBox="0 0 20 16" fill="none" stroke="#B7F36B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin:12px 0 10px"><path d="M1.5 9h3l2-5.5 3 8.5 2-6 1.5 3h5.5"/></svg>
+        <p class="muted small" style="margin:0">Um traço derivado da linha de HRV: wordmark, favicon, skeletons. Reconhecível em 16px.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="idx">02</span>Tokens</h2>
+    <div class="panel" style="margin-bottom:14px">
+      <h3>Paleta</h3>
+      <p class="muted small" style="margin:0">O lime é acento funcional: foco, positivo, ação. Nunca fundo geral.</p>
+      <div class="swatches">
+        <div class="swatch"><div class="c" style="background:#0B0F12"></div><div class="i"><strong>Night</strong><code>#0B0F12</code> · fundo raiz</div></div>
+        <div class="swatch"><div class="c" style="background:#121815"></div><div class="i"><strong>Surface</strong><code>#121815</code> · cartões</div></div>
+        <div class="swatch"><div class="c" style="background:#1B241A"></div><div class="i"><strong>Forest</strong><code>#1B241A</code> · cartão-herói</div></div>
+        <div class="swatch"><div class="c" style="background:#273323"></div><div class="i"><strong>Deep Green</strong><code>#273323</code> · badges</div></div>
+        <div class="swatch"><div class="c" style="background:#354039"></div><div class="i"><strong>Border</strong><code>#354039</code> · decorativa</div></div>
+        <div class="swatch"><div class="c" style="background:#4A574E"></div><div class="i"><strong>Border Hover</strong><code>#4A574E</code> · interativos</div></div>
+        <div class="swatch"><div class="c" style="background:#B7F36B"></div><div class="i"><strong>Lime</strong><code>#B7F36B</code> · marca/ação</div></div>
+        <div class="swatch"><div class="c" style="background:#182014"></div><div class="i"><strong>On Lime</strong><code>#182014</code> · texto/lime</div></div>
+        <div class="swatch"><div class="c" style="background:#F5F7F2"></div><div class="i"><strong>Soft White</strong><code>#F5F7F2</code> · texto</div></div>
+        <div class="swatch"><div class="c" style="background:#A1AAA9"></div><div class="i"><strong>Muted</strong><code>#A1AAA9</code> · secundário</div></div>
+        <div class="swatch"><div class="c" style="background:#E9B44C"></div><div class="i"><strong>Atenção</strong><code>#E9B44C</code> · sinal misto</div></div>
+        <div class="swatch"><div class="c" style="background:#EF6757"></div><div class="i"><strong>Alerta</strong><code>#EF6757</code> · raro; ícone+texto</div></div>
+      </div>
+      <div class="callout"><b>Zonas VDOT × semântica de saúde × marca.</b> As cores das zonas (verde/azul/laranja/vermelho/roxo) continuam como estão e só aparecem dentro de superfície de treino (splits, detalhe). Home, Saúde e Performance usam apenas semântica (lime/âmbar/coral) + neutros. O lime da marca (#B7F36B) é propositalmente distinto do verde-easy das zonas — nunca use um pelo outro.</div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Escala tipográfica</h3>
+        <div class="trow"><div style="font-size:34px;font-weight:650;letter-spacing:-.025em;line-height:1.05">Pronto pra qualidade</div><div class="tmeta">display · 38px/650</div></div>
+        <div class="trow"><div style="font-size:22px;font-weight:650">Onde estou</div><div class="tmeta">seção · 24px/650</div></div>
+        <div class="trow"><div style="font-size:16px;font-weight:650">Boa janela pra 2×3km</div><div class="tmeta">card · 16px/650</div></div>
+        <div class="trow"><div style="font-size:15px">Dados não são decisões.</div><div class="tmeta">corpo · 15px/1,5</div></div>
+        <div class="trow"><div style="font-size:12.5px" class="muted">HRV noturno · média 7d vs banda 60d</div><div class="tmeta">caption · 12,5px</div></div>
+        <div class="trow"><div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700" class="muted">Recomendação · regra</div><div class="tmeta">eyebrow · 11px caps</div></div>
+        <p class="muted small" style="margin:10px 0 0">Números sempre tabulares (<span class="num">.num</span>) — um valor que atualiza não faz a tela dançar. Caps vive só no eyebrow.</p>
+      </div>
+      <div class="panel">
+        <h3>Forma e espaçamento</h3>
+        <ul style="font-size:.9rem">
+          <li><b>Raio:</b> cartão 16 · controle 12 · pill 999 — uma resposta por pergunta.</li>
+          <li><b>Espaçamento:</b> base 4 — 4 · 8 · 12 · 16 · 20 · 24 · 32.</li>
+          <li><b>Borda:</b> #354039 decorativa; interativos ganham #4A574E em hover/focus (a 1,8:1 não pode ser o único sinal).</li>
+          <li><b>Toque:</b> alvo ≥44px — nada clicável menor.</li>
+          <li><b>Hierarquia:</b> um herói por tela — o resto é suporte.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Tokens de implementação</h3>
+      <pre>:root{
+  /* superfície */
+  --night:#0B0F12;        /* fundo raiz */
+  --surface:#121815;      /* cartões */
+  --raised:#1B241A;       /* cartão-herói (veredito) */
+  --deep:#273323;         /* badges, chips de numeral */
+  --border:#354039;       /* borda decorativa (1,8:1 — nunca interativa) */
+  --border-hover:#4A574E; /* borda de interativos (hover/focus) */
+  /* marca */
+  --lime:#B7F36B;         /* foco, positivo, ação — funcional, nunca fundo geral */
+  --on-lime:#182014;      /* texto sobre lime */
+  /* texto */
+  --text:#F5F7F2;
+  --muted:#A1AAA9;        /* 8:1 sobre night */
+  /* semântica de saúde */
+  --good:#B7F36B;         /* = marca */
+  --attention:#E9B44C;    /* sinal misto, padrão de custo */
+  --alert:#EF6757;        /* raro — sempre ícone + texto, nunca cor sozinha */
+  /* forma */
+  --r-card:16px; --r-ctl:12px; --r-pill:999px;
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}</pre>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="idx">03</span>Home 390px</h2>
+    <p class="slead">A Home inteira em 390px. Acima da dobra: decisão, registro de 10 segundos e roteamento — valor em menos de 5 segundos, sem scroll. Abaixo: o porquê e o contexto. Dados ilustrativos, coerentes entre si — nenhum dado real de usuário.</p>
+    <div class="stage">
+      <div class="phones">
+        <div class="device">
+          <div class="dtag">dados ilustrativos</div>
+          <div class="screen">
+            <div class="statusbar">
+              <span class="num">9:41</span>
+              <span class="ic">
+                <svg width="17" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+                <svg width="23" height="12" viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="0.8" y="0.8" width="19" height="10.4" rx="2.5"/><rect x="2.8" y="2.8" width="12" height="6.4" rx="1" fill="currentColor" stroke="none"/><path d="M22 4.2v3.6"/></svg>
+              </span>
+            </div>
+            <div class="app-head">
+              <div class="wordmark">
+                <svg width="20" height="16" viewBox="0 0 20 16" fill="none" stroke="#B7F36B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 9h3l2-5.5 3 8.5 2-6 1.5 3h5.5"/></svg>
+                ritmo
+              </div>
+              <div class="syncbtn">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.6 0 5 1.1 6.7 2.9L21 8"/><path d="M21 3v5h-5"/></svg>
+              </div>
+            </div>
+            <div class="content">
+              <div class="verdict">
+                <span class="a-dot">1</span>
+                <div class="v-eyebrow">Hoje · quinta, 22 de outubro</div>
+                <div class="v-display">Pronto pra qualidade</div>
+                <div class="v-line">
+                  <span class="a-dot">2</span>
+                  <span class="schip"><span class="d"></span>HRV <span class="num">68ms</span> · na faixa</span>
+                  <span class="schip"><span class="d"></span>Sono <span class="num">7h42</span> · +32min</span>
+                  <span class="schip"><span class="d"></span>Forma <span class="num">+5,2</span></span>
+                </div>
+                <div class="strip">
+                  <span class="a-dot b">3</span>
+                  <i style="height:46%"></i><i style="height:58%"></i><i style="height:32%"></i><i style="height:66%"></i><i style="height:52%"></i><i style="height:60%"></i><i class="today" style="height:40%"></i>
+                </div>
+                <div class="strip-cap">carga · últimos 7 dias</div>
+              </div>
+              <div class="qlog">
+                <span class="a-dot">4</span>
+                <div class="q-eyebrow">Registro de 10 segundos</div>
+                <div class="q-title">Como você acordou?</div>
+                <div class="seg">
+                  <button class="on" type="button">Bem</button>
+                  <button type="button">Ok</button>
+                  <button type="button">Ruim</button>
+                </div>
+                <div class="q-label">E ontem?</div>
+                <div class="pillrow">
+                  <span class="hpill">Café depois das 16h</span>
+                  <span class="hpill">Álcool</span>
+                </div>
+                <div class="q-cap">10 segundos por dia · alimenta seus padrões</div>
+              </div>
+              <div class="chips3">
+                <span class="a-dot">5</span>
+                <div class="chip"><div class="l">Último treino</div><div class="v num">16,2km · <span class="ok">avaliado ✓</span></div></div>
+                <div class="chip"><div class="l">Volume</div><div class="v num">42km · +8%</div></div>
+                <div class="chip"><div class="l">Meia · 08/11</div><div class="v num">faltam 17 dias</div></div>
+              </div>
+              <div class="spacer"></div>
+            </div>
+            <div class="tabbar">
+              <span class="a-dot">6</span>
+              <div class="tab on">
+                <span class="ticon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v8.5h-5.5V14h-5v5.5H4Z"/></svg></span>
+                <span class="tlabel">Hoje</span>
+              </div>
+              <div class="tab">
+                <span class="ticon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-6.5 4.5 13 2.5-6.5H21"/></svg></span>
+                <span class="tlabel">Treinos</span>
+              </div>
+              <div class="tab">
+                <span class="ticon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.3C7.4 16.7 3.5 13.4 3.5 9.6 3.5 6.9 5.4 5 7.9 5c1.6 0 3.1.8 4.1 2.2C13 5.8 14.5 5 16.1 5c2.5 0 4.4 1.9 4.4 4.6 0 3.8-3.9 7.1-8.5 10.7Z"/></svg></span>
+                <span class="tlabel">Saúde</span>
+              </div>
+              <div class="tab">
+                <span class="ticon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 3.5 3.5L21 6"/><path d="M15.5 6H21v5.5"/></svg></span>
+                <span class="tlabel">Performance</span>
+              </div>
+              <div class="tab">
+                <span class="ticon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20.2c.9-3.7 3.7-5.5 7-5.5s6.1 1.8 7 5.5"/></svg></span>
+                <span class="tlabel">Perfil</span>
+              </div>
+            </div>
+            <div class="safebar"><div class="home-ind"></div></div>
+          </div>
+        </div>
+
+        <div class="fold-label">· abaixo da dobra ·</div>
+        <div class="fold">
+          <div class="icard">
+            <div class="ihead"><span class="dot g"></span><span class="i-eyebrow">Recomendação · regra</span></div>
+            <h4>Boa janela pra 2×3km no limiar</h4>
+            <p>HRV dentro da faixa pela primeira manhã em 3 dias e sono acima da média. O plano pede qualidade — a janela está aberta.</p>
+            <span class="tag">por quê: HRV · sono · forma</span>
+          </div>
+          <div class="icard">
+            <div class="ihead"><span class="dot a"></span><span class="i-eyebrow">Padrão observado</span></div>
+            <h4>Café depois das 16h custou ~32min de sono</h4>
+            <p>Nas 6 noites com café tardio, você dormiu em média 32min a menos que nas 5 sem. Padrão observado — não prova causa.</p>
+            <span class="tag num">N = 11 noites · ver as noites →</span>
+          </div>
+          <div class="fpanel">
+            <div class="flabel">Volume · últimas 10 semanas</div>
+            <div class="vbars"><i style="height:38%"></i><i style="height:50%"></i><i style="height:44%"></i><i style="height:55%"></i><i style="height:60%"></i><i style="height:43%"></i><i style="height:62%"></i><i style="height:68%"></i><i style="height:54%"></i><i class="cur" style="height:72%"></i></div>
+            <div class="fsentence"><b class="num">42km</b> · +8% vs média de 4 semanas · carga equilibrada (ACWR <b class="num">1,1</b>)</div>
+          </div>
+          <div class="fpanel">
+            <div class="flabel">Previsões de prova</div>
+            <div class="pred">
+              <span class="pv num">10K 41:15 · meia 1:29:2x</span>
+              <span class="pl">ver Performance →</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <div><span class="key">1</span><span>Veredito em sentence case, display 38px — a decisão é a interface. Sem score inventado: os sinais reais sustentam a frase.</span></div>
+      <div><span class="key">2</span><span>O porquê em chips: cada sinal com valor e estado — nada de número órfão. Fonte e método a um toque (o AD-009 continua vivo).</span></div>
+      <div><span class="key">3</span><span>Princípio do destaque: as barras ficam neutras, só hoje acende — o mesmo gesto de todo gráfico da plataforma.</span></div>
+      <div><span class="key">4</span><span>O registro de hábitos mora na Home, nunca em página própria: 3 toques, 10 segundos, todos os dias.</span></div>
+      <div><span class="key">5</span><span>Chips roteiam: um dado, um verbo, um destino. A Home não duplica painéis.</span></div>
+      <div><span class="key">6</span><span>Tab bar inferior — o sinal nº1 de "isso é um app". O ativo mantém o pill lime/12% da nav atual: continuidade, não invenção.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="idx">04</span>Tema de gráfico</h2>
+    <p class="slead">O tema é o que faz a plataforma parecer desenhada — é a mesma assinatura em todo gráfico, de Recharts a SVG próprio.</p>
+    <div class="panel">
+      <div class="chart-head">
+        <h3 style="margin:0">HRV noturno · média 7d</h3>
+        <span class="status-chip"><span class="d"></span>na faixa</span>
+      </div>
+      <svg id="hrv" viewBox="0 0 340 150" width="100%" role="img" aria-label="HRV noturno — média de 7 dias contra banda pessoal">
+        <line x1="38" y1="118" x2="331" y2="118" stroke="#354039" stroke-width="1"/>
+        <text x="14" y="60">70ms</text>
+        <text x="14" y="111">55ms</text>
+        <text x="38" y="145">9 out</text>
+        <text x="173" y="145">15</text>
+        <text x="331" y="145" text-anchor="end">22</text>
+        <path id="hrv-band" fill="rgba(183,243,107,0.06)" d=""/>
+        <path id="hrv-line" fill="none" stroke="#B7F36B" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d=""/>
+        <circle id="hrv-halo" r="7" fill="none" stroke="#B7F36B" opacity="0.35"/>
+        <circle id="hrv-dot" r="3.2" fill="#B7F36B"/>
+        <text x="331" y="52" text-anchor="end" class="cur">68ms</text>
+      </svg>
+      <p class="muted small" style="margin:8px 0 4px">Média de 7 dias contra banda pessoal de 60d (média ± 0,75 DP — o modelo já em produção, AD-010). História em neutro, agora aceso.</p>
+      <ul class="small muted" style="margin-top:8px">
+        <li>Uma série por gráfico quando possível; multi-série só com justificativa.</li>
+        <li>Contexto em neutro (#354039/#1B241A); um único destaque lime — o "hoje".</li>
+        <li>Grid: só a linha de base, hairline; escala e unidade em caption 9–10px.</li>
+        <li>Legenda é caption, nunca toolbar; tooltip é cartão discreto (raio 12).</li>
+        <li>Sem neon, glow, 3D ou gradiente decorativo — gradiente só lime→transparente em área.</li>
+        <li>Zonas VDOT mantêm as cores atuais, apenas dentro de superfícies de treino.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="idx">05</span>Estados</h2>
+    <p class="slead">O carregamento e o dia silencioso merecem o mesmo desenho do dia de festa — são metade das visitas.</p>
+    <div class="grid2">
+      <div class="panel skel">
+        <h3>Skeleton · carregando</h3>
+        <div class="sk" style="width:34%;height:11px"></div>
+        <div class="sk" style="width:62%;height:26px;margin-top:12px"></div>
+        <div class="sk" style="width:85%;height:10px;margin-top:12px"></div>
+        <div class="sk" style="width:48%;height:10px;margin-top:8px"></div>
+        <div class="demo-strip"><div class="sk" style="height:46%"></div><div class="sk" style="height:58%"></div><div class="sk" style="height:32%"></div><div class="sk" style="height:66%"></div><div class="sk" style="height:52%"></div><div class="sk" style="height:60%"></div><div class="sk" style="height:40%"></div></div>
+        <p class="muted small" style="margin:8px 0 0">Pulso no neutro, 1,6s — nunca spinner. O carregamento tem a cara da identidade.</p>
+      </div>
+      <div class="panel">
+        <h3>Dia comum</h3>
+        <div class="v-eyebrow" style="font-size:.66rem">Hoje · sábado, 24 de outubro</div>
+        <div class="mini-v">Dia comum, sem urgências.</div>
+        <p class="muted small" style="margin:0 0 4px">Tudo dentro da faixa — siga o leve de hoje.</p>
+        <div class="demo-strip"><i style="height:46%"></i><i style="height:58%"></i><i style="height:32%"></i><i style="height:66%"></i><i style="height:52%"></i><i style="height:60%"></i><i style="height:48%"></i></div>
+        <p class="muted small" style="margin:8px 0 0">Sem lime gritando, sem drama: a Home fala baixo quando não há o que dizer — e é assim que se constrói confiança.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="idx">06</span>Shell de app</h2>
+    <div class="panel">
+      <ul style="font-size:.95rem">
+        <li><b>Navegação responsiva</b> — no mobile (<768px): tab bar inferior, até 5 itens, ícones line 22px + label 10px, ativo em lime com pill lime/12% (o padrão da nav atual sobrevive). No desktop (≥768px): top bar no header com os mesmos itens e o mesmo padrão de ativo — tab bar inferior em tela grande fica deslocada (decisão do usuário).</li>
+        <li><b>Alvos de toque ≥44px</b> em qualquer elemento clicável — nada de links decorativos.</li>
+        <li><b>Safe-area</b> — 18px extras no fundo; o home indicator sempre visível.</li>
+        <li><b>Topo é conteúdo no mobile</b> — wordmark + sync apenas; no desktop o header ganha a top bar de navegação — nada de navegação duplicada.</li>
+        <li><b>Estados vazios</b> orientam o primeiro sync (padrão CLR-11 já em produção) — agora com a cara nova.</li>
+        <li><b>Transições curtas</b> (150–200ms) só quando explicam causa e efeito — nada de animação decorativa.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="idx">07</span>Prompt para IA</h2>
+    <p class="slead">O briefing da v0.2, fechado com tokens reais. Use para gerar qualquer tela ou peça em qualquer IA — substitui o anterior.</p>
+    <pre>Interface para o Ritmo — plataforma de corrida e saúde. Dark premium, calma, mobile-first 390px. Nada de cara de dashboard.
+
+PRODUTO
+Home = veredito do dia (frase curta, sentence case; sem score inventado) + 1–3 recomendações determinísticas explicáveis + registro de hábitos de 10 segundos (3 toques) + chips de roteamento. Abas: Hoje, Treinos, Saúde, Performance, Perfil (tab bar inferior). A Home roteia — nunca duplica painéis.
+
+CORES
+Fundo #0B0F12 · superfícies #121815 e #1B241A · badges #273323 · bordas #354039 (interativas #4A574E) · texto #F5F7F2, secundário #A1AAA9 · lime #B7F36B só como acento funcional (foco, positivo, ação — nunca fundo geral) · atenção #E9B44C · alerta #EF6757 (raro, sempre com ícone + texto). Cores de zonas VDOT apenas dentro de contexto de treino.
+
+TIPOGRAFIA
+Instrument Sans 400–700, números tabulares. Display do veredito 38–40px sentence-case; título de card 16–17px; corpo 15px; caption 12,5px; eyebrow 11px caps (único lugar com caps).
+
+FORMA
+Raio: cartão 16, controle 12, pill 999. Espaçamento base 4. Alvos de toque ≥44px. Navegação responsiva: tab bar inferior no mobile, top bar no header no desktop — ativo em lime nos dois.
+
+GRÁFICOS
+Uma série por gráfico; contexto em neutro, um único destaque lime (o "hoje"). Grid: só linha de base hairline; escala em caption 9–10px; tooltip = cartão discreto. Sem neon, sem glow, sem 3D.
+
+TOM
+Humano, sem culpa; correlação ≠ causalidade; N visível; nenhuma alegação médica.
+
+EVITAR
+ALL CAPS em interface · scores inventados · dashboard genérico · enfeite sem função · duplicar painéis na Home.</pre>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">Ritmo · identidade visual v0.3 · tokens + Home 390px · arquivo standalone (fontes via Google Fonts) · dados 100% ilustrativos — nenhum dado real de usuário neste documento · v0.2 → v0.3: mantém paleta, tom e arquitetura; fecha data-viz, números, semântica e shell.</div>
+</footer>
+
+<script>
+function smooth(p){
+  if(p.length<2)return'';
+  var d='M'+p[0][0]+','+p[0][1];
+  for(var i=0;i<p.length-1;i++){
+    var p0=p[Math.max(0,i-1)],p1=p[i],p2=p[i+1],p3=p[Math.min(p.length-1,i+2)];
+    d+='C'+(p1[0]+(p2[0]-p0[0])/6)+','+(p1[1]+(p2[1]-p0[1])/6)+' '+(p2[0]-(p3[0]-p1[0])/6)+','+(p2[1]-(p3[1]-p1[1])/6)+' '+p2[0]+','+p2[1];
+  }
+  return d;
+}
+(function(){
+  var vals=[61,64,58,62,66,63,59,55,58,62,65,63,66,68];
+  var x0=38,x1=331;
+  var y=function(v){return 118-(v-52)*3.4;};
+  var pts=[],up=[],lo=[];
+  for(var i=0;i<vals.length;i++){
+    var x=x0+i*(x1-x0)/(vals.length-1);
+    pts.push([x,y(vals[i])]);up.push([x,y(vals[i]+7)]);lo.push([x,y(vals[i]-7)]);
+  }
+  document.getElementById('hrv-band').setAttribute('d',smooth(up)+' '+smooth(lo.slice().reverse()).replace(/^M/,'L')+' Z');
+  document.getElementById('hrv-line').setAttribute('d',smooth(pts));
+  var last=pts[pts.length-1];
+  document.getElementById('hrv-halo').setAttribute('cx',last[0]);
+  document.getElementById('hrv-halo').setAttribute('cy',last[1]);
+  document.getElementById('hrv-dot').setAttribute('cx',last[0]);
+  document.getElementById('hrv-dot').setAttribute('cy',last[1]);
+})();
+</script>
+</body>
+</html>

@@ -62,7 +62,7 @@ export default function HrHistoryList({
 
   if (entries.length === 0) {
     return (
-      <p className="rounded-xl border border-white/10 bg-card px-4 py-3 text-sm text-muted">
+      <p className="rounded-card border border-border bg-card px-4 py-3 text-sm text-muted">
         Nenhuma mudança registrada ainda — edite valores ou método e elas
         aparecem aqui.
       </p>

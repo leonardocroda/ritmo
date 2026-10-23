@@ -2,8 +2,8 @@
 
 // /perfil — nasce aqui com a tela de zonas de FC (feature hr-zones):
 // "Conexão Garmin" no topo (sem índice — pré-requisito, não passo do
-// fio condutor) e 1 "Valores", 2 "Método e zonas" e 3 "Histórico"
-// (HRZ-13/14/15).
+// fio condutor; abriga o botão "Puxar do Garmin" — AD-023) e 1
+// "Valores", 2 "Método e zonas" e 3 "Histórico" (HRZ-13/14/15).
 // Página client no padrão do /login: o proxy protege a rota (sem
 // cookie → /login?next=/perfil, HRZ-16) e o apiFetch redireciona na
 // sessão expirada em uso. O GET carrega o shape completo e o
@@ -15,6 +15,8 @@ import { useEffect, useRef, useState } from "react";
 
 import PanelSection from "@/components/PanelSection";
 import ConnectionCard from "@/components/profile/ConnectionCard";
+import Skeleton from "@/components/Skeleton";
+import SyncButton from "@/components/SyncButton";
 import HrHistoryList from "@/components/profile/HrHistoryList";
 import HrMethodCard from "@/components/profile/HrMethodCard";
 import HrValuesCard from "@/components/profile/HrValuesCard";
@@ -76,10 +78,16 @@ export default function PerfilPage() {
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
       <h1 className="text-2xl font-semibold tracking-tight">Perfil</h1>
       {state.kind === "loading" && (
-        <p className="mt-6 text-sm text-muted">Carregando perfil…</p>
+        // Skeleton no lugar do texto de carregamento (DSN-23)
+        <div className="mt-6 space-y-3">
+          <Skeleton className="h-5 w-1/3 rounded-ctl" />
+          <Skeleton className="h-56 w-full rounded-card" />
+          <Skeleton className="h-4 w-2/3 rounded-ctl" />
+          <Skeleton className="h-4 w-1/2 rounded-ctl" />
+        </div>
       )}
       {state.kind === "error" && (
-        <p className="mt-6 rounded-xl border border-white/10 bg-card px-4 py-3 text-sm text-muted">
+        <p className="mt-6 rounded-card border border-border bg-card px-4 py-3 text-sm text-muted">
           Não foi possível carregar o perfil: {state.message}
         </p>
       )}
@@ -93,6 +101,10 @@ export default function PerfilPage() {
               state={state.connection.state}
               tokensUpdatedAt={state.connection.tokens_updated_at}
             />
+            {/* Status de conexão e ação de sync no mesmo lugar (AD-023) */}
+            <div className="mt-4">
+              <SyncButton />
+            </div>
           </PanelSection>
           <PanelSection
             index={1}

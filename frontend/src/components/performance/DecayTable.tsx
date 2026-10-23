@@ -31,7 +31,7 @@ export default function DecayTable({ rows }: { rows: DecayRow[] }) {
 
   return (
     <div>
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-card">
+      <div className="overflow-hidden rounded-card border border-border bg-card">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-muted">
@@ -55,8 +55,8 @@ export default function DecayTable({ rows }: { rows: DecayRow[] }) {
                 key={row.event}
                 className={
                   row === worstGap
-                    ? "border-t border-white/10 bg-accent/10"
-                    : "border-t border-white/10"
+                    ? "border-t border-border bg-accent/10"
+                    : "border-t border-border"
                 }
               >
                 <th
@@ -65,10 +65,10 @@ export default function DecayTable({ rows }: { rows: DecayRow[] }) {
                 >
                   {EVENT_LABELS[row.event]}
                 </th>
-                <td className="px-3 py-2 whitespace-nowrap">
+                <td className="px-3 py-2 whitespace-nowrap tabular-nums">
                   {formatPace(row.real_pace_s)}/km
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap">
+                <td className="px-3 py-2 whitespace-nowrap tabular-nums">
                   {formatPace(row.ideal_pace_s)}/km
                 </td>
                 <td

@@ -27,6 +27,7 @@ import {
   formatTemp,
 } from "@/lib/format";
 import SplitsChart from "@/components/workouts/SplitsChart";
+import Skeleton from "@/components/Skeleton";
 import EvaluateForm from "@/components/workouts/EvaluateForm";
 import EvaluationCard, { EvaluationHistory } from "@/components/workouts/EvaluationCard";
 
@@ -44,16 +45,16 @@ function formatSigned(value: number, decimals = 0): string {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2">
+    <div className="rounded-card border border-border bg-card px-3 py-2">
       <dt className="text-xs text-muted">{label}</dt>
-      <dd className="mt-0.5 text-sm font-medium">{value}</dd>
+      <dd className="mt-0.5 text-sm font-medium tabular-nums">{value}</dd>
     </div>
   );
 }
 
 function Chip({ label, value }: { label: string; value: string }) {
   return (
-    <span className="rounded-full border border-white/10 bg-card px-3 py-1 text-sm">
+    <span className="rounded-full border border-border bg-card px-3 py-1 text-sm tabular-nums">
       <span className="text-muted">{label}</span> {value}
     </span>
   );
@@ -61,11 +62,11 @@ function Chip({ label, value }: { label: string; value: string }) {
 
 function ConsistencyRow({ label, value }: { label: string; value: string }) {
   return (
-    <tr className="border-t border-white/10 first:border-t-0">
+    <tr className="border-t border-border first:border-t-0">
       <th scope="row" className="px-4 py-2 text-left text-sm font-normal text-muted">
         {label}
       </th>
-      <td className="px-4 py-2 text-right text-sm font-medium">{value}</td>
+      <td className="px-4 py-2 text-right text-sm font-medium tabular-nums">{value}</td>
     </tr>
   );
 }
@@ -153,9 +154,16 @@ export default function WorkoutDetail({ id }: { id: number }) {
   }
 
   if (state.kind === "loading") {
+    // Skeleton no lugar do texto de carregamento (DSN-23): título +
+    // cartão de gráfico + linhas de texto.
     return (
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
-        <p className="text-sm text-muted">Carregando treino…</p>
+        <div className="space-y-3">
+          <Skeleton className="h-5 w-1/3 rounded-ctl" />
+          <Skeleton className="h-56 w-full rounded-card" />
+          <Skeleton className="h-4 w-2/3 rounded-ctl" />
+          <Skeleton className="h-4 w-1/2 rounded-ctl" />
+        </div>
       </main>
     );
   }
@@ -182,7 +190,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
   if (state.kind === "error") {
     return (
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
-        <p className="rounded-xl border border-white/10 bg-card px-4 py-3 text-sm text-muted">
+        <p className="rounded-card border border-border bg-card px-4 py-3 text-sm text-muted">
           Não foi possível carregar o treino: {state.message}
         </p>
       </main>
@@ -286,7 +294,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
       {consistency !== null && (
         <section className="mt-6">
           <h2 className="text-sm font-medium text-muted">Consistência</h2>
-          <div className="mt-2 overflow-hidden rounded-xl border border-white/10 bg-card">
+          <div className="mt-2 overflow-hidden rounded-card border border-border bg-card">
             <table className="w-full">
               <tbody>
                 {consistency.first_half_pace_s !== null && (
@@ -359,7 +367,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
       {splits.length > 0 && (
         <section className="mt-6">
           <h2 className="text-sm font-medium text-muted">Voltas</h2>
-          <div className="mt-2 rounded-xl border border-white/10 bg-card p-3">
+          <div className="mt-2 rounded-card border border-border bg-card p-3">
             <SplitsChart
               splits={splits}
               zones={state.detail.zones}

@@ -35,7 +35,7 @@ export default function PredictionsTable({
 }) {
   return (
     <div>
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-card">
+      <div className="overflow-hidden rounded-card border border-border bg-card">
         <table className="w-full text-xs">
           <thead>
             <tr className="text-left text-[10px] text-muted">
@@ -63,18 +63,18 @@ export default function PredictionsTable({
             {EVENTS.map((event) => {
               const row = predictions[event];
               return (
-                <tr key={event} className="border-t border-white/10">
+                <tr key={event} className="border-t border-border">
                   <th
                     scope="row"
                     className="px-2 py-2 text-left font-medium whitespace-nowrap"
                   >
                     {EVENT_LABELS[event]}
                   </th>
-                  <td className="px-1.5 py-2">{secondsOrDash(row.garmin_s)}</td>
-                  <td className="px-1.5 py-2">{secondsOrDash(row.riegel_s)}</td>
-                  <td className="px-1.5 py-2">{secondsOrDash(row.vdot_s)}</td>
-                  <td className="px-1.5 py-2">{secondsOrDash(row.average_s)}</td>
-                  <td className="px-2 py-2 text-right">
+                  <td className="px-1.5 py-2 tabular-nums">{secondsOrDash(row.garmin_s)}</td>
+                  <td className="px-1.5 py-2 tabular-nums">{secondsOrDash(row.riegel_s)}</td>
+                  <td className="px-1.5 py-2 tabular-nums">{secondsOrDash(row.vdot_s)}</td>
+                  <td className="px-1.5 py-2 tabular-nums">{secondsOrDash(row.average_s)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums">
                     {row.pr_s !== null ? (
                       <span className="inline-block leading-tight">
                         {formatDuration(row.pr_s)}

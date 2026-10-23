@@ -18,6 +18,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { getHealthSummary, type HealthSummaryOut } from "@/lib/api";
 import PanelSection from "@/components/PanelSection";
+import Skeleton from "@/components/Skeleton";
 import DoseResponse from "@/components/health/DoseResponse";
 import HrvChart from "@/components/health/HrvChart";
 import HrvTable from "@/components/health/HrvTable";
@@ -48,7 +49,7 @@ type PanelState =
 /** Estado vazio de um bloco — orienta o primeiro sync, sem erro (HLT-19). */
 function BlockEmpty({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-xl border border-white/10 bg-card px-4 py-6 text-sm text-muted">
+    <p className="rounded-card border border-border bg-card px-4 py-6 text-sm text-muted">
       {children}
     </p>
   );
@@ -135,12 +136,21 @@ export default function HealthPanel() {
   }
 
   if (state.kind === "loading") {
-    return <p className="mt-6 text-sm text-muted">Carregando saúde…</p>;
+    // Skeleton no lugar do texto de carregamento (DSN-23): seletor de
+    // janela + cartão de gráfico + linhas de texto.
+    return (
+      <div className="mt-6 space-y-3">
+        <Skeleton className="h-7 w-56 rounded-full" />
+        <Skeleton className="h-56 w-full rounded-card" />
+        <Skeleton className="h-4 w-2/3 rounded-ctl" />
+        <Skeleton className="h-4 w-1/2 rounded-ctl" />
+      </div>
+    );
   }
 
   if (state.kind === "error") {
     return (
-      <p className="mt-6 rounded-xl border border-white/10 bg-card px-4 py-3 text-sm text-muted">
+      <p className="mt-6 rounded-card border border-border bg-card px-4 py-3 text-sm text-muted">
         Não foi possível carregar a saúde: {state.message}
       </p>
     );
@@ -153,7 +163,7 @@ export default function HealthPanel() {
   // Performance agora.
   if (sleep === null && hrv === null && rhr === null && stress === null) {
     return (
-      <p className="mt-6 rounded-xl border border-white/10 bg-card px-4 py-6 text-sm text-muted">
+      <p className="mt-6 rounded-card border border-border bg-card px-4 py-6 text-sm text-muted">
         Nada por aqui ainda. Use o botão &ldquo;Puxar do Garmin&rdquo; no topo
         para sincronizar seus dados.
       </p>
@@ -170,7 +180,7 @@ export default function HealthPanel() {
         )}
       </div>
       {state.refreshError !== null && (
-        <p className="mt-2 rounded-xl border border-white/10 bg-card px-3 py-2 text-sm text-muted">
+        <p className="mt-2 rounded-card border border-border bg-card px-3 py-2 text-sm text-muted">
           Não foi possível atualizar a janela: {state.refreshError}
         </p>
       )}
@@ -188,16 +198,16 @@ export default function HealthPanel() {
       >
         {sleep !== null ? (
           <div className="space-y-3">
-            <div className="rounded-xl border border-white/10 bg-card p-3">
+            <div className="rounded-card border border-border bg-card p-3">
               <SleepChart sleep={sleep} />
             </div>
-            <div className="rounded-xl border border-white/10 bg-card p-3">
+            <div className="rounded-card border border-border bg-card p-3">
               <SleepStagesChart sleep={sleep} />
             </div>
-            <div className="rounded-xl border border-white/10 bg-card p-3">
+            <div className="rounded-card border border-border bg-card p-3">
               <RemChart sleep={sleep} />
             </div>
-            <div className="rounded-xl border border-white/10 bg-card p-3">
+            <div className="rounded-card border border-border bg-card p-3">
               <WeekdayPattern sleep={sleep} />
             </div>
           </div>
@@ -215,7 +225,7 @@ export default function HealthPanel() {
       >
         <div className="space-y-3">
           {hrv !== null ? (
-            <div className="rounded-xl border border-white/10 bg-card p-3">
+            <div className="rounded-card border border-border bg-card p-3">
               <HrvChart hrv={hrv} />
               {/* Valores diários com paginação (hrv-baseline, HRV-10..12);
                   remount por janela reseta a página (HWF-07) */}
@@ -228,7 +238,7 @@ export default function HealthPanel() {
             </BlockEmpty>
           )}
           {rhr !== null ? (
-            <div className="rounded-xl border border-white/10 bg-card p-3">
+            <div className="rounded-card border border-border bg-card p-3">
               <RhrChart rhr={rhr} />
             </div>
           ) : (
@@ -255,7 +265,7 @@ export default function HealthPanel() {
       >
         <div className="space-y-3">
           <Lifestyle lifestyle={lifestyle} />
-          <div className="rounded-xl border border-white/10 bg-card p-3">
+          <div className="rounded-card border border-border bg-card p-3">
             <StressChart stress={stress} />
           </div>
         </div>

@@ -16,7 +16,7 @@ import { Suspense, useState, type FormEvent } from "react";
 import { ApiError, login } from "@/lib/api";
 
 const INPUT_CLASS =
-  "mt-1 w-full rounded-lg border border-white/10 bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-accent/50";
+  "mt-1 w-full rounded-ctl border border-border hover:border-border-hover bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-accent/50";
 
 function LoginForm() {
   const router = useRouter();
@@ -87,7 +87,7 @@ function LoginForm() {
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-lg bg-accent px-3 py-2 text-sm font-medium text-background disabled:opacity-60"
+          className="w-full rounded-ctl bg-accent px-3 py-2 text-sm font-medium text-on-accent disabled:opacity-60"
         >
           {pending ? "Entrando…" : "Entrar"}
         </button>

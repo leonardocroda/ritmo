@@ -6,7 +6,6 @@
 // spec pede para não confundir estimativa com medição.
 
 import {
-  CartesianGrid,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -16,11 +15,8 @@ import {
 } from "recharts";
 
 import type { Vo2maxBlock } from "@/lib/api";
+import { axisLine, chart, tick, tooltipCard } from "@/lib/chartTheme";
 import { formatVdot } from "@/lib/format";
-
-const AXIS_COLOR = "#3f3f46";
-const MUTED_COLOR = "#a1a1aa";
-const LINE_COLOR = "#a3e635"; // accent do tema
 
 /** "2026-04-22" -> "22/04" (wall clock, sem conversão de fuso). */
 function shortDay(date: string): string {
@@ -39,7 +35,7 @@ function TrendTooltip({
   const point = payload[0].payload;
   const [year, month, day] = point.date.split("-");
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2 text-xs">
+    <div className={tooltipCard}>
       <p className="font-medium">
         VO2max {formatVdot(point.value)}
       </p>
@@ -64,27 +60,26 @@ export default function Vo2maxTrend({ vo2max }: { vo2max: Vo2maxBlock }) {
             data={vo2max.points}
             margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
           >
-            <CartesianGrid stroke={AXIS_COLOR} strokeOpacity={0.35} />
             <XAxis
               dataKey="date"
               tickFormatter={shortDay}
               minTickGap={28}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={axisLine}
+              tick={tick}
               tickLine={false}
             />
             <YAxis
               domain={["auto", "auto"]}
               width={38}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={false}
+              tick={tick}
               tickLine={false}
             />
             <Tooltip content={<TrendTooltip />} />
             <Line
               type="monotone"
               dataKey="value"
-              stroke={LINE_COLOR}
+              stroke={chart.subject}
               strokeWidth={1.5}
               dot={false}
             />

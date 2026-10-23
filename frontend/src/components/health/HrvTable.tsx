@@ -31,7 +31,7 @@ export default function HrvTable({ hrv }: { hrv: HrvBlock }) {
   const rows = nights.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
-    <div className="mt-4 border-t border-white/10 pt-3">
+    <div className="mt-4 border-t border-border pt-3">
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-[10px] text-muted">
@@ -48,10 +48,10 @@ export default function HrvTable({ hrv }: { hrv: HrvBlock }) {
         </thead>
         <tbody>
           {rows.map((p) => (
-            <tr key={p.date} className="border-t border-white/5">
+            <tr key={p.date} className="border-t border-border">
               <th
                 scope="row"
-                className="px-1 py-1.5 text-left font-medium whitespace-nowrap"
+                className="px-1 py-1.5 text-left font-medium whitespace-nowrap tabular-nums"
               >
                 {fullDay(p.date)}
               </th>
@@ -72,7 +72,7 @@ export default function HrvTable({ hrv }: { hrv: HrvBlock }) {
             type="button"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
-            className="rounded-full border border-white/10 px-3 py-1 disabled:opacity-40"
+            className="rounded-full border border-border hover:border-border-hover px-3 py-1 disabled:opacity-40"
           >
             Anterior
           </button>
@@ -83,7 +83,7 @@ export default function HrvTable({ hrv }: { hrv: HrvBlock }) {
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page === totalPages - 1}
-            className="rounded-full border border-white/10 px-3 py-1 disabled:opacity-40"
+            className="rounded-full border border-border hover:border-border-hover px-3 py-1 disabled:opacity-40"
           >
             Próxima
           </button>

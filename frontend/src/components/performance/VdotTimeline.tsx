@@ -8,7 +8,6 @@
 // conversão de fuso (mesma postura do format.ts).
 
 import {
-  CartesianGrid,
   ReferenceArea,
   ReferenceLine,
   ResponsiveContainer,
@@ -20,11 +19,8 @@ import {
 } from "recharts";
 
 import type { TimelinePoint, VdotBlock } from "@/lib/api";
+import { axisLine, chart, tick, tooltipCard } from "@/lib/chartTheme";
 import { formatDuration, formatKm, formatVdot } from "@/lib/format";
-
-const AXIS_COLOR = "#3f3f46";
-const MUTED_COLOR = "#a1a1aa";
-const ACCENT_COLOR = "#a3e635"; // lime-400 — cor das zonas/ritmo do tema
 
 type PlotPoint = TimelinePoint & { x: number };
 
@@ -56,7 +52,7 @@ function TimelineTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2 text-xs">
+    <div className={tooltipCard}>
       <p className="font-medium">{point.label}</p>
       <p className="mt-0.5 text-muted">{fullDate(point.date)}</p>
       <p className="mt-1 text-muted">
@@ -78,22 +74,21 @@ export default function VdotTimeline({ vdot }: { vdot: VdotBlock }) {
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <ScatterChart margin={{ top: 12, right: 16, bottom: 4, left: 0 }}>
-          <CartesianGrid stroke={AXIS_COLOR} strokeOpacity={0.35} />
           <XAxis
             type="number"
             dataKey="x"
             domain={["dataMin - 2592000000", "dataMax + 2592000000"]}
             tickFormatter={tickLabel}
-            stroke={AXIS_COLOR}
-            tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+            axisLine={axisLine}
+            tick={tick}
             tickLine={false}
           />
           <YAxis
             dataKey="vdot"
             domain={["auto", "auto"]}
             tickFormatter={(value: number) => formatVdot(value)}
-            stroke={AXIS_COLOR}
-            tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+            axisLine={false}
+            tick={tick}
             tickLine={false}
             width={42}
           />
@@ -102,24 +97,24 @@ export default function VdotTimeline({ vdot }: { vdot: VdotBlock }) {
             <ReferenceArea
               y1={current.vdot}
               y2={demonstrated.vdot}
-              fill={ACCENT_COLOR}
-              fillOpacity={0.12}
+              fill={chart.subject}
+              fillOpacity={chart.bandOpacity}
               ifOverflow="extendDomain"
             />
           )}
           <ReferenceLine
             y={current.vdot}
-            stroke={MUTED_COLOR}
+            stroke={chart.context}
             strokeDasharray="4 4"
             ifOverflow="extendDomain"
             label={{
               value: `corrente ${formatVdot(current.vdot)}`,
               position: "insideBottomLeft",
-              fill: MUTED_COLOR,
+              fill: chart.muted,
               fontSize: 10,
             }}
           />
-          <Scatter data={data} fill={ACCENT_COLOR} />
+          <Scatter data={data} fill={chart.subject} />
         </ScatterChart>
       </ResponsiveContainer>
     </div>

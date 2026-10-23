@@ -1,13 +1,13 @@
 "use client";
 
 // Chip do usuário no header (AUTH-23/24, feature auth): display_name
-// como link para o /perfil (entrada da tela de zonas — HRZ-16, feature
-// hr-zones) + botão "Sair" — única revogação acessível. Monta → me():
-// sucesso renderiza; 401/backend fora não renderiza nada (o proxy e a
-// API cuidam do redirect). Sair → logout() revoga a sessão CORRENTE
-// no servidor e aterrissa em /login (voltar não reabre o painel).
+// como texto simples — o /perfil vive na navegação agora (top bar /
+// tab bar, DSN-21) — + botão "Sair", única revogação acessível.
+// Monta → me(): sucesso renderiza; 401/backend fora não renderiza
+// nada (o proxy e a API cuidam do redirect). Sair → logout() revoga
+// a sessão CORRENTE no servidor e aterrissa em /login (voltar não
+// reabre o painel).
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { logout, me, type MeOut } from "@/lib/api";
@@ -39,16 +39,13 @@ export default function UserMenu() {
 
   return (
     <div className="flex items-center gap-2">
-      <Link
-        href="/perfil"
-        className="max-w-20 truncate text-sm text-muted hover:text-foreground sm:max-w-40"
-      >
+      <span className="max-w-20 truncate text-sm text-muted sm:max-w-40">
         {user.display_name}
-      </Link>
+      </span>
       <button
         type="button"
         onClick={handleLogout}
-        className="rounded-full border border-white/10 px-3 py-1.5 text-sm text-muted hover:text-foreground"
+        className="rounded-full border border-border hover:border-border-hover px-3 py-1.5 text-sm text-muted hover:text-foreground"
       >
         Sair
       </button>

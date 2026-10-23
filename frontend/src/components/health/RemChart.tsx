@@ -6,10 +6,10 @@
 // e domínio Y 0–40 fixo, para a média real (~14%) não colapsar na base.
 
 import {
-  CartesianGrid,
   ComposedChart,
   Line,
   ReferenceArea,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -17,12 +17,8 @@ import {
 } from "recharts";
 
 import type { SleepBlock, SleepPoint } from "@/lib/api";
+import { axisLine, chart, legendCaption, tick, tooltipCard } from "@/lib/chartTheme";
 import { formatVdot } from "@/lib/format";
-
-const AXIS_COLOR = "#3f3f46";
-const MUTED_COLOR = "#a1a1aa";
-const REM_COLOR = "#a3e635"; // linha de REM (accent do tema)
-const BAND_COLOR = "#a3e635"; // banda ideal — mesma série, fundo suave
 
 /** "2026-04-20" -> "20/04" (wall clock, sem conversão de fuso). */
 function shortDay(date: string): string {
@@ -46,7 +42,7 @@ function RemTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2 text-xs">
+    <div className={tooltipCard}>
       <p className="font-medium">{fullDay(point.date)}</p>
       <p className="mt-1 text-muted">
         REM {point.rem_pct !== null ? `${formatVdot(point.rem_pct)}%` : "—"}
@@ -58,14 +54,14 @@ function RemTooltip({
 function SeriesLegend({ band }: { band: number[] }) {
   const [low, high] = band;
   const series = [
-    { label: "REM %", color: REM_COLOR },
+    { label: "REM %", color: chart.attention },
     {
       label: `banda ideal (${formatVdot(low)}–${formatVdot(high)}%)`,
-      color: BAND_COLOR,
+      color: chart.attention,
     },
   ];
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+    <div className={legendCaption}>
       {series.map((item) => (
         <span key={item.label} className="flex items-center gap-1.5">
           <span
@@ -89,35 +85,38 @@ export default function RemChart({ sleep }: { sleep: SleepBlock }) {
       <div className="h-56 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={points} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={AXIS_COLOR} strokeOpacity={0.35} />
             <XAxis
               dataKey="date"
               tickFormatter={shortDay}
               minTickGap={28}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={axisLine}
+              tick={tick}
               tickLine={false}
             />
             {/* Domínio 0–40 fixo: banda 21–31 e média ~14% na mesma escala */}
             <YAxis
               width={38}
               domain={[0, 40]}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={false}
+              tick={tick}
               tickLine={false}
             />
             <Tooltip content={<RemTooltip />} />
             <ReferenceArea
               y1={bandLow}
               y2={bandHigh}
-              fill={BAND_COLOR}
-              fillOpacity={0.15}
+              fill={chart.attention}
+              fillOpacity={chart.bandOpacity}
             />
+            {/* Bordas da banda: régua dashed neutra (mesma linguagem do
+                piso do SleepChart) — só as arestas horizontais */}
+            <ReferenceLine y={bandLow} stroke={chart.context} strokeDasharray="4 4" />
+            <ReferenceLine y={bandHigh} stroke={chart.context} strokeDasharray="4 4" />
             <Line
               type="monotone"
               dataKey="rem_pct"
               name="REM %"
-              stroke={REM_COLOR}
+              stroke={chart.attention}
               strokeWidth={1.5}
               dot={false}
             />

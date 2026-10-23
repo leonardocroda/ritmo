@@ -5,7 +5,6 @@
 // baseline do payload (média da janela, régua do backend) rotulada.
 
 import {
-  CartesianGrid,
   ComposedChart,
   Line,
   ReferenceLine,
@@ -16,12 +15,8 @@ import {
 } from "recharts";
 
 import type { RhrBlock, RhrPoint } from "@/lib/api";
+import { axisLine, chart, tick, tooltipCard } from "@/lib/chartTheme";
 import { formatVdot } from "@/lib/format";
-
-const AXIS_COLOR = "#3f3f46";
-const MUTED_COLOR = "#a1a1aa";
-const RHR_COLOR = "#f87171"; // FC de repouso (mesma cor de fadiga do PMC)
-const BASELINE_COLOR = MUTED_COLOR; // baseline — linha neutra tracejada
 
 /** "2026-04-20" -> "20/04" (wall clock, sem conversão de fuso). */
 function shortDay(date: string): string {
@@ -45,7 +40,7 @@ function RhrTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2 text-xs">
+    <div className={tooltipCard}>
       <p className="font-medium">{fullDay(point.date)}</p>
       <p className="mt-1 text-muted">RHR {point.value} bpm</p>
     </div>
@@ -60,31 +55,31 @@ export default function RhrChart({ rhr }: { rhr: RhrBlock }) {
       <div className="h-56 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={points} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={AXIS_COLOR} strokeOpacity={0.35} />
             <XAxis
               dataKey="date"
               tickFormatter={shortDay}
               minTickGap={28}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={axisLine}
+              tick={tick}
               tickLine={false}
             />
             <YAxis
               width={38}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={false}
+              tick={tick}
               tickLine={false}
             />
             <Tooltip content={<RhrTooltip />} />
-            {/* Baseline = média da janela (dentro do intervalo dos dados) */}
+            {/* Baseline = média da janela (dentro do intervalo dos dados);
+                régua dashed neutra (padrão do tema), rótulo em muted */}
             <ReferenceLine
               y={baseline}
-              stroke={BASELINE_COLOR}
+              stroke={chart.context}
               strokeDasharray="4 4"
               label={{
                 value: `baseline ${formatVdot(baseline)}`,
                 position: "insideTopRight",
-                fill: BASELINE_COLOR,
+                fill: chart.muted,
                 fontSize: 10,
               }}
             />
@@ -92,7 +87,7 @@ export default function RhrChart({ rhr }: { rhr: RhrBlock }) {
               type="monotone"
               dataKey="value"
               name="RHR"
-              stroke={RHR_COLOR}
+              stroke={chart.alert}
               strokeWidth={1.5}
               dot={false}
             />

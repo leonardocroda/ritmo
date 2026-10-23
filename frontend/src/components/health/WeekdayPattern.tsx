@@ -9,7 +9,7 @@
 import {
   Bar,
   BarChart,
-  CartesianGrid,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -17,15 +17,12 @@ import {
 } from "recharts";
 
 import type { SleepBlock, WeekdayEntry } from "@/lib/api";
+import { axisLine, chart, tick, tooltipCard } from "@/lib/chartTheme";
 import { formatClock, formatHours, formatWeekday, formatVdot } from "@/lib/format";
-
-const AXIS_COLOR = "#3f3f46";
-const MUTED_COLOR = "#a1a1aa";
-const AVG_COLOR = "#38bdf8"; // média de duração por dia da semana
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-2.5 py-2">
+    <div className="rounded-card border border-border bg-card px-2.5 py-2">
       <dt className="text-xs text-muted">{label}</dt>
       <dd className="mt-0.5 text-sm font-medium tabular-nums">{value}</dd>
     </div>
@@ -50,7 +47,7 @@ function WeekdayTooltip({
   if (!active || !payload?.length) return null;
   const entry = payload[0].payload;
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2 text-xs">
+    <div className={tooltipCard}>
       <p className="font-medium">{formatWeekday(entry.weekday)}</p>
       <p className="mt-1 text-muted">
         Média{" "}
@@ -67,6 +64,9 @@ export default function WeekdayPattern({ sleep }: { sleep: SleepBlock }) {
     ...entry,
     hours: entry.avg_duration_s !== null ? entry.avg_duration_s / 3600 : null,
   }));
+  // "Hoje" no mesmo formato da API: weekday 0..6 = seg..dom (formatWeekday),
+  // não o getDay() do JS (0 = domingo)
+  const todayWeekday = (new Date().getDay() + 6) % 7;
 
   return (
     <div>
@@ -85,26 +85,33 @@ export default function WeekdayPattern({ sleep }: { sleep: SleepBlock }) {
       <div className="mt-3 h-56 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={bars} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={AXIS_COLOR} strokeOpacity={0.35} />
             <XAxis
               dataKey="weekday"
               tickFormatter={(weekday: number) => formatWeekday(weekday)}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={axisLine}
+              tick={tick}
               tickLine={false}
             />
             {/* Domínio começando em 0 (média de duração não tem base flutuante) */}
             <YAxis
               width={38}
               domain={[0, "auto"]}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={false}
+              tick={tick}
               tickLine={false}
               tickFormatter={hourTick}
             />
             <Tooltip content={<WeekdayTooltip />} />
-            {/* Dia vazio (avg null) não desenha barra — nada inventado */}
-            <Bar dataKey="hours" name="média" fill={AVG_COLOR} fillOpacity={0.8} />
+            {/* Dia vazio (avg null) não desenha barra — nada inventado.
+                DSN-13: barras de contexto, o dia de hoje em lime */}
+            <Bar dataKey="hours" name="média" fill={chart.context} fillOpacity={0.8}>
+              {bars.map((bar) => (
+                <Cell
+                  key={bar.weekday}
+                  fill={bar.weekday === todayWeekday ? chart.subject : chart.context}
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>

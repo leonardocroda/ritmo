@@ -9,7 +9,6 @@
 import {
   Bar,
   BarChart,
-  CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -17,13 +16,8 @@ import {
 } from "recharts";
 
 import type { SleepBlock, SleepPoint } from "@/lib/api";
+import { axisLine, chart, legendCaption, tick, tooltipCard } from "@/lib/chartTheme";
 import { formatVdot } from "@/lib/format";
-
-const AXIS_COLOR = "#3f3f46";
-const MUTED_COLOR = "#a1a1aa";
-const LIGHT_COLOR = "#a1a1aa"; // fase leve — base neutra
-const DEEP_COLOR = "#38bdf8"; // fase profunda
-const REM_COLOR = "#a3e635"; // REM (accent do tema)
 
 /** "2026-04-20" -> "20/04" (wall clock, sem conversão de fuso). */
 function shortDay(date: string): string {
@@ -57,7 +51,7 @@ function StagesTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2 text-xs">
+    <div className={tooltipCard}>
       <p className="font-medium">{fullDay(point.date)}</p>
       <p className="mt-1 text-muted">
         Leve {pctLabel(point.light_pct)} · Profundo {pctLabel(point.deep_pct)} · REM{" "}
@@ -73,12 +67,12 @@ function StagesTooltip({
 
 function SeriesLegend() {
   const series = [
-    { label: "leve", color: LIGHT_COLOR },
-    { label: "profundo", color: DEEP_COLOR },
-    { label: "REM", color: REM_COLOR },
+    { label: "leve", color: chart.muted },
+    { label: "profundo", color: chart.subject },
+    { label: "REM", color: chart.attention },
   ];
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+    <div className={legendCaption}>
       {series.map((item) => (
         <span key={item.label} className="flex items-center gap-1.5">
           <span
@@ -99,28 +93,27 @@ export default function SleepStagesChart({ sleep }: { sleep: SleepBlock }) {
       <div className="h-56 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={sleep.points} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={AXIS_COLOR} strokeOpacity={0.35} />
             <XAxis
               dataKey="date"
               tickFormatter={shortDay}
               minTickGap={28}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={axisLine}
+              tick={tick}
               tickLine={false}
             />
             <YAxis
               width={38}
               domain={[0, 100]}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={false}
+              tick={tick}
               tickLine={false}
             />
             <Tooltip content={<StagesTooltip />} />
             {/* stackId único: leve na base, profundo e REM por cima —
                 os pcts entram como gravados (sem normalização) */}
-            <Bar dataKey="light_pct" name="leve" stackId="fases" fill={LIGHT_COLOR} fillOpacity={0.45} />
-            <Bar dataKey="deep_pct" name="profundo" stackId="fases" fill={DEEP_COLOR} />
-            <Bar dataKey="rem_pct" name="REM" stackId="fases" fill={REM_COLOR} />
+            <Bar dataKey="light_pct" name="leve" stackId="fases" fill={chart.muted} fillOpacity={0.45} />
+            <Bar dataKey="deep_pct" name="profundo" stackId="fases" fill={chart.subject} />
+            <Bar dataKey="rem_pct" name="REM" stackId="fases" fill={chart.attention} />
           </BarChart>
         </ResponsiveContainer>
       </div>

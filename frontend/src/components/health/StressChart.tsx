@@ -6,7 +6,6 @@
 // número inventado (HLT-26); o card fica de pé sem quebrar o bloco.
 
 import {
-  CartesianGrid,
   ComposedChart,
   Line,
   ResponsiveContainer,
@@ -16,11 +15,8 @@ import {
 } from "recharts";
 
 import type { StressBlock, StressPoint } from "@/lib/api";
+import { axisLine, chart, tick, tooltipCard } from "@/lib/chartTheme";
 import { formatVdot } from "@/lib/format";
-
-const AXIS_COLOR = "#3f3f46";
-const MUTED_COLOR = "#a1a1aa";
-const STRESS_COLOR = "#f87171"; // estresse (tom de carga do PMC)
 
 /** "2026-04-20" -> "20/04" (wall clock, sem conversão de fuso). */
 function shortDay(date: string): string {
@@ -44,7 +40,7 @@ function StressTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2 text-xs">
+    <div className={tooltipCard}>
       <p className="font-medium">{fullDay(point.date)}</p>
       <p className="mt-1 text-muted">Estresse {point.avg}</p>
     </div>
@@ -63,19 +59,18 @@ export default function StressChart({ stress }: { stress: StressBlock | null }) 
         <div className="mt-3 h-56 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={stress.points} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
-              <CartesianGrid stroke={AXIS_COLOR} strokeOpacity={0.35} />
               <XAxis
                 dataKey="date"
                 tickFormatter={shortDay}
                 minTickGap={28}
-                stroke={AXIS_COLOR}
-                tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+                axisLine={axisLine}
+                tick={tick}
                 tickLine={false}
               />
               <YAxis
                 width={38}
-                stroke={AXIS_COLOR}
-                tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+                axisLine={false}
+                tick={tick}
                 tickLine={false}
               />
               <Tooltip content={<StressTooltip />} />
@@ -83,7 +78,7 @@ export default function StressChart({ stress }: { stress: StressBlock | null }) 
                 type="monotone"
                 dataKey="avg"
                 name="estresse"
-                stroke={STRESS_COLOR}
+                stroke={chart.alert}
                 strokeWidth={1.5}
                 dot={false}
               />

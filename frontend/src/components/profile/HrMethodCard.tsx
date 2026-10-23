@@ -32,7 +32,7 @@ const METHODS: [HrZoneMethod, string][] = [
 const ZONE_COUNT = 5;
 
 const INPUT_CLASS =
-  "w-16 rounded-lg border border-white/10 bg-card px-2 py-1.5 text-sm text-foreground outline-none focus:border-accent/50";
+  "w-16 rounded-ctl border border-border hover:border-border-hover bg-card px-2 py-1.5 text-sm text-foreground outline-none focus:border-accent/50";
 
 /** Percentuais como strings editáveis — Z5 do lthr guarda "" (aberta). */
 type BoundFields = { low: string; high: string };
@@ -221,7 +221,7 @@ export default function HrMethodCard({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-accent px-3 py-2 text-sm font-medium text-background disabled:opacity-60"
+          className="rounded-ctl bg-accent px-3 py-2 text-sm font-medium text-on-accent disabled:opacity-60"
         >
           {saving ? "Salvando…" : "Salvar método e zonas"}
         </button>

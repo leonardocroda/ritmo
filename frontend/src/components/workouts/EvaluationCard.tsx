@@ -49,7 +49,7 @@ export default function EvaluationCard({
     return (
       <section className="mt-6">
         <h2 className="text-sm font-medium text-muted">Avaliação</h2>
-        <div className="mt-2 flex items-center gap-2 rounded-xl border border-white/10 bg-card px-4 py-3">
+        <div className="mt-2 flex items-center gap-2 rounded-card border border-border bg-card px-4 py-3">
           <span
             className="inline-block size-2 animate-pulse rounded-full bg-accent"
             aria-hidden
@@ -65,7 +65,7 @@ export default function EvaluationCard({
     return (
       <section className="mt-6">
         <h2 className="text-sm font-medium text-muted">Avaliação</h2>
-        <div className="mt-2 rounded-xl border border-white/10 bg-card p-4">
+        <div className="mt-2 rounded-card border border-border bg-card p-4">
           <p className="text-sm font-medium">A avaliação falhou</p>
           <p className="mt-1 text-sm text-muted">{evaluation.error}</p>
           <p className="mt-2 text-xs text-muted">
@@ -84,7 +84,7 @@ export default function EvaluationCard({
   return (
     <section className="mt-6">
       <h2 className="text-sm font-medium text-muted">Avaliação</h2>
-      <div className="mt-2 rounded-xl border border-white/10 bg-card p-4">
+      <div className="mt-2 rounded-card border border-border bg-card p-4">
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-medium leading-snug">{verdict.headline}</p>
           <span className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-sm font-medium text-accent">
@@ -107,7 +107,7 @@ export default function EvaluationCard({
         <VerdictList title="Contexto relevante" items={verdict.contexto_relevante} />
 
         {/* Selo de método (AD-009): confiança, modelo, tokens e data */}
-        <p className="mt-3 border-t border-white/10 pt-2 text-xs text-muted">
+        <p className="mt-3 border-t border-border pt-2 text-xs text-muted">
           Confiança: {verdict.confianca} · {evaluation.model} ·{" "}
           {tokens.toLocaleString("pt-BR")} tokens ·{" "}
           {formatDateTime(evaluation.created_at)}
@@ -139,7 +139,7 @@ export function EvaluationHistory({
         {evaluations.map((item) => (
           <li
             key={item.id}
-            className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-card px-3 py-2 text-sm"
+            className="flex items-center justify-between gap-2 rounded-card border border-border bg-card px-3 py-2 text-sm"
           >
             <span className="leading-snug">
               {item.verdict_json?.headline ??
@@ -147,7 +147,7 @@ export function EvaluationHistory({
                   ? `Falhou: ${item.error}`
                   : "Analisando treino…")}
             </span>
-            <span className="shrink-0 text-xs text-muted">
+            <span className="shrink-0 text-xs text-muted tabular-nums">
               {statusIcon(item)} {formatDateTime(item.created_at)}
             </span>
           </li>

@@ -11,7 +11,7 @@
 
 import {
   Bar,
-  CartesianGrid,
+  Cell,
   ComposedChart,
   Line,
   ReferenceLine,
@@ -22,13 +22,8 @@ import {
 } from "recharts";
 
 import type { PmcBlock, PmcPoint } from "@/lib/api";
+import { axisLine, chart, legendCaption, tick, tooltipCard } from "@/lib/chartTheme";
 import { formatVdot } from "@/lib/format";
-
-const AXIS_COLOR = "#3f3f46";
-const MUTED_COLOR = "#a1a1aa";
-const CTL_COLOR = "#38bdf8"; // fitness
-const ATL_COLOR = "#f87171"; // fadiga
-const TSB_COLOR = "#a3e635"; // forma (accent do tema)
 
 /** "2026-04-20" -> "20/04" (wall clock, sem conversão de fuso). */
 function shortDay(date: string): string {
@@ -44,7 +39,7 @@ function fullDay(date: string): string {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-2.5 py-2">
+    <div className="rounded-card border border-border bg-card px-2.5 py-2">
       <dt className="text-xs text-muted">{label}</dt>
       <dd className="mt-0.5 text-sm font-medium tabular-nums">{value}</dd>
     </div>
@@ -66,7 +61,7 @@ function PmcTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-3 py-2 text-xs">
+    <div className={tooltipCard}>
       <p className="font-medium">{fullDay(point.date)}</p>
       <p className="mt-1 text-muted">
         CTL {statOrDash(point.ctl)} · ATL {statOrDash(point.atl)}
@@ -80,12 +75,12 @@ function PmcTooltip({
 
 function SeriesLegend() {
   const series = [
-    { label: "CTL (fitness)", color: CTL_COLOR },
-    { label: "ATL (fadiga)", color: ATL_COLOR },
-    { label: "TSB (forma)", color: TSB_COLOR },
+    { label: "CTL (fitness)", color: chart.subject },
+    { label: "ATL (fadiga)", color: chart.alert },
+    { label: "TSB (forma)", color: chart.context },
   ];
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+    <div className={legendCaption}>
       {series.map((item) => (
         <span key={item.label} className="flex items-center gap-1.5">
           <span
@@ -117,29 +112,37 @@ export default function PmcChart({ pmc }: { pmc: PmcBlock }) {
       <div className="mt-3 h-56 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={points} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={AXIS_COLOR} strokeOpacity={0.35} />
             <XAxis
               dataKey="date"
               tickFormatter={shortDay}
               minTickGap={28}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={axisLine}
+              tick={tick}
               tickLine={false}
             />
             <YAxis
               width={38}
-              stroke={AXIS_COLOR}
-              tick={{ fill: MUTED_COLOR, fontSize: 10 }}
+              axisLine={false}
+              tick={tick}
               tickLine={false}
             />
             <Tooltip content={<PmcTooltip />} />
-            <ReferenceLine y={0} stroke={MUTED_COLOR} strokeDasharray="4 4" />
-            <Bar dataKey="tsb" name="TSB" fill={TSB_COLOR} fillOpacity={0.45} />
+            <ReferenceLine y={0} stroke={chart.context} strokeDasharray="4 4" />
+            {/* TSB em contexto neutro; o dia atual (o mesmo dos cards de
+                "Último dia") destacado em lime (DSN-13) */}
+            <Bar dataKey="tsb" name="TSB" fill={chart.context} fillOpacity={0.45}>
+              {points.map((point) => (
+                <Cell
+                  key={point.date}
+                  fill={point.date === current.date ? chart.subject : chart.context}
+                />
+              ))}
+            </Bar>
             <Line
               type="monotone"
               dataKey="ctl"
               name="CTL"
-              stroke={CTL_COLOR}
+              stroke={chart.subject}
               strokeWidth={1.5}
               dot={false}
             />
@@ -147,7 +150,7 @@ export default function PmcChart({ pmc }: { pmc: PmcBlock }) {
               type="monotone"
               dataKey="atl"
               name="ATL"
-              stroke={ATL_COLOR}
+              stroke={chart.alert}
               strokeWidth={1.5}
               dot={false}
             />
