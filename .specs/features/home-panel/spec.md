@@ -202,7 +202,7 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------- |
-| HOME-01 | P1: Veredito (endpoint) | Design | Pending |
+| HOME-01 | P1: Veredito (endpoint) | Design | Verified |
 | HOME-02 | P1: Veredito (pureza determinística) | Design | Verified |
 | HOME-03 | P1: Veredito (regra V1) | Design | Verified |
 | HOME-04 | P1: Veredito (regra V2) | Design | Verified |
@@ -216,16 +216,16 @@ Edge cases are usually unwanted-behavior (IF/THEN) or boundary (WHEN) criteria:
 | HOME-12 | P1: Veredito (edge timezone) | Design | Verified |
 | HOME-13 | P1: Card (composição herói) | Design | Pending |
 | HOME-14 | P1: Card (strip 7 dias) | Design | Verified |
-| HOME-15 | P1: Card (dia sem carga = barra zero) | Design | Pending |
-| HOME-16 | P1: Card (stale mostra data) | Design | Pending |
+| HOME-15 | P1: Card (dia sem carga = barra zero) | Design | Verified |
+| HOME-16 | P1: Card (stale mostra data) | Design | Verified |
 | HOME-17 | P1: Card (skeletons) | Design | Pending |
 | HOME-18 | P1: Card (sem sync na Home) | Design | Pending |
-| HOME-19 | P1: Chips (último treino + rota) | Design | Pending |
+| HOME-19 | P1: Chips (último treino + rota) | Design | Verified |
 | HOME-20 | P1: Chips (volume vs média 4s) | Design | Verified |
 | HOME-21 | P1: Chips (delta zero = "—") | Design | Verified |
 | HOME-22 | P1: Chips (countdown hoje/passada) | Design | Pending |
 | HOME-23 | P1: Chips (seed idempotente da meia) | Design | Pending |
-| HOME-24 | P1: Chips (sem atividade = chip omitido) | Design | Pending |
+| HOME-24 | P1: Chips (sem atividade = chip omitido) | Design | Verified |
 | HOME-25 | P1: Recomendações (1–3, shape + prioridade) | Design | Verified |
 | HOME-26 | P1: Recomendações (R1 qualidade) | Design | Verified |
 | HOME-27 | P1: Recomendações (R2 recuperação) | Design | Verified |

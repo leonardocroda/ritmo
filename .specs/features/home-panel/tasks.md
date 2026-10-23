@@ -188,7 +188,7 @@ T14 → T15
 
 **Tests**: unit (edge coberta pela suite existente do health + novo uso)
 **Gate**: full
-**Commit**: `refactor(core): app_tz extraido do health router`
+**Commit**: `refactor(core): app_tz extraido do health router` (8d67c29)
 
 ---
 
@@ -207,13 +207,13 @@ T14 → T15
 
 **Done when**:
 
-- [ ] Sinais hrv/sono extraídos de `get_health(8)`; fitness da última linha de `load`
-- [ ] Strip: exatamente 7 dias corridos terminando hoje, lacunas com 0.0
-- [ ] Último treino só `RUNNING_TYPES`; sem corridas → `None`
-- [ ] Countdown: prova com `date >= hoje` mais próxima; "é hoje" quando 0; passada ignorada
-- [ ] Consistência: fixture de HRV → status em `get_home` == status em `get_health` (mesma data)
-- [ ] Gate: `uv run pytest` verde (inclui `tests/test_home_service.py` novo)
-- [ ] Test count: ≥12 testes novos (sinais, strip com lacuna, RUNNING_TYPES vs strength, countdown hoje/passada/sem prova, consistência HRV, banco vazio → verdict None)
+- [x] Sinais hrv/sono extraídos de `get_health(8)`; fitness da última linha de `load`
+- [x] Strip: exatamente 7 dias corridos terminando hoje, lacunas com 0.0
+- [x] Último treino só `RUNNING_TYPES`; sem corridas → `None`
+- [x] Countdown: prova com `date >= hoje` mais próxima; "é hoje" quando 0; passada ignorada
+- [x] Consistência: fixture de HRV → status em `get_home` == status em `get_health` (mesma data)
+- [x] Gate: `uv run pytest` verde (inclui `tests/test_home_service.py` novo)
+- [x] Test count: ≥12 testes novos (sinais, strip com lacuna, RUNNING_TYPES vs strength, countdown hoje/passada/sem prova, consistência HRV, banco vazio → verdict None)
 
 **Tests**: integration
 **Gate**: full
