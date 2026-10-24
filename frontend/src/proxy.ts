@@ -11,15 +11,15 @@ import type { NextRequest } from "next/server";
 const SESSION_COOKIE = "ritmo_session";
 
 // Telas protegidas (AUTH-17): painéis + /perfil (HRZ-16, feature
-// hr-zones); `/` é a Home (home-panel, AD-025) — o next preserva a
-// rota pedida, login devolve o usuário pra onde ele estava.
+// hr-zones). `/` saiu da lista: virou o site público (feature site) —
+// visitante sem sessão vê a landing via rewrite; com sessão a raiz é a
+// Home (home-panel, AD-025).
 const PANEL_PREFIXES = ["/treinos", "/performance", "/saude", "/perfil"];
 const AUTH_ROUTES = ["/login", "/registrar"];
 
 function isPanelRoute(pathname: string): boolean {
-  return (
-    pathname === "/" ||
-    PANEL_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))
+  return PANEL_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(p + "/"),
   );
 }
 
@@ -27,9 +27,15 @@ export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const hasSession = request.cookies.has(SESSION_COOKIE);
 
+  // `/` para visitante é o site público (feature site): a landing mora
+  // em /site e o rewrite mantém a URL na raiz. Com sessão a raiz segue
+  // direto para o app — o painel Home (home-panel, AD-025).
+  if (pathname === "/" && !hasSession) {
+    return NextResponse.rewrite(new URL("/site", request.nextUrl));
+  }
+
   // Sem cookie em rota de painel → /login?next=<rota corrente> (AUTH-17).
-  // O next preserva query e é URL-encoded; o login volta à rota original
-  // — incluindo a raiz, que agora É o painel Home (AD-025).
+  // O next preserva query e é URL-encoded; o login volta à rota original.
   if (isPanelRoute(pathname) && !hasSession) {
     const next = pathname + search;
     return NextResponse.redirect(

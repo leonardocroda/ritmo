@@ -475,6 +475,40 @@ o ciclo completo: as três métricas chegam `source=garmin` com zero
 warnings. Se o relógio nunca detectou
 LTHR, `fclthr` fica só manual e o payload segue no fallback do env.
 
+## Site público
+
+Para visitante sem sessão, `/` é o **site** (feature site): a landing mora
+na rota `/site` e um **rewrite no proxy** a serve na raiz — a URL continua
+`/`. Quem tem sessão segue o fluxo de sempre na raiz: o painel Home
+(home-panel, AD-025). Os CTAs ("Acessar" / "Ir para a plataforma") levam a
+`/treinos`, e o fluxo de login é o mesmo de sempre.
+
+A landing segue a identidade v0.3
+([`docs/design/identidade-visual-v0.3.html`](docs/design/identidade-visual-v0.3.html))
+— dark Night, lime como acento funcional, sentence case, um herói por
+seção — e é um server component estático: **zero JS de cliente**. Cada
+painel tem seção própria: Home, Treinos, Avaliar com IA, Performance,
+Saúde e Zonas de FC.
+
+Os prints são da **interface real** com **dados ilustrativos** —
+exemplares, coerentes entre si e declarados na própria página (postura
+do doc de identidade v0.3). O `frontend/scripts/site/capture_mock.py`
+intercepta as chamadas `/api/*` pelo Playwright contra o build de
+verdade e gera os 17 prints em `frontend/public/prints/` — sem login e
+sem tocar no backend (detalhe e alternativas no
+[`frontend/scripts/site/README.md`](frontend/scripts/site/README.md):
+captura manual ou com sessão real, se um dia quiser trocar a legenda).
+
+Depois de capturar, rebuild do frontend — o `public/` entra na imagem no
+build. QA de visitante: `frontend/scripts/site/verify_site.py`
+(`RITMO_BASE` para apontar outro host/porta).
+
+Validação (24/10/2026, rebased sobre o merge do home-panel): build/lint/tsc
+limpos; QA headless contra preview standalone — raiz de visitante renderiza
+a landing (rewrite, sem redirect de URL), `/treinos` protege
+(`/login?next=%2Ftreinos`) e sem overflow horizontal em 390px e 1440px;
+prints capturados com o mock em 17 arquivos (780×1688 nos viewports).
+
 ## Workflow de desenvolvimento — spec-driven
 
 Toda feature nasce de um **spec validado**, vira **tasks atômicas** e termina em
