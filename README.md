@@ -479,33 +479,36 @@ LTHR, `fclthr` fica só manual e o payload segue no fallback do env.
 
 Para visitante sem sessão, `/` é o **site** (feature site): a landing mora
 na rota `/site` e um **rewrite no proxy** a serve na raiz — a URL continua
-`/`. Quem tem sessão segue o fluxo de sempre na raiz: hoje o redirect de
-`(app)/page.tsx` para `/treinos`; com o painel Hoje (branch `home-panel`),
-a raiz vira o painel — sem conflito de rota nem mudança no proxy. Os CTAs
-("Acessar" / "Ir para a plataforma") levam a `/treinos`, e o fluxo de login
-é o mesmo de sempre.
+`/`. Quem tem sessão segue o fluxo de sempre na raiz: o painel Home
+(home-panel, AD-025). Os CTAs ("Acessar" / "Ir para a plataforma") levam a
+`/treinos`, e o fluxo de login é o mesmo de sempre.
 
 A landing segue a identidade v0.3
 ([`docs/design/identidade-visual-v0.3.html`](docs/design/identidade-visual-v0.3.html))
 — dark Night, lime como acento funcional, sentence case, um herói por
-seção — e é um server component estático: **zero JS de cliente**.
+seção — e é um server component estático: **zero JS de cliente**. Cada
+painel tem seção própria: Home, Treinos, Avaliar com IA, Performance,
+Saúde e Zonas de FC.
 
-Os prints são **100% reais** — nenhum mockup. O
-[`frontend/scripts/site/capture.py`](frontend/scripts/site/README.md)
-abre um navegador para login manual (a senha nunca passa pelo script),
-salva o cookie fora do repo (`.site-session.json`, no `.gitignore`) e
-captura headless em 390×844 @2x (o mobile da identidade): topo de cada
-painel + cards-chave (splits, veredito da IA, VDOT, PMC, sono, HRV,
-dose-resposta, zonas) direto em `frontend/public/prints/`. Depois de
-re-capturar, rebuild do frontend — o `public/` entra na imagem no
+Os prints são **100% reais** — nenhum mockup. Dois caminhos (detalhe no
+[`frontend/scripts/site/README.md`](frontend/scripts/site/README.md)):
+
+- **manual** — os 12 prints listados lá, salvos em
+  `frontend/public/prints/` com os nomes certos;
+- **script** — `python scripts/site/capture.py`: navegador para login
+  manual (a senha nunca passa pelo script), cookie fora do repo
+  (`.site-session.json`, no `.gitignore`) e captura headless em 390×844
+  @2x (o mobile da identidade) de todos os prints + 6 de reserva.
+
+Depois de capturar, rebuild do frontend — o `public/` entra na imagem no
 build. QA de visitante: `frontend/scripts/site/verify_site.py`
 (`RITMO_BASE` para apontar outro host/porta).
 
-Validação (23/10/2026): build/lint/tsc limpos; QA headless contra
-preview standalone — raiz de visitante renderiza a landing (rewrite,
-sem redirect de URL), `/treinos` protege (`/login?next=%2Ftreinos`) e
-sem overflow horizontal em 390px e 1440px. Prints reais pendentes de
-captura com sessão (janela manual do capture.py).
+Validação (24/10/2026, rebased sobre o merge do home-panel): build/lint/tsc
+limpos; QA headless contra preview standalone — raiz de visitante renderiza
+a landing (rewrite, sem redirect de URL), `/treinos` protege
+(`/login?next=%2Ftreinos`) e sem overflow horizontal em 390px e 1440px.
+Prints reais pendentes de captura com sessão.
 
 ## Workflow de desenvolvimento — spec-driven
 

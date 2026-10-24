@@ -34,6 +34,11 @@ PANELS = ("/treinos", "/performance", "/saude", "/perfil")
 VIEWPORT = {"width": 390, "height": 844}
 SCALE = 2  # retina: 780px de largura para uma moldura de 390px
 
+
+def is_logged_in(url: str) -> bool:
+    """Pós-login a URL é a raiz (painel Home, AD-025) ou um painel."""
+    return url.rstrip("/") == BASE or any(panel in url for panel in PANELS)
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
@@ -106,7 +111,7 @@ def login_and_save(p) -> list[dict]:
     page.goto(f"{BASE}/login")
     deadline = time.time() + 1200  # 20 min para o login manual
     while time.time() < deadline:
-        if any(panel in page.url for panel in PANELS):
+        if is_logged_in(page.url):
             break
         page.wait_for_timeout(500)
     else:
@@ -129,6 +134,19 @@ def capture(p, cookies: list[dict], workout_id: int) -> None:
 
     def go(path: str) -> None:
         page.goto(f"{BASE}{path}", wait_until="load")
+
+    # ---- Home (painel na raiz, AD-025) ----
+    say("home (raiz)")
+    go("/")
+    wait_ready(page, 'h1:text-is("Home")')
+    shoot(page, "hoje-top.png")
+    # Abaixo da dobra: recomendações, mini de volume e digest — rola até
+    # o fim e volta uma tela para emoldurar os P2 do fim da página.
+    page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+    page.wait_for_timeout(600)
+    page.evaluate("window.scrollBy(0, -700)")
+    page.wait_for_timeout(800)
+    shoot(page, "hoje-abaixo.png")
 
     # ---- Treinos: lista ----
     say("treinos — lista")

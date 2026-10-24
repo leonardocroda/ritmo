@@ -1,11 +1,11 @@
 // Site público do Ritmo (feature site) — a "capa" da plataforma, morando
 // na rota /site (visitante sem sessão a vê na raiz via rewrite do proxy;
-// com sessão a raiz segue para os painéis — hoje redirect de
-// (app)/page.tsx, Painel Hoje quando a feature dele mergar).
-// Identidade visual v0.3 (AD-022): dark Night, lime como acento
-// funcional, sentence case, números tabulares, um herói por seção — e
-// os prints são da plataforma de verdade (gerados por
-// scripts/site/capture.py, sem dado inventado).
+// com sessão a raiz é o painel Home, AD-025). Identidade visual v0.3
+// (AD-022): dark Night, lime como acento funcional, sentence case,
+// números tabulares, um herói por seção — e os prints são da plataforma
+// de verdade (frontend/public/prints/, capturados por
+// scripts/site/capture.py ou manualmente — lista no README), sem dado
+// inventado.
 //
 // Server component estático: zero JS de cliente — só HTML/CSS com as
 // fontes e tokens do tema (globals.css). As âncoras usam scroll suave
@@ -49,20 +49,20 @@ function Pulse({ className = "h-4 w-5" }: { className?: string }) {
   );
 }
 
-// Moldura de aparelho (a da demonstração 390px da identidade): o print
-// entra na mesma proporção do viewport do capture.py (780×1688 @2x).
+// Moldura de aparelho (a da demonstração 390px da identidade). Aspect
+// fixo da tela: qualquer print de celular encaixa sem distorcer —
+// object-cover com o topo visível, que é onde mora o herói de cada
+// tela (veredito, cabeçalho, gráfico).
 function Phone({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="relative z-10 mx-auto w-[300px] sm:w-[340px]">
       <div className="rounded-[48px] border border-border bg-[#05080B] p-[11px] shadow-[0_32px_90px_rgba(0,0,0,0.55)]">
-        <div className="overflow-hidden rounded-[38px]">
+        <div className="aspect-[390/844] overflow-hidden rounded-[38px]">
           {/* eslint-disable-next-line @next/next/no-img-element -- print local, sem otimização de imagem (standalone sem sharp) */}
           <img
             src={src}
             alt={alt}
-            width={780}
-            height={1688}
-            className="block w-full"
+            className="block h-full w-full object-cover object-top"
           />
         </div>
       </div>
@@ -231,8 +231,8 @@ function Hero() {
             className="hidden w-[250px] -rotate-2 self-end lg:block"
           />
           <Phone
-            src="/prints/treino-detail.png"
-            alt="Detalhe de um treino no Ritmo: métricas, badge de avaliado e contexto do dia"
+            src="/prints/hoje-top.png"
+            alt="Painel Home do Ritmo: card-veredito do dia com frase, chips de sinal e strip de carga de 7 dias"
           />
           <Shot
             src="/prints/evaluation-card.png"
@@ -369,9 +369,41 @@ function Features() {
       </div>
 
       <Feature
+        id="hoje"
+        eyebrow="Painel Home"
+        title="A decisão do dia, em uma frase."
+        lead={
+          <>
+            A raiz do app não é um dashboard — é um veredito:{" "}
+            <span className="text-foreground">
+              “Pronto pra qualidade”
+            </span>{" "}
+            ou “dia comum, sem urgências”, direto e sem score inventado. O
+            porquê vem em chips ao lado da frase — cada sinal com valor,
+            estado e data quando velho — e a strip de carga dos últimos 7
+            dias, neutra com só hoje aceso.
+          </>
+        }
+        bullets={[
+          "Veredito em sentence case — a decisão é a interface",
+          "O porquê sempre visível: HRV, sono e forma com valor e estado",
+          "Chips que roteiam: último treino, volume da semana e countdown da prova",
+          "Abaixo da dobra: recomendações com o porquê, mini de volume e digest de previsões",
+        ]}
+      >
+        <div className="relative">
+          <Phone
+            src="/prints/hoje-abaixo.png"
+            alt="Home abaixo da dobra: cards de recomendação com o porquê, mini de volume de 10 semanas e digest de previsões"
+          />
+        </div>
+      </Feature>
+
+      <Feature
         id="treinos"
         eyebrow="Painel Treinos"
         title="Como foi esse treino, de verdade?"
+        flip
         lead={
           <>
             O gráfico de voltas conta a história: cada barra colorida pela{" "}
@@ -390,8 +422,8 @@ function Features() {
       >
         <div className="relative">
           <Phone
-            src="/prints/treinos-list.png"
-            alt="Lista de treinos no Ritmo: corridas com tipo inferido, pace, FC e badge de avaliado"
+            src="/prints/treino-detail.png"
+            alt="Detalhe de um treino no Ritmo: métricas, badges de tipo inferido e avaliado e contexto do dia"
           />
           <Shot
             src="/prints/contexto-dia.png"
@@ -405,7 +437,6 @@ function Features() {
         id="ia"
         eyebrow="Avaliar com IA"
         title="Execução contra intenção."
-        flip
         lead={
           <>
             Você declara a intenção —{" "}
@@ -441,6 +472,7 @@ function Features() {
         id="performance"
         eyebrow="Painel Performance"
         title="Qual o meu máximo — e a que distância dele estou?"
+        flip
         lead={
           <>
             A pergunta que nenhum app responde com honestidade. A timeline
@@ -473,7 +505,6 @@ function Features() {
         id="saude"
         eyebrow="Painel Saúde"
         title="Meu corpo está absorvendo o treino?"
-        flip
         lead={
           <>
             O fio: o sono recupera, o corpo responde, dormir mal custa — e a
@@ -507,6 +538,7 @@ function Features() {
         id="zonas"
         eyebrow="Perfil · Zonas de FC"
         title="Zonas com dono, método e histórico."
+        flip
         lead={
           <>
             FC máxima, FC de repouso e LTHR com fonte (Garmin ou manual) e
