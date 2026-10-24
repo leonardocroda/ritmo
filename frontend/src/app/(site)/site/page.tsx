@@ -18,7 +18,7 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = {
   title: "Ritmo — pensar e ver a corrida de um só lugar",
   description:
-    "Sync do Garmin, painéis que importam (Treinos · Performance · Saúde) e avaliação de treino com IA sob demanda — com zonas VDOT pessoais e números honestos.",
+    "Sync do Garmin, painéis que importam (Treinos · Performance · Saúde) e avaliação de treino com IA sob demanda, com zonas VDOT suas e potencial sem número mágico.",
   openGraph: {
     title: "Ritmo — pensar e ver a corrida de um só lugar",
     description:
@@ -188,9 +188,10 @@ function Hero() {
           de um <span className="text-accent">só lugar.</span>
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-[17px] leading-relaxed text-muted">
-          Sync do Garmin, painéis que respondem perguntas de verdade e
-          avaliação de treino com IA — quando você pedir. Nada de dashboard
-          genérico: cada gráfico existe para responder uma pergunta sua.
+          Sync da sua conta Garmin, painéis que respondem perguntas de
+          verdade e uma IA que avalia seu treino quando você pedir. Sem
+          dashboard genérico: cada gráfico existe para responder uma
+          pergunta sua.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <CtaButton href="/treinos">
@@ -209,7 +210,7 @@ function Hero() {
             "Sync do Garmin",
             "Zonas VDOT pessoais",
             "IA sob demanda",
-            "Números honestos",
+            "Seus dados, seu banco",
           ].map((chip) => (
             <span
               key={chip}
@@ -274,24 +275,26 @@ function HowItWorks() {
       <SectionHead
         idx="01"
         title="Como funciona"
-        lead="Do relógio no pulso à análise com IA — em três passos, sem fricção."
+        lead="Do relógio no pulso à análise com IA, em três passos."
       />
       <div className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-3">
-        <Step n="1" title="Conecte o Garmin">
-          Seus tokens ficam cifrados no banco e o primeiro sync puxa{" "}
+        <Step n="1" title="Conecte seus dados">
+          A gente se conecta à sua fonte de dados de treino, que hoje é a
+          conta Garmin. No primeiro sync entram{" "}
           <span className="tabular-nums text-foreground">180 dias</span> de
-          histórico: atividades, voltas, sono, HRV, carga. Sequencial, com
-          backoff — sem derrubar a API.
+          histórico: corridas, voltas, sono, HRV, carga. Se a fonte mudar
+          amanhã, o seu histórico continua aqui.
         </Step>
         <Step n="2" title="Veja o que importa">
-          Os painéis leem só o seu banco — rápido e sem rate-limit. Cada um
-          responde uma pergunta: como foi esse treino? Qual o meu potencial?
-          Meu corpo está absorvendo?
+          Os painéis leem a sua cópia dos dados: rápidos e sempre de pé.
+          Cada um responde uma pergunta: como foi esse treino? Qual o meu
+          potencial? Meu corpo está absorvendo o treino?
         </Step>
         <Step n="3" title="Peça a análise">
-          No detalhe do treino, declare a intenção e peça a avaliação. O
-          Python calcula cada número; a IA interpreta e devolve veredito,
-          desvios e o que corrigir.
+          No detalhe do treino, você diz qual era a intenção e pede a
+          avaliação. Nosso algoritmo calcula cada número de forma
+          determinística e entrega tudo pra IA, que devolve veredito,
+          desvios e o que corrigir na próxima.
         </Step>
       </div>
     </section>
@@ -364,7 +367,7 @@ function Features() {
         <SectionHead
           idx="02"
           title="A plataforma por dentro"
-          lead="Prints da interface real, com dados ilustrativos e coerentes entre si — nenhum mockup, nenhum número solto."
+          lead="Prints da interface real. Os dados são ilustrativos e coerentes entre si: nenhum mockup, nenhum número solto."
         />
       </div>
 
@@ -374,21 +377,20 @@ function Features() {
         title="A decisão do dia, em uma frase."
         lead={
           <>
-            A raiz do app não é um dashboard — é um veredito:{" "}
+            Abra o app e a primeira coisa é uma frase:{" "}
             <span className="text-foreground">
               “Pronto pra qualidade”
             </span>{" "}
-            ou “dia comum, sem urgências”, direto e sem score inventado. O
-            porquê vem em chips ao lado da frase — cada sinal com valor,
-            estado e data quando velho — e a strip de carga dos últimos 7
-            dias, neutra com só hoje aceso.
+            ou “dia comum, sem urgências”. Nada de score inventado. O porquê
+            vem do lado, em chips com o valor e o estado de cada sinal, e a
+            strip de carga da semana fica neutra com só hoje aceso.
           </>
         }
         bullets={[
-          "Veredito em sentence case — a decisão é a interface",
+          "A decisão é a interface: uma frase, não um painel",
           "O porquê sempre visível: HRV, sono e forma com valor e estado",
-          "Chips que roteiam: último treino, volume da semana e countdown da prova",
-          "Abaixo da dobra: recomendações com o porquê, mini de volume e digest de previsões",
+          "Atalhos pro que importa: último treino, volume da semana e contagem pra prova",
+          "Abaixo da dobra: recomendações com o porquê explícito, volume das últimas semanas e previsões de prova",
         ]}
       >
         <div className="relative">
@@ -406,18 +408,18 @@ function Features() {
         flip
         lead={
           <>
-            O gráfico de voltas conta a história: cada barra colorida pela{" "}
-            <span className="text-foreground">zona VDOT pessoal</span> —
-            verde fácil, azul maratona, laranja limiar, vermelho intervalado,
-            roxo repetição — com largura proporcional à duração e a linha de
-            FC por cima. Pausa de 30s não se disfarça de tiro de 3km.
+            Cada volta vira uma barra colorida pela{" "}
+            <span className="text-foreground">zona VDOT sua</span>: verde
+            fácil, azul maratona, laranja limiar, vermelho intervalado, roxo
+            repetição. A largura segue a duração da volta e a linha de FC vai
+            por cima. Pausa de 30s não se disfarça de tiro de 3km.
           </>
         }
         bullets={[
           "Splits por zona VDOT sua, com FC e relevo no mesmo gráfico",
-          "Consistência: 1ª vs 2ª metade, drift cardíaco, decoupling FC/pace",
+          "Consistência: 1ª contra 2ª metade, drift cardíaco e cadência",
           "Contexto do dia: sono, HRV, FC de repouso e temperatura",
-          "Tipo inferido (prova, limiar, longão…) e badge de avaliado",
+          "Tipo identificado sozinho (longão, limiar, prova…) e selo de avaliado",
         ]}
       >
         <div className="relative">
@@ -439,24 +441,23 @@ function Features() {
         title="Execução contra intenção."
         lead={
           <>
-            Você declara a intenção —{" "}
+            Você diz qual era o plano, tipo{" "}
+            <span className="text-foreground">“era um longão fácil”</span>, e
+            pede a avaliação. Nosso algoritmo calcula tudo que é número:
+            zonas por volta, consistência, contexto do dia. A IA entra pra
+            interpretar o conjunto e devolver veredito, desvios e o que
+            corrigir.{" "}
             <span className="text-foreground">
-              “era um longão fácil”
-            </span>{" "}
-            — e pede a análise. O backend monta um payload determinístico
-            (zonas por volta, consistência, contexto do dia, PRs) e a IA
-            interpreta: veredito, desvios e correções.{" "}
-            <span className="text-foreground">
-              Zero alucinação de número
+              Nenhuma métrica sai da cabeça da IA
             </span>
-            : o percentual na zona alvo é sempre o calculado em Python.
+            : o percentual na zona alvo é calculado pelo algoritmo, sempre.
           </>
         }
         bullets={[
-          "Veredito no alvo, abaixo ou acima — com os desvios nomeados",
-          "Zonas VDOT suas + contexto fisiológico do dia na avaliação",
-          "Auditoria em cada card: modelo, tokens e data",
-          "Sob demanda — nada é avaliado sem você pedir",
+          "Veredito no alvo, abaixo ou acima, com os desvios nomeados",
+          "Zonas VDOT suas e o contexto fisiológico do dia na avaliação",
+          "Transparência total: cada card guarda modelo, data e custo em tokens",
+          "Sob demanda: nada roda sem você pedir",
         ]}
       >
         <div className="relative">
@@ -475,15 +476,15 @@ function Features() {
         flip
         lead={
           <>
-            A pergunta que nenhum app responde com honestidade. A timeline
-            VDOT plota cada prova e teste, a linha do corrente e a{" "}
-            <span className="text-foreground">faixa até o demonstrado</span>{" "}
-            — a lacuna é o alvo honesto, nunca um número mágico.
+            Aqui não tem número mágico. A timeline plota cada prova e teste
+            com o VDOT equivalente, marca o seu corrente e sombreia a{" "}
+            <span className="text-foreground">faixa até o demonstrado</span>.
+            A lacuna entre os dois é o seu alvo honesto.
           </>
         }
         bullets={[
           "VDOT corrente vs demonstrado, com a lacuna % visível",
-          "Previsões por 4 métodos (Garmin, Riegel, VDOT, média honesta) contra PRs",
+          "Previsões para 5K, 10K, meia e maratona por 4 métodos, contra seus recordes",
           "Curva PMC: fitness, fadiga e forma dos últimos 60 dias",
           "Hierarquia clara: provas e testes medem; o relógio só estima",
         ]}
@@ -507,11 +508,10 @@ function Features() {
         title="Meu corpo está absorvendo o treino?"
         lead={
           <>
-            O fio: o sono recupera, o corpo responde, dormir mal custa — e a
-            vida fora da corrida sustenta tudo. Quatro seções contam essa
-            história com os seus dados, incluindo a{" "}
-            <span className="text-foreground">dose-resposta pessoal</span>:
-            o preço de uma noite curta, visível.
+            A história que o painel conta é simples: o sono recupera, o corpo
+            responde e dormir mal custa. Tudo com os seus dados, incluindo a{" "}
+            <span className="text-foreground">dose-resposta pessoal</span>: o
+            preço de uma noite curta aparece no gráfico.
           </>
         }
         bullets={[
@@ -537,14 +537,13 @@ function Features() {
       <Feature
         id="zonas"
         eyebrow="Perfil · Zonas de FC"
-        title="Zonas com dono, método e histórico."
+        title="Zonas suas, com método e histórico."
         flip
         lead={
           <>
-            FC máxima, FC de repouso e LTHR com fonte (Garmin ou manual) e
-            vigência. Escolha o método — LTHR%, reserva cardíaca ou FC máx% —
-            e cada mudança vira uma linha datada: treino antigo é lido com as
-            zonas da época dele.{" "}
+            FC máxima, FC de repouso e limiar (LTHR), cada um com a fonte e a
+            data de vigência. Você escolhe o método de cálculo e cada mudança
+            fica registrada: treino antigo é lido com as zonas da época dele.{" "}
             <span className="text-foreground">
               O passado nunca é reclassificado.
             </span>
@@ -552,8 +551,8 @@ function Features() {
         }
         bullets={[
           "Três métodos de cálculo, percentuais editáveis por zona",
-          "Editar manual vence o sync — e registra a preferência",
-          "Histórico effective-dated de cada valor e configuração",
+          "Sua edição manual tem prioridade sobre o sync",
+          "Histórico datado de cada valor e configuração",
         ]}
       >
         <div className="relative">
@@ -578,12 +577,11 @@ function Differentiator() {
       <div className="mx-auto max-w-3xl rounded-card border-l-[3px] border-accent bg-raised px-6 py-8 sm:px-10">
         <Eyebrow>O que nenhum outro app faz</Eyebrow>
         <p className="mt-4 text-lg leading-relaxed">
-          Garmin Connect mostra o que você fez. Strava resume. TrainingPeaks
-          planeja. O Ritmo{" "}
+          Todo app de treino mostra o que você fez. O Ritmo{" "}
           <span className="text-accent">julga como você executou</span>{" "}
-          contra o que declarou — com as suas zonas VDOT, o contexto
-          fisiológico do dia e os seus padrões. A análise que um coach faria,
-          quando você pedir.
+          contra o que declarou: com as suas zonas VDOT, o contexto do dia e
+          os seus padrões. É a análise que um coach faria, no dia em que você
+          quiser.
         </p>
       </div>
     </section>
@@ -611,24 +609,24 @@ function Principles() {
       <SectionHead
         idx="03"
         title="Por que confiar nos números"
-        lead="Decisões de produto que ficam visíveis na interface — não no discurso."
+        lead="Decisões de produto que você confere na interface, não no discurso."
       />
       <div className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2">
         <Principle title="Zero alucinação">
-          Todo número é calculado em Python — determinístico e auditável. A
-          IA interpreta; nunca inventa métrica.
+          Nenhum número vem da cabeça da IA. O algoritmo calcula tudo de
+          forma determinística e auditável; a IA interpreta o conjunto.
         </Principle>
         <Principle title="Faixa, nunca número mágico">
           Potencial vem de provas e testes com data. Estimativa do relógio
-          aparece com selo de estimativa.
+          aparece com o selo de estimativa, sempre.
         </Principle>
         <Principle title="Seus dados, seu banco">
-          O Garmin só é lido no sync. Os painéis leem o seu Postgres —
-          rápido e isolado por usuário.
+          A fonte é lida só quando você sincroniza. Os painéis leem a sua
+          cópia dos dados, rápida e isolada por usuário.
         </Principle>
         <Principle title="IA sob demanda">
-          Avaliação tem custo de tokens e valor de resposta. Nada roda sem
-          você pedir — e cada tentativa fica no histórico.
+          Avaliação custa tokens e vale quando você quer a resposta. Nada
+          roda sem você pedir, e cada tentativa fica registrada.
         </Principle>
       </div>
     </section>
@@ -648,14 +646,14 @@ function FinalCta() {
           Sua corrida, pensada de um só lugar.
         </h2>
         <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-muted">
-          Conecte o Garmin, sincronize e chame a IA quando quiser.
+          Conecte seus dados, sincronize e chame a IA quando quiser.
         </p>
         <CtaButton href="/treinos" className="mt-8">
           Ir para a plataforma
           <span aria-hidden="true">→</span>
         </CtaButton>
         <p className="mt-4 text-xs text-muted">
-          acesso por convite — peça o código a quem te indicou
+          acesso por convite: peça o código a quem te indicou
         </p>
       </div>
     </section>
