@@ -45,16 +45,16 @@ Salva esse post pro seu próximo projeto. A doc completa tá no link da bio. E m
 
 ## Comentário fixado sugerido (link clicável, já que a caption não clicla)
 
-A doc técnica completa (API, banco, sync Garmin, frontend, infra — 21 páginas
-+ 12 diagramas) e o site público: https://ritmo-docs.onrender.com ·
-código no github.com/leonardocroda/ritmo
+Tudo num só lugar: https://ritmo-topaz.vercel.app/links — a plataforma,
+o código no GitHub e a doc técnica (API, banco, sync Garmin, frontend,
+infra — 21 páginas + 12 diagramas).
 
 ## Publicação
 
 1. Subir `png/slide-01.png` … `slide-10.png` nesta ordem (carrossel de 10).
 2. Colar a legenda + hashtags.
 3. Fixar o comentário com o link.
-4. Bio: link da doc (ou Linktree) durante a semana do post.
+4. Bio: https://ritmo-topaz.vercel.app/links — o hub com plataforma, GitHub e doc.
 5. Story de repost: sticker de link para o post na capa e no slide 10.
 
 ## Editar um slide
