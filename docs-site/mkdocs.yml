@@ -88,3 +88,9 @@ nav:
     - Componentes: frontend/componentes.md
     - Arquitetura das páginas: frontend/paginas.md
     - Padrões transversais: frontend/padroes.md
+  - Infra & Deploy:
+    - Produção (Vercel + Render + Neon): infra/deploy.md
+    - Ambiente local: infra/local.md
+    - Operações & troubleshooting: infra/operacoes.md
+  - Produto:
+    - Plano da plataforma: produto/plano-da-plataforma.md

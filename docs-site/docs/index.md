@@ -67,7 +67,7 @@ docker compose up -d          # stack completo: postgres :5432 + backend :8000 +
 curl http://localhost:8000/api/health
 ```
 
-Dev diário (hot-reload), testes e variações: seção **Infra & Deploy → Ambiente local**.
+Dev diário (hot-reload), testes e variações: [Ambiente local](infra/local.md).
 
 ---
 

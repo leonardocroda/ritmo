@@ -1,7 +1,7 @@
 """Modelo de dados do Ritmo.
 
 Tradução direta da seção 5 ("Modelo de dados essencial") do plano
-(docs/PLANO_PLATAFORMA.md).
+(docs-site/docs/produto/plano-da-plataforma.md).
 
 Requisito travado (Fase 1): TODA tabela carrega ``user_id`` — mesmo com
 usuário único — para que o isolamento multiusuário da Fase 2.5 seja só

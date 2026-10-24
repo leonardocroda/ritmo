@@ -6,7 +6,9 @@ Saúde · Performance**) e avaliação de treino com IA sob demanda —
 navegação de 5 itens (**Home · Treinos · Saúde · Performance ·
 Perfil**), tab bar inferior no mobile e top bar no desktop.
 
-> Plano completo, decisões travadas e roadmap: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md) — fonte de verdade do produto.
+> Plano completo, decisões travadas e roadmap: [`docs-site/docs/produto/plano-da-plataforma.md`](docs-site/docs/produto/plano-da-plataforma.md) — fonte de verdade do produto.
+>
+> Documentação técnica completa (API, banco, sync Garmin, frontend, infra): [`docs-site/`](docs-site) — MkDocs Material + Mermaid, publicada em **ritmo-docs.onrender.com** (`uv run mkdocs serve` na pasta para rodar local).
 >
 > Status: **Fase 0 concluída** · Infra Postgres + compose concluída · Fase 1: sync Garmin ✅ · painel Treinos ✅ · painel Performance ✅ (ex-Potencial, AD-017) · painel Saúde ✅ · **Avaliar com IA** ✅ — MVP da Fase 1 completo · **painel Home ✅** (raiz `/` com o veredito do dia — AD-025 supersede a AD-011; a rota antiga "Hoje" segue 404) · **Fase 1.5 em andamento** (AD-012..015): **auth próprio + convite ✅** (login, sessão sliding 30d, Sair no header, bootstrap por CLI — §Login e acesso) · **user-scope ✅** (toda query por usuário da sessão + isolamento A×B) · **zonas de FC (hr-zones) ✅** (métricas com histórico effective-dated, fase physio no sync, tela `/perfil` — §Zonas de FC no /perfil) · cofre de tokens Garmin criptografado a seguir.
 
@@ -24,7 +26,8 @@ ritmo/
 │   └── tests/          # rodam no Postgres do compose (banco ritmo_test)
 ├── frontend/           # Next.js + Tailwind + Recharts (tema escuro, mobile-first)
 ├── docker-compose.yml  # stack local: postgres + backend + frontend
-├── docs/               # PLANO_PLATAFORMA.md
+├── docs/               # design/ (identidade visual v0.3)
+├── docs-site/          # documentação técnica — MkDocs Material + Mermaid
 └── .opencode/skills/   # tlc-spec-driven — workflow de desenvolvimento
 ```
 
@@ -82,7 +85,7 @@ Dentro do compose nada muda (o backend usa o hostname `postgres`); apenas o
 
 ## Deploy (produção — Fase 2.5)
 
-[`docs/DEPLOY.md`](docs/DEPLOY.md) — **Vercel** (frontend) + **Render**
+[`docs-site/docs/infra/deploy.md`](docs-site/docs/infra/deploy.md) — **Vercel** (frontend) + **Render**
 (backend Docker, Blueprint do `render.yaml`) + **Neon** (Postgres):
 US$ 0/mês, sem cartão em nenhum deles. Neon pela longevidade do free (sem
 expiração nem restore manual — o Postgres free do Render expira em 30
@@ -559,4 +562,4 @@ Memória do projeto: `.specs/STATE.md` (decisões AD-NNN + handoff) e
     banco criptografados (Fernet, refresh persistido) · login Garmin segue CLI
     operador-assistida (`login --user`) · MVP segue no PC/LAN — HTTPS/deploy na Fase 2.5
 
-Detalhes, arquitetura e roadmap completo: [`docs/PLANO_PLATAFORMA.md`](docs/PLANO_PLATAFORMA.md).
+Detalhes, arquitetura e roadmap completo: [`docs-site/docs/produto/plano-da-plataforma.md`](docs-site/docs/produto/plano-da-plataforma.md).

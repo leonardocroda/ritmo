@@ -5,7 +5,7 @@
 # O banco NÃO mora aqui: o Render Postgres free EXPIRA em 30 dias
 # (deleção após 14 de carência — render.com/docs/free). O Postgres é
 # o Neon, conectado pela DATABASE_URL: runbook completo em
-# docs/DEPLOY.md.
+# docs-site/docs/infra/ (deploy.md + operacoes.md).
 #
 # Schema: https://render.com/docs/blueprint-spec
 # ============================================================
@@ -22,7 +22,7 @@ services:
 
     envVars:
       # --- segredos: o painel pede cada um no primeiro sync do Blueprint ---
-      - key: DATABASE_URL # string POOLED do Neon (host com -pooler) — docs/DEPLOY.md §1
+      - key: DATABASE_URL # string POOLED do Neon (host com -pooler) — docs-site/docs/infra/deploy.md §1
         sync: false
       - key: TOKEN_ENCRYPTION_KEY # Fernet — sem ela o backend NÃO sobe (fail-fast GTDB-14)
         sync: false

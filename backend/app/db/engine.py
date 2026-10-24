@@ -16,7 +16,7 @@ from app.profile.calc import DEFAULT_BOUNDS
 
 settings = get_settings()
 
-# Neon (produção, docs/DEPLOY.md): a compute hiberna após 5 min sem queries
+# Neon (produção, docs-site/docs/infra/deploy.md): a compute hiberna após 5 min sem queries
 # e encerra as conexões idle do pool — pre_ping recicla a conexão morta no
 # checkout em vez de estourar OperationalError na request (transparência
 # do scale-to-zero). Knobs do DRIVER, não de dialeto: o caminho continua
