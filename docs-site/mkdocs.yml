@@ -82,3 +82,9 @@ nav:
     - Motores de cálculo: backend/calculo.md
     - Configuração (env vars): backend/configuracao.md
     - Testes: backend/testes.md
+  - Frontend:
+    - Visão geral: frontend/visao-geral.md
+    - Rotas & navegação: frontend/rotas.md
+    - Componentes: frontend/componentes.md
+    - Arquitetura das páginas: frontend/paginas.md
+    - Padrões transversais: frontend/padroes.md
