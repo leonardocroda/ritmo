@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night:#0B0F12; --surface:#121815; --raised:#1B241A; --deep:#273323;
+    --border:#354039; --border-hover:#4A574E;
+    --lime:#B7F36B; --on-lime:#182014;
+    --text:#F5F7F2; --muted:#A1AAA9;
+  }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  html,body { width:1080px; height:1350px; overflow:hidden }
+  body {
+    background:var(--night); color:var(--text);
+    font-family:'Instrument Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column;
+    padding:88px 88px 64px;
+  }
+  .eyebrow { color:var(--lime); font-size:24px; font-weight:700; letter-spacing:.14em; text-transform:uppercase }
+  h1 { font-size:74px; font-weight:700; line-height:1.05; letter-spacing:-.02em; margin-top:22px }
+  .flow { margin-top:36px }
+  .box {
+    background:var(--surface); border:1px solid var(--border); border-radius:22px;
+    padding:24px 32px; display:flex; align-items:baseline; justify-content:space-between; gap:20px;
+  }
+  .box .n { font-size:33px; font-weight:700 }
+  .box .s { font-size:24px; color:var(--muted); text-align:right }
+  .arrow { display:flex; align-items:center; gap:14px; padding:10px 0 10px 26px }
+  .arrow .g { color:var(--lime); font-size:34px; line-height:1 }
+  .arrow .l { font-size:22px; color:var(--muted) }
+  .callout {
+    margin-top:30px; background:var(--raised); border-left:6px solid var(--lime);
+    border-radius:0 20px 20px 0; padding:24px 30px;
+    font-size:27.5px; line-height:1.45;
+  }
+  .footer { display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:40px }
+  .wordmark { display:flex; align-items:center; gap:14px; font-size:28px; font-weight:700 }
+  .wordmark .dot { width:13px; height:13px; border-radius:999px; background:var(--lime) }
+  .pageno { font-size:24px; color:var(--muted); font-variant-numeric:tabular-nums }
+</style>
+</head>
+<body>
+  <div class="eyebrow">03 · Arquitetura</div>
+  <h1>App de verdade,<br>sem atalho.</h1>
+  <div class="flow">
+    <div class="box"><span class="n">Garmin Connect</span><span class="s">API oficial · atividades, sono, HRV, recordes</span></div>
+    <div class="arrow"><span class="g">↓</span><span class="l">sync sequencial · 1 chamada/s · upsert idempotente</span></div>
+    <div class="box"><span class="n">FastAPI</span><span class="s">sync job · 19 endpoints · auth própria</span></div>
+    <div class="arrow"><span class="g">↓</span><span class="l">SQLAlchemy · Postgres</span></div>
+    <div class="box"><span class="n">Postgres</span><span class="s">23 tabelas · user_id em todas</span></div>
+    <div class="arrow"><span class="g">↓</span><span class="l">REST same-origin · cookie de sessão</span></div>
+    <div class="box"><span class="n">Next.js</span><span class="s">5 painéis · dark + lime · mobile-first</span></div>
+  </div>
+  <div class="callout"><strong style="color:var(--lime)">A IA só entra quando eu peço:</strong> FastAPI → glm (NVIDIA NIM) → veredito em JSON. Navegar nos painéis toca zero chamada externa.</div>
+  <div class="footer">
+    <div class="wordmark"><span class="dot"></span>Ritmo</div>
+    <div class="pageno">04 / 10</div>
+  </div>
+</body>
+</html>

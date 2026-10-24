@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night:#0B0F12; --surface:#121815; --raised:#1B241A; --deep:#273323;
+    --border:#354039; --border-hover:#4A574E;
+    --lime:#B7F36B; --on-lime:#182014;
+    --text:#F5F7F2; --muted:#A1AAA9;
+  }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  html,body { width:1080px; height:1350px; overflow:hidden }
+  body {
+    background:var(--night); color:var(--text);
+    font-family:'Instrument Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column;
+    padding:96px 88px 64px;
+  }
+  .eyebrow { color:var(--lime); font-size:24px; font-weight:700; letter-spacing:.14em; text-transform:uppercase }
+  h1 { font-size:84px; font-weight:700; line-height:1.05; letter-spacing:-.02em; margin-top:26px }
+  .lede { margin-top:24px; font-size:31px; line-height:1.5; color:var(--muted) }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:44px }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:24px; padding:30px 32px }
+  .card .k {
+    font-family:ui-monospace,'Cascadia Mono',Consolas,monospace;
+    color:var(--lime); font-size:25px; font-weight:600;
+  }
+  .card .t { font-size:33px; font-weight:700; margin-top:10px }
+  .card .d { font-size:24.5px; line-height:1.45; color:var(--muted); margin-top:8px }
+  .callout {
+    margin-top:38px; background:var(--raised); border-left:6px solid var(--lime);
+    border-radius:0 20px 20px 0; padding:28px 34px;
+    font-size:31px; line-height:1.45; font-weight:600;
+  }
+  .footer { display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:44px }
+  .wordmark { display:flex; align-items:center; gap:14px; font-size:28px; font-weight:700 }
+  .wordmark .dot { width:13px; height:13px; border-radius:999px; background:var(--lime) }
+  .pageno { font-size:24px; color:var(--muted); font-variant-numeric:tabular-nums }
+</style>
+</head>
+<body>
+  <div class="eyebrow">01 · De onde veio</div>
+  <h1>Tudo começou<br>com 4 skills.</h1>
+  <p class="lede">No meu agente de código, quatro skills liam meus dados do Garmin:</p>
+  <div class="grid">
+    <div class="card">
+      <div class="k">analyze-garmin-run</div>
+      <div class="t">Analisar treino</div>
+      <div class="d">a corrida avaliada contra as minhas zonas VDOT</div>
+    </div>
+    <div class="card">
+      <div class="k">calibrate-garmin-zones</div>
+      <div class="t">Calibrar ritmos</div>
+      <div class="d">o teste de campo vira ritmo alvo por zona</div>
+    </div>
+    <div class="card">
+      <div class="k">create-garmin-training</div>
+      <div class="t">Criar treinos</div>
+      <div class="d">séries estruturadas direto no Garmin Connect</div>
+    </div>
+    <div class="card">
+      <div class="k">generate-run-summary-image</div>
+      <div class="t">Resumo visual</div>
+      <div class="d">a corrida vira imagem pronta pro story</div>
+    </div>
+  </div>
+  <div class="callout">A IA já me dizia como treinar. Um dia olhei pra ela e pensei: <span style="color:var(--lime)">isso é um produto.</span></div>
+  <div class="footer">
+    <div class="wordmark"><span class="dot"></span>Ritmo</div>
+    <div class="pageno">02 / 10</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night:#0B0F12; --surface:#121815; --raised:#1B241A; --deep:#273323;
+    --border:#354039; --border-hover:#4A574E;
+    --lime:#B7F36B; --on-lime:#182014;
+    --text:#F5F7F2; --muted:#A1AAA9;
+  }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  html,body { width:1080px; height:1350px; overflow:hidden }
+  body {
+    background:var(--night); color:var(--text);
+    font-family:'Instrument Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column;
+    padding:96px 88px 64px;
+  }
+  .eyebrow { color:var(--lime); font-size:24px; font-weight:700; letter-spacing:.14em; text-transform:uppercase }
+  h1 { font-size:84px; font-weight:700; line-height:1.05; letter-spacing:-.02em; margin-top:26px }
+  h1 .accent { color:var(--lime) }
+  .lede { margin-top:26px; font-size:31px; line-height:1.5; color:var(--muted); max-width:40ch }
+  .duo { display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:44px }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:24px; padding:32px 34px }
+  .card .t { font-size:33px; font-weight:700 }
+  .card .t .accent { color:var(--lime) }
+  .card .d { font-size:25px; color:var(--muted); line-height:1.5; margin-top:12px }
+  .callout {
+    margin-top:36px; background:var(--raised); border-left:6px solid var(--lime);
+    border-radius:0 20px 20px 0; padding:26px 32px;
+    font-size:29px; line-height:1.45; font-weight:600;
+  }
+  .close { margin-top:30px; font-size:29px; font-weight:600 }
+  .close .accent { color:var(--lime) }
+  .footer { display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:40px }
+  .wordmark { display:flex; align-items:center; gap:14px; font-size:28px; font-weight:700 }
+  .wordmark .dot { width:13px; height:13px; border-radius:999px; background:var(--lime) }
+  .pageno { font-size:24px; color:var(--muted); font-variant-numeric:tabular-nums }
+</style>
+</head>
+<body>
+  <div class="eyebrow">07 · O detalhe que importa</div>
+  <h1>Zero alucinação<br>de <span class="accent">número</span>.</h1>
+  <p class="lede">Todo número que aparece na tela é calculado em Python — determinístico, testado. O LLM entra só para interpretar o que já foi calculado.</p>
+  <div class="duo">
+    <div class="card">
+      <div class="t">Python <span class="accent">calcula</span></div>
+      <div class="d">PMC, zonas por volta, consistência, predições — 612 testes segurando cada conta</div>
+    </div>
+    <div class="card">
+      <div class="t">O LLM <span class="accent">interpreta</span></div>
+      <div class="d">lê o payload pronto e devolve um veredito em JSON, validado por contrato</div>
+    </div>
+  </div>
+  <div class="callout">O modelo ecoou um número diferente? O eco é sobrescrito pelo valor calculado antes de gravar no banco.</div>
+  <p class="close">Faixa honesta no lugar de número mágico. <span class="accent">IA com guardrails, não no volante.</span></p>
+  <div class="footer">
+    <div class="wordmark"><span class="dot"></span>Ritmo</div>
+    <div class="pageno">08 / 10</div>
+  </div>
+</body>
+</html>

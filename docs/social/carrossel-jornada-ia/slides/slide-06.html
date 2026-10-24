@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night:#0B0F12; --surface:#121815; --raised:#1B241A; --deep:#273323;
+    --border:#354039; --border-hover:#4A574E;
+    --lime:#B7F36B; --on-lime:#182014;
+    --text:#F5F7F2; --muted:#A1AAA9;
+  }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  html,body { width:1080px; height:1350px; overflow:hidden }
+  body {
+    background:var(--night); color:var(--text);
+    font-family:'Instrument Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column;
+    padding:92px 88px 64px;
+  }
+  .eyebrow { color:var(--lime); font-size:24px; font-weight:700; letter-spacing:.14em; text-transform:uppercase }
+  h1 { font-size:72px; font-weight:700; line-height:1.06; letter-spacing:-.02em; margin-top:24px }
+  h1 .accent { color:var(--lime) }
+  .steps { margin-top:44px; display:flex; flex-direction:column; gap:20px }
+  .step {
+    display:flex; gap:26px; align-items:flex-start;
+    background:var(--surface); border:1px solid var(--border); border-radius:22px;
+    padding:26px 30px;
+  }
+  .step .n {
+    flex:none; width:56px; height:56px; border:2px solid var(--lime); border-radius:999px;
+    display:grid; place-items:center; color:var(--lime);
+    font-size:26px; font-weight:700; font-variant-numeric:tabular-nums;
+  }
+  .step .t { font-size:31px; font-weight:700; line-height:1.2 }
+  .step .d { font-size:24.5px; color:var(--muted); line-height:1.45; margin-top:6px }
+  .close { margin-top:34px; font-size:29px; font-weight:600 }
+  .close .accent { color:var(--lime) }
+  .footer { display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:40px }
+  .wordmark { display:flex; align-items:center; gap:14px; font-size:28px; font-weight:700 }
+  .wordmark .dot { width:13px; height:13px; border-radius:999px; background:var(--lime) }
+  .pageno { font-size:24px; color:var(--muted); font-variant-numeric:tabular-nums }
+</style>
+</head>
+<body>
+  <div class="eyebrow">05 · O método</div>
+  <h1>IA não é bola de cristal.<br><span class="accent">É par com processo.</span></h1>
+  <div class="steps">
+    <div class="step">
+      <span class="n">01</span>
+      <div><div class="t">Spec validado</div><div class="d">requisitos testáveis antes de qualquer linha de código</div></div>
+    </div>
+    <div class="step">
+      <span class="n">02</span>
+      <div><div class="t">Tasks atômicas</div><div class="d">cada uma com critério de aceite verificável</div></div>
+    </div>
+    <div class="step">
+      <span class="n">03</span>
+      <div><div class="t">Commit atômico</div><div class="d">gate de teste no caminho, um porquê por commit</div></div>
+    </div>
+    <div class="step">
+      <span class="n">04</span>
+      <div><div class="t">Verificação independente</div><div class="d">quem escreveu não verifica — evidência file:line</div></div>
+    </div>
+  </div>
+  <p class="close">O ciclo repetiu 11 dias seguidos — e virou <span class="accent">302 commits</span>.</p>
+  <div class="footer">
+    <div class="wordmark"><span class="dot"></span>Ritmo</div>
+    <div class="pageno">06 / 10</div>
+  </div>
+</body>
+</html>

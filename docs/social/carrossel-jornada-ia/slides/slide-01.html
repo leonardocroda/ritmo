@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night:#0B0F12; --surface:#121815; --raised:#1B241A; --deep:#273323;
+    --border:#354039; --border-hover:#4A574E;
+    --lime:#B7F36B; --on-lime:#182014;
+    --text:#F5F7F2; --muted:#A1AAA9;
+  }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  html,body { width:1080px; height:1350px; overflow:hidden }
+  body {
+    background:var(--night); color:var(--text);
+    font-family:'Instrument Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column;
+    padding:100px 88px 64px;
+  }
+  .eyebrow { color:var(--lime); font-size:24px; font-weight:700; letter-spacing:.14em; text-transform:uppercase }
+  h1 { font-size:118px; font-weight:700; line-height:1.02; letter-spacing:-.025em; margin-top:28px }
+  h1 .accent { color:var(--lime) }
+  .lede { margin-top:36px; font-size:34px; line-height:1.5; color:var(--muted); max-width:34ch }
+  .spacer { flex:1 }
+  .strip { display:flex; align-items:flex-end; gap:14px; height:110px; margin-bottom:44px }
+  .strip i { flex:1; background:var(--border); border-radius:8px }
+  .strip i.today { background:var(--lime) }
+  .chips { display:flex; gap:16px; flex-wrap:wrap }
+  .chip {
+    display:inline-flex; align-items:center; gap:12px;
+    background:var(--surface); border:1px solid var(--border); border-radius:999px;
+    padding:14px 26px; font-size:26px; font-weight:600; color:var(--text);
+    font-variant-numeric:tabular-nums;
+  }
+  .chip .dot { width:12px; height:12px; border-radius:999px; background:var(--lime) }
+  .footer { display:flex; justify-content:space-between; align-items:center; margin-top:52px }
+  .wordmark { display:flex; align-items:center; gap:14px; font-size:30px; font-weight:700; letter-spacing:-.01em }
+  .wordmark .dot { width:14px; height:14px; border-radius:999px; background:var(--lime) }
+  .wordmark small { font-size:20px; font-weight:400; color:var(--muted); letter-spacing:0 }
+  .pageno { font-size:24px; color:var(--muted); font-variant-numeric:tabular-nums }
+</style>
+</head>
+<body>
+  <div class="eyebrow">Bastidores · construindo com IA</div>
+  <h1>De 1 skill<br>a <span class="accent">302 commits</span>.</h1>
+  <p class="lede">Como uma skill de terminal virou uma plataforma de corrida completa — em 11 dias, com IA como par de programação.</p>
+  <div class="spacer"></div>
+  <div class="strip">
+    <i style="height:36%"></i><i style="height:58%"></i><i style="height:44%"></i>
+    <i style="height:78%"></i><i style="height:52%"></i><i style="height:66%"></i>
+    <i class="today" style="height:100%"></i>
+  </div>
+  <div class="chips">
+    <span class="chip"><span class="dot"></span>11 dias</span>
+    <span class="chip"><span class="dot"></span>302 commits</span>
+    <span class="chip"><span class="dot"></span>612 testes</span>
+    <span class="chip"><span class="dot"></span>US$ 0/mês</span>
+  </div>
+  <div class="footer">
+    <div class="wordmark"><span class="dot"></span>Ritmo <small>· plataforma pessoal de corrida</small></div>
+    <div class="pageno">01 / 10</div>
+  </div>
+</body>
+</html>

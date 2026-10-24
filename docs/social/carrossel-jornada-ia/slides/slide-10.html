@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night:#0B0F12; --surface:#121815; --raised:#1B241A; --deep:#273323;
+    --border:#354039; --border-hover:#4A574E;
+    --lime:#B7F36B; --on-lime:#182014;
+    --text:#F5F7F2; --muted:#A1AAA9;
+  }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  html,body { width:1080px; height:1350px; overflow:hidden }
+  body {
+    background:var(--night); color:var(--text);
+    font-family:'Instrument Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column;
+    padding:92px 88px 64px;
+  }
+  .eyebrow { color:var(--lime); font-size:24px; font-weight:700; letter-spacing:.14em; text-transform:uppercase }
+  h1 { font-size:70px; font-weight:700; line-height:1.08; letter-spacing:-.02em; margin-top:24px }
+  h1 .accent { color:var(--lime) }
+  .steps { margin-top:42px; display:flex; flex-direction:column; gap:18px }
+  .step {
+    display:flex; gap:24px; align-items:flex-start;
+    background:var(--surface); border:1px solid var(--border); border-radius:22px;
+    padding:24px 30px;
+  }
+  .step .n {
+    flex:none; width:52px; height:52px; border:2px solid var(--lime); border-radius:999px;
+    display:grid; place-items:center; color:var(--lime);
+    font-size:24px; font-weight:700; font-variant-numeric:tabular-nums;
+  }
+  .step .t { font-size:29px; font-weight:700; line-height:1.2 }
+  .step .d { font-size:23.5px; color:var(--muted); line-height:1.4; margin-top:5px }
+  .cta {
+    margin-top:38px; background:var(--lime); color:var(--on-lime);
+    border-radius:999px; padding:30px 36px;
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:31px; font-weight:700;
+  }
+  .cta .arrow { font-size:34px }
+  .next { margin-top:26px; font-size:25px; color:var(--muted); text-align:center }
+  .next b { color:var(--text); font-weight:600 }
+  .footer { display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:40px }
+  .wordmark { display:flex; align-items:center; gap:14px; font-size:28px; font-weight:700 }
+  .wordmark .dot { width:13px; height:13px; border-radius:999px; background:var(--lime) }
+  .repo { font-size:22px; color:var(--muted); font-variant-numeric:tabular-nums }
+</style>
+</head>
+<body>
+  <div class="eyebrow">09 · Se você quiser começar</div>
+  <h1>Você não precisa saber escrever tudo. <span class="accent">Precisa saber dirigir.</span></h1>
+  <div class="steps">
+    <div class="step">
+      <span class="n">1</span>
+      <div><div class="t">Especifique antes de pedir</div><div class="d">spec primeiro, código depois — o prompt é a parte fácil</div></div>
+    </div>
+    <div class="step">
+      <span class="n">2</span>
+      <div><div class="t">Ciclos curtos com verificação</div><div class="d">teste a cada passo, evidência em vez de promessa</div></div>
+    </div>
+    <div class="step">
+      <span class="n">3</span>
+      <div><div class="t">Números determinísticos</div><div class="d">o LLM interpreta, não calcula — guardrails no caminho</div></div>
+    </div>
+  </div>
+  <div class="cta"><span>Salva esse post · doc no link da bio</span><span class="arrow">→</span></div>
+  <p class="next">Próximo capítulo: <b>08/11</b> — a prova que motivou tudo isso.</p>
+  <div class="footer">
+    <div class="wordmark"><span class="dot"></span>Ritmo</div>
+    <div class="repo">github.com/leonardocroda/ritmo</div>
+  </div>
+</body>
+</html>
