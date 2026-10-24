@@ -33,6 +33,8 @@ O resultado é o Ritmo, minha plataforma pessoal de corrida:
 → 23 tabelas, 19 endpoints, 612 testes, US$ 0/mês de infra
 → doc técnica completa publicada online
 
+E o detalhe que talvez importe mais: tudo isso foi feito nas minhas horas vagas. Nesses 11 dias eu segui na rotina normal — dormi no horário certo, treinei todos os dias e trabalhei (muito) no meu trabalho normal. Nenhuma noite virada. A IA não escreveu só o código comigo: ela devolveu o tempo que um projeto desse costuma engolir.
+
 O que eu aprendi: IA não substitui direção. É o melhor par de programação que eu já tive — mas quem especifica, valida e decide continua sendo você. Você não precisa saber escrever tudo. Precisa saber dirigir.
 
 Salva esse post pro seu próximo projeto. A doc completa tá no link da bio. E me segue: no dia 08/11 eu corro a prova que motivou tudo isso — o próximo capítulo é aqui.
