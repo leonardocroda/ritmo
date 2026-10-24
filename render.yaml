@@ -40,3 +40,17 @@ services:
         value: "true"
       - key: CORS_ORIGINS # só p/ acesso browser DIRETO à API; o fluxo normal é
         value: https://ritmo.vercel.app # same-origin (rewrite AD-020) — ajuste ao subdomínio real
+
+  # ============================================================
+  # Ritmo — Documentação técnica (docs-site/)
+  # MkDocs Material publicado como static site: build com o
+  # python3-pip do build image nativo e publish do diretório site/.
+  # Endereço: ritmo-docs.onrender.com — sem env vars, sem segredos.
+  # ============================================================
+  - type: web
+    name: ritmo-docs # define o subdomínio: ritmo-docs.onrender.com
+    runtime: static
+    rootDir: docs-site # monorepo: mkdocs.yml e docs/ relativos a docs-site/
+    branch: main
+    buildCommand: pip install "mkdocs-material>=9.5" && mkdocs build
+    staticPublishPath: site # saída do mkdocs build (relativa ao rootDir)

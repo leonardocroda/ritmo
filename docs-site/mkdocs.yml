@@ -1,0 +1,70 @@
+# ============================================================
+# Ritmo — Documentação técnica (MkDocs Material + Mermaid)
+#
+# Rodar local:  uv run mkdocs serve --dev-addr localhost:8001
+# Build:        uv run mkdocs build --strict   (gate: link/nav quebrados falham)
+# Produção:     Render static site — serviço `ritmo-docs` do render.yaml
+#               (https://ritmo-docs.onrender.com)
+# ============================================================
+
+site_name: Ritmo — Documentação Técnica
+site_description: Documentação técnica da plataforma Ritmo — backend FastAPI,
+  frontend Next.js, sync Garmin e infraestrutura Vercel + Render + Neon.
+site_url: https://ritmo-docs.onrender.com/
+repo_url: https://github.com/leonardocroda/ritmo
+repo_name: leonardocroda/ritmo
+edit_uri: edit/main/docs-site/docs/
+
+theme:
+  name: material
+  language: pt
+  font:
+    text: Instrument Sans
+    code: JetBrains Mono
+  icon:
+    logo: material/heart-pulse
+  # Dark-locked, na identidade v0.3 (AD-022): Night + Lime como acento funcional
+  palette:
+    scheme: slate
+    primary: lime
+    accent: lime
+  features:
+    - navigation.tabs
+    - navigation.top
+    - navigation.path
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - toc.follow
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - md_in_html
+  - footnotes
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.smartsymbols
+  # Mermaid: bloco ```mermaid vira diagrama (render client-side do Material)
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+nav:
+  - Início: index.md

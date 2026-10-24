@@ -1,0 +1,11 @@
+[project]
+name = "ritmo-docs"
+version = "0.1.0"
+description = "Documentação técnica do Ritmo — MkDocs Material com Mermaid"
+requires-python = ">=3.12"
+dependencies = [
+    "mkdocs-material>=9.5",
+]
+
+[tool.uv]
+package = false
