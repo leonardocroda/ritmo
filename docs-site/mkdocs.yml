@@ -68,3 +68,7 @@ markdown_extensions:
 
 nav:
   - Início: index.md
+  - Arquitetura:
+    - Visão geral: arquitetura/visao-geral.md
+    - Fluxos: arquitetura/fluxos.md
+    - Decisões de arquitetura: arquitetura/decisoes.md

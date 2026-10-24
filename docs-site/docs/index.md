@@ -72,7 +72,7 @@ Dev diário (hot-reload), testes e variações: seção **Infra & Deploy → Amb
 ---
 
 > Os comentários de código do projeto citam decisões por ID (`AD-002`,
-> `SYNC-24`, `HRZ-06`…). A tabela completa dos AD-NNN está na seção
-> **Arquitetura → Decisões de arquitetura**; as regras de desenvolvimento
-> (spec-driven) seguem no
+> `SYNC-24`, `HRZ-06`…). A tabela completa dos AD-NNN está em
+> [Decisões de arquitetura](arquitetura/decisoes.md); as regras de
+> desenvolvimento (spec-driven) seguem no
 > [README do repo](https://github.com/leonardocroda/ritmo).
