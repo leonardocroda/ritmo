@@ -72,3 +72,13 @@ nav:
     - Visão geral: arquitetura/visao-geral.md
     - Fluxos: arquitetura/fluxos.md
     - Decisões de arquitetura: arquitetura/decisoes.md
+  - Backend:
+    - Visão geral: backend/visao-geral.md
+    - API: backend/api.md
+    - Banco de dados: backend/banco-de-dados.md
+    - Sync Garmin: backend/garmin-sync.md
+    - Auth & sessões: backend/auth.md
+    - Avaliação com IA: backend/avaliacao-ia.md
+    - Motores de cálculo: backend/calculo.md
+    - Configuração (env vars): backend/configuracao.md
+    - Testes: backend/testes.md
