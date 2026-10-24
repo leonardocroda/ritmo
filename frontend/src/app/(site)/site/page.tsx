@@ -241,7 +241,7 @@ function Hero() {
           />
         </div>
         <p className="mt-10 text-center text-xs text-muted">
-          prints reais da plataforma — dados de corrida de verdade
+          prints da interface real · dados ilustrativos, coerentes entre si
         </p>
       </div>
     </section>
@@ -364,7 +364,7 @@ function Features() {
         <SectionHead
           idx="02"
           title="A plataforma por dentro"
-          lead="Prints reais dos painéis — nenhum dado inventado, nenhum mockup."
+          lead="Prints da interface real, com dados ilustrativos e coerentes entre si — nenhum mockup, nenhum número solto."
         />
       </div>
 
@@ -672,8 +672,7 @@ function SiteFooter() {
             ritmo
           </span>
           <p className="mt-2 text-xs text-muted">
-            Prints reais da plataforma · dados de corrida de verdade ·
-            números honestos
+            Interface real · dados ilustrativos · números honestos
           </p>
         </div>
         <nav className="flex items-center gap-6 text-sm text-muted">

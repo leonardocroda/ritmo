@@ -1,77 +1,87 @@
 # Prints do site
 
 Os prints do site público (rota `/site`, servida na raiz para visitantes
-via rewrite do proxy) são **da plataforma de verdade** — capturados de uma
-sessão logada com dados reais, no viewport de 390×844 (o mobile da
-identidade visual v0.3), idealmente em 2× de escala.
+via rewrite do proxy) são da **interface real** — o build de verdade do
+frontend — com **dados ilustrativos**: exemplares, coerentes entre si e
+declarados como tais na página (mesma postura do doc de identidade v0.3:
+"dados ilustrativos — nenhum dado real de usuário"). Nada de mockup de
+imagem: a tela renderizada é a plataforma mesmo.
 
-Dois caminhos: **manual** (você tira os prints e salva com os nomes abaixo
-em `frontend/public/prints/`) ou **script** (tudo automático).
+## Caminho mock (recomendado) — tudo automático, sem login
+
+```bash
+cd frontend
+npm run build                                     # build standalone
+Copy-Item -Recurse -Force .next\static .next\standalone\.next\static
+Copy-Item -Recurse -Force public .next\standalone\public
+$env:PORT="3100"; node .next\standalone\server.js   # preview em outra porta
+RITMO_BASE=http://localhost:3100 python scripts/site/capture_mock.py
+```
+
+O script intercepta **todas** as chamadas `/api/*` pelo Playwright
+(`page.route`) e entrega os payloads de uma persona exemplar: corredor
+de 28 anos treinando para a Meia Best Açaí (08/11/2026), VDOT corrente
+52,0 (10K 40:12) com demonstrado 54,6 (5K 18:35), veredito "Pronto pra
+qualidade" e semana equilibrada. Sessão falsa no cookie — o proxy é
+otimista (presença) e a API real nunca é chamada.
+
+Os 17 prints caem em `frontend/public/prints/`:
+
+| Arquivo | O quê |
+|---|---|
+| `hoje-top.png` | raiz: card-veredito, chips de sinal, strip de 7 dias |
+| `hoje-abaixo.png` | abaixo da dobra: recomendações, mini de volume, digest |
+| `treinos-list.png` | lista de corridas com tipos inferidos e badges |
+| `treino-detail.png` | topo do detalhe do 2×3km (métricas + badges) |
+| `contexto-dia.png` | seção “Contexto do dia” (chips de sono/HRV/RHR/temperatura) |
+| `splits-chart.png` | card “Voltas” — largura proporcional, zonas VDOT |
+| `evaluation-card.png` | card “Avaliação” — veredito da IA + auditoria |
+| `performance-top.png` | linha-guia + “Onde estou” + card da lacuna |
+| `performance-vdot.png` | lacuna + timeline VDOT com faixa honesta |
+| `predictions.png` | previsões por método + decaimento |
+| `pmc-chart.png` | curva PMC (CTL/ATL/TSB) |
+| `saude-top.png` | seletor de janela + linha-guia + Sono |
+| `sleep-chart.png` | sono vs piso de 7h |
+| `hrv-chart.png` | HRV com banda pessoal de 60d |
+| `dose-response.png` | dose-resposta do sono |
+| `perfil-top.png` | conexão Garmin + seção Valores |
+| `hr-zones.png` | método e zonas em bpm |
 
 ## Caminho manual — os 12 prints que o site usa
 
-Preparação (uma vez): DevTools (`F12`) → device toolbar (`Ctrl+Shift+M`) →
-**390×844**, zoom 100%, device scale factor 2.
+Se preferir tirar você mesmo (com seus dados): DevTools (`F12`) → device
+toolbar (`Ctrl+Shift+M`) → **390×844**, DPR 2. **Print de viewport**:
+`Ctrl+Shift+P` → *Capture screenshot*. **Print de card**: inspecione o
+card → `Ctrl+Shift+P` → *Capture node screenshot*. Nomes e roteiro na
+tabela acima (os 12 que o site referencia: hoje-top, hoje-abaixo,
+treino-detail, contexto-dia, splits-chart, evaluation-card,
+performance-top, performance-vdot, saude-top, dose-response, perfil-top,
+hr-zones) — salve em `frontend/public/prints/` e a página se atualiza no
+próximo build.
 
-- **Print de viewport**: posicione a tela e `Ctrl+Shift+P` → *Capture
-  screenshot*.
-- **Print de nodo** (só o card): inspecione o card → com ele selecionado no
-  Elements, `Ctrl+Shift+P` → *Capture node screenshot*.
+## Caminho script com sessão real
 
-| # | Arquivo | Rota | O que mostrar | Como |
-|---|---|---|---|---|
-| 1 | `hoje-top.png` | `/` | topo: card-veredito, chips de sinal, strip de 7 dias | viewport |
-| 2 | `hoje-abaixo.png` | `/` | rolar a dobra: recomendações, mini de volume, digest de previsões | viewport |
-| 3 | `treino-detail.png` | `/treinos/{um treino avaliado}` | topo do detalhe: título, badges, métricas | viewport |
-| 4 | `contexto-dia.png` | mesmo treino | seção “Contexto do dia” (chips de sono/HRV/RHR/temperatura) | nodo |
-| 5 | `splits-chart.png` | mesmo treino | card “Voltas” (gráfico por zona VDOT) | nodo |
-| 6 | `evaluation-card.png` | mesmo treino | card “Avaliação” (veredito da IA) | nodo |
-| 7 | `performance-top.png` | `/performance` | topo: linha-guia, seção “Onde estou”, card da lacuna | viewport |
-| 8 | `performance-vdot.png` | `/performance` | seção “Onde estou” inteira (lacuna + timeline VDOT) | nodo |
-| 9 | `saude-top.png` | `/saude` | topo: seletor de janela, linha-guia, seção Sono | viewport |
-| 10 | `dose-response.png` | `/saude` | seção “Dose-resposta” | nodo |
-| 11 | `perfil-top.png` | `/perfil` | topo: Conexão Garmin + seção Valores | viewport |
-| 12 | `hr-zones.png` | `/perfil` | seção “Método e zonas” | nodo |
+`python scripts/site/capture.py` — navegador para login manual (a senha
+nunca passa pelo script), cookie fora do repo e captura dos mesmos
+prints com os dados de verdade. Útil se um dia quiser o site com dados
+reais (mudando a legenda da página de "ilustrativos" para "reais").
 
-Depois: `git add frontend/public/prints` + commit + **rebuild do frontend**
-(o compose copia `public/` para dentro da imagem no build):
+## Depois de capturar
+
+**Rebuild do frontend** — o compose copia `public/` para dentro da
+imagem no build:
 
 ```bash
 docker compose up -d --build frontend
 ```
 
-## Caminho script — tudo automático
-
-```bash
-cd frontend
-python scripts/site/capture.py
-```
-
-O script abre um **navegador visível** em `http://localhost:3000/login` —
-faça o login manualmente (a senha não passa pelo script). Quando a URL cai
-num painel, o cookie de sessão é salvo em `.site-session.json` (raiz do
-repo, fora do git via `.gitignore`) e o navegador fecha. Em seguida ele
-captura, headless, os 12 prints acima **e mais 6 de reserva** para uso
-futuro do site:
-
-| Arquivo | O quê |
-|---|---|
-| `treinos-list.png` | topo de `/treinos` (lista + badges) |
-| `sleep-chart.png` | card do sono vs piso de 7h |
-| `hrv-chart.png` | card do HRV com banda pessoal |
-| `pmc-chart.png` | curva PMC (CTL/ATL/TSB) |
-| `predictions.png` | previsões por método + decaimento |
-| `hr-values.png` | card de valores (FC máx/repouso/LTHR) |
+QA de visitante: `python scripts/site/verify_site.py` (ou
+`RITMO_BASE=http://localhost:3100` para outro host/porta).
 
 ## Notas
 
-- O treino do print é escolhido via API: preferência para um com avaliação
-  `done` (o card de veredito é o visual da seção de IA); fallback para o
-  primeiro com voltas.
-- Os prints expõem **dados reais** (nome no header, treinos, sono) para
-  quem acessar o site — é o ponto do site mostrar a plataforma de verdade.
-- Se os painéis mudarem de layout, ajustam-se os seletores em
-  `capture.py` (títulos de seção do padrão `PanelSection`) e o checklist
-  manual acima.
-- QA de visitante: `python scripts/site/verify_site.py` (ou
-  `RITMO_BASE=http://localhost:3100` para apontar outro host/porta).
+- Se os painéis mudarem de layout, ajustam-se os seletores nos scripts
+  (títulos de seção do padrão `PanelSection`) e os payloads do mock aos
+  contratos de `frontend/src/lib/api.ts`.
+- Os dados do mock são determinísticos (pseudo-ruído com hash fixo) —
+  rodar de novo gera os mesmos prints.

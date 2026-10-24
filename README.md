@@ -490,15 +490,14 @@ seção — e é um server component estático: **zero JS de cliente**. Cada
 painel tem seção própria: Home, Treinos, Avaliar com IA, Performance,
 Saúde e Zonas de FC.
 
-Os prints são **100% reais** — nenhum mockup. Dois caminhos (detalhe no
-[`frontend/scripts/site/README.md`](frontend/scripts/site/README.md)):
-
-- **manual** — os 12 prints listados lá, salvos em
-  `frontend/public/prints/` com os nomes certos;
-- **script** — `python scripts/site/capture.py`: navegador para login
-  manual (a senha nunca passa pelo script), cookie fora do repo
-  (`.site-session.json`, no `.gitignore`) e captura headless em 390×844
-  @2x (o mobile da identidade) de todos os prints + 6 de reserva.
+Os prints são da **interface real** com **dados ilustrativos** —
+exemplares, coerentes entre si e declarados na própria página (postura
+do doc de identidade v0.3). O `frontend/scripts/site/capture_mock.py`
+intercepta as chamadas `/api/*` pelo Playwright contra o build de
+verdade e gera os 17 prints em `frontend/public/prints/` — sem login e
+sem tocar no backend (detalhe e alternativas no
+[`frontend/scripts/site/README.md`](frontend/scripts/site/README.md):
+captura manual ou com sessão real, se um dia quiser trocar a legenda).
 
 Depois de capturar, rebuild do frontend — o `public/` entra na imagem no
 build. QA de visitante: `frontend/scripts/site/verify_site.py`
@@ -507,8 +506,8 @@ build. QA de visitante: `frontend/scripts/site/verify_site.py`
 Validação (24/10/2026, rebased sobre o merge do home-panel): build/lint/tsc
 limpos; QA headless contra preview standalone — raiz de visitante renderiza
 a landing (rewrite, sem redirect de URL), `/treinos` protege
-(`/login?next=%2Ftreinos`) e sem overflow horizontal em 390px e 1440px.
-Prints reais pendentes de captura com sessão.
+(`/login?next=%2Ftreinos`) e sem overflow horizontal em 390px e 1440px;
+prints capturados com o mock em 17 arquivos (780×1688 nos viewports).
 
 ## Workflow de desenvolvimento — spec-driven
 
