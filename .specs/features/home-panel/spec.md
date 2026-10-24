@@ -89,8 +89,8 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 **Acceptance Criteria**:
 
 1. WHEN a Home renderiza com veredito THEN the card SHALL usar `bg-raised` (cartão-herói), eyebrow `"Hoje · [dia da semana, data]"`, frase display 38–40px sentence case e chips de sinal (valor + estado + tom semântico), na composição do mock v0.3. <!-- event-driven -->
-2. The strip SHALL renderizar exatamente os últimos 7 dias de carga diária (`aggregate_daily_loads`) com barras em neutro e apenas o dia atual aceso em lime, caption `"carga · últimos 7 dias"`. <!-- ubiquitous -->
-3. WHEN um dia da janela não tem carga THEN the barra desse dia SHALL renderizar com altura zero (dia de descanso é informação), não omitida. <!-- event-driven -->
+2. The strip SHALL renderizar exatamente os últimos 7 dias de carga diária (`aggregate_daily_loads`) com barras em neutro e apenas o dia atual aceso em lime — em Recharts desde a emenda UAT de 23/10 (tooltip ao toque com dia completo + carga, legenda `carga · hoje · dias anteriores`, datas no eixo X). <!-- ubiquitous -->
+3. WHEN um dia da janela não tem carga THEN the barra desse dia SHALL renderizar com altura zero (dia de descanso é informação), não omitida — em Recharts o dia permanece no eixo com a barra ausente. <!-- event-driven -->
 4. WHEN o dado de um sinal é anterior à data de hoje THEN o chip SHALL exibir a data do dado (ex.: `HRV 68ms · 21/10`) — nunca apresentar dado antigo como se fosse de hoje. <!-- unwanted-behavior -->
 5. WHILE o payload carrega THEN the sistema SHALL renderizar skeletons (blocos pulsando ~1,6s, sem spinner) no lugar do card e do strip (DSN-23). <!-- state-driven -->
 6. The Home SHALL renderizar sem botão/ação de sync — sync mora no `/perfil` (AD-023). <!-- ubiquitous -->
@@ -164,7 +164,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 
 **Acceptance Criteria**:
 
-1. The mini "Volume · últimas 10 semanas" SHALL renderizar barras neutras com a semana corrente acesa em lime e a sentença `Xkm · ±Y% vs média de 4 semanas · ACWR Z` (valores do payload). <!-- ubiquitous -->
+1. The mini "Volume · últimas 10 semanas" SHALL renderizar barras neutras com a semana corrente acesa em lime e a sentença `Xkm · ±Y% vs média de 4 semanas · ACWR Z` (valores do payload) — em Recharts desde a emenda UAT de 23/10 (tooltip ao toque com semana + km, legenda `semana atual · semanas anteriores`, eixo Y com a escala absoluta em km). <!-- ubiquitous -->
 2. The digest de previsões SHALL exibir os tempos de 10K e meia (`average_s`) formatados e o link `ver Performance →`. <!-- ubiquitous -->
 3. WHEN um evento não tem predição THEN o digest SHALL omitir o evento (sem número inventado). <!-- unwanted-behavior -->
 
@@ -259,3 +259,9 @@ How we know the feature is successful:
 - [x] Suite backend verde com testes novos: cada regra V1–V6 ≥1 teste, cada recomendação R1–R5 ≥1 teste, seed idempotente ≥1 teste, 401 ≥1 teste, timezone edge ≥1 teste
 - [ ] Lint + build do frontend verdes com a Home compondo em 390px sem scroll acima da dobra (veredito + chips + strip visíveis)
 - [ ] UAT visual do usuário contra o mock v0.3 (o "olho" dele é o critério final de aceite)
+
+---
+
+## Emenda UAT — 23/10/2026 (pós-merge, feedback do usuário)
+
+Feedback no UAT da stack real: *"os gráficos da home ficaram estranhos, não dá pra clicar neles, não tem legenda, só dá pra entender comparando com o mais recente"*. Decisão do usuário: **tooltip puro** — sem navegação no clique (nenhum painel aceita `?data=` e barras levando a um painel "de hoje" confundiriam). A strip de 7 dias (P1) e o mini de volume (HOME-37) migram de barras custom para **Recharts** — o mesmo vocabulário visual da casa (PmcChart & cia): tooltip `tooltipCard` ao toque/hover, legenda `legendCaption`, datas no eixo X, escala Y absoluta no volume, hoje/semana atual em lime (`chart.subject`), resto em `chart.context`. Semântica de negócio intacta: mesma fonte de carga (`aggregate_daily_loads`), descanso = barra ausente, só o presente aceso.

@@ -204,7 +204,7 @@
 
 ## Handoff
 
-- **Feature**: `home-panel` — **concluída, validada (PASS 39/39, sensor 5/5) e MESCLADA na main** (`2217aed`, 23/10/2026, UAT do usuário aprovado com "merge"). Compose rebuilt: stack da porta 3000 com a Home. Fix pós-merge no mesmo ciclo: proxy/login/registrar levavam `/treinos` como destino pós-login (herança AUTH-20, invisível pro Verifier — sem AC de proxy no spec); agora a raiz Home é a porta de frente
+- **Feature**: `home-panel` — **concluída, validada (PASS 39/39, sensor 5/5) e MESCLADA na main** (`2217aed`, 23/10/2026, UAT do usuário aprovado com "merge"). Compose rebuilt: stack da porta 3000 com a Home. Fix pós-merge no mesmo ciclo: proxy/login/registrar levavam `/treinos` como destino pós-login (herança AUTH-20, invisível pro Verifier — sem AC de proxy no spec); agora a raiz Home é a porta de frente. Emenda UAT 23/10 (2ª rodada): strip e volume da Home em **Recharts** (tooltip ao toque, legenda, eixos com datas/escala) — feedback "estranhos, sem clique, sem legenda, só entende comparando"; usuário escolheu tooltip puro, sem navegação no clique
 - **Phase / Task**: feature encerrada — 15 tasks em 2 batches + Verifier PASS + fix pós-merge
 - **Completed**: veredito determinístico V1–V6 + recomendações R1–R5 + `GET /api/home/today` (consistência AD-010 por construção) + seed da The Best Açaí + Home em `/` (tab "Home" 1ª, 5 itens) + card-veredito/chips/strip/recomendações/digests + estados + fix do destino pós-login (proxy ×2, login, registrar)
 - **In-progress**: none

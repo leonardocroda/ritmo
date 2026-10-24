@@ -1,18 +1,31 @@
 "use client";
 
+"use client";
+
 // Card-veredito (mock v0.3 §03) — o herói da Home: eyebrow "Hoje · [dia,
 // data]", frase display 38px sentence case, os 3 chips de sinal (dot
 // semântico + valor + estado — dado antigo mostra a data, HOME-16) e a
-// strip de carga dos últimos 7 dias, neutra com só hoje aceso (o gesto
-// de todo gráfico da plataforma). Dia sem carga = barra de altura zero:
-// descanso é informação, não lacuna (HOME-15). Zero cor literal — o
-// neutro/lime vem do chartTheme (como nos charts), os tons semânticos
-// das classes do tema (globals.css).
+// strip de carga dos últimos 7 dias — Recharts desde a emenda UAT de
+// 23/10 (tooltip ao toque + legenda, o vocabulário visual da casa),
+// neutra com só hoje aceso (o gesto de todo gráfico da plataforma).
+// Dia sem carga = barra ausente, o dia segue no eixo: descanso é
+// informação, não lacuna (HOME-15). Zero cor literal — o neutro/lime
+// vem do chartTheme (como nos charts), os tons semânticos das classes
+// do tema (globals.css).
+
+import {
+  Bar,
+  BarChart,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+} from "recharts";
 
 import type { ReactNode } from "react";
 
 import type { HomeSignals, HomeStripPoint, HomeVerdict } from "@/lib/api";
-import { chart } from "@/lib/chartTheme";
+import { axisLine, chart, legendCaption, tick, tooltipCard } from "@/lib/chartTheme";
 
 // O mesmo piso de sono do painel Saúde (backend SLEEP_FLOOR_S = 7h): o
 // chip acende alerta abaixo dele — o agravante da V1, nunca uma régua nova.
@@ -30,6 +43,12 @@ function dateParts(iso: string): [number, number, number] {
 function dayMonth(iso: string): string {
   const [, month, day] = dateParts(iso);
   return `${day}/${month}`;
+}
+
+/** "21/10/2026" — o dia completo no tooltip (padrão PmcChart). */
+function fullDay(iso: string): string {
+  const [year, month, day] = dateParts(iso);
+  return `${day}/${month}/${year}`;
 }
 
 /** Eyebrow do dia: "sexta, 23 de outubro" (Intl pt-BR — o formatWeekday
@@ -72,6 +91,25 @@ function SignalChip({ dot, children }: { dot: string; children: ReactNode }) {
   );
 }
 
+/** Tooltip da strip: dia completo + carga diária arredondada (mesma
+ * fonte da PMC — aggregate_daily_loads). */
+function StripTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { payload: HomeStripPoint }[];
+}) {
+  if (!active || !payload?.length) return null;
+  const point = payload[0].payload;
+  return (
+    <div className={tooltipCard}>
+      <p className="font-medium">{fullDay(point.date)}</p>
+      <p className="mt-1 text-muted">carga {Math.round(point.load)}</p>
+    </div>
+  );
+}
+
 export default function VerdictCard({
   verdict,
   signals,
@@ -84,9 +122,6 @@ export default function VerdictCard({
   date: string;
 }) {
   const { hrv, sleep, fitness } = signals;
-  // Escala da strip: altura proporcional à maior carga da janela
-  // (janela toda zerada -> todas com altura 0, o descanso é a informação).
-  const maxLoad = Math.max(...strip.map((point) => point.load));
 
   return (
     <section className="rounded-card border border-border bg-raised px-4 pb-3.5 pt-4">
@@ -143,28 +178,50 @@ export default function VerdictCard({
         )}
       </div>
 
-      {/* Strip de 7 dias: neutra, só hoje aceso; a última barra É hoje
-          (o service ordena terminando hoje). Carga 0 -> altura 0. */}
-      <div
-        className="mt-3.5 flex h-[46px] items-end gap-1.5"
-        role="img"
-        aria-label="Carga dos últimos 7 dias"
-      >
-        {strip.map((point, index) => {
-          const isToday = index === strip.length - 1;
-          return (
-            <span
-              key={point.date}
-              className="flex-1 rounded-[4px]"
-              style={{
-                height: `${maxLoad > 0 ? (point.load / maxLoad) * 100 : 0}%`,
-                backgroundColor: isToday ? chart.subject : chart.context,
-              }}
+      {/* Strip de 7 dias em Recharts: neutra, só hoje aceso (data
+          comparada, não índice — padrão PmcChart); carga 0 = barra
+          ausente, o dia segue no eixo. Toque/hover mostra o valor. */}
+      <div className="mt-3.5 h-[84px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={strip} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+            <XAxis
+              dataKey="date"
+              tickFormatter={dayMonth}
+              axisLine={axisLine}
+              tick={tick}
+              tickLine={false}
             />
-          );
-        })}
+            <Tooltip content={<StripTooltip />} />
+            <Bar dataKey="load" name="carga" radius={[3, 3, 0, 0]}>
+              {strip.map((point) => (
+                <Cell
+                  key={point.date}
+                  fill={point.date === date ? chart.subject : chart.context}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
-      <p className="mt-1.5 text-[10.5px] text-muted">carga · últimos 7 dias</p>
+      <div className={legendCaption}>
+        <span>carga</span>
+        <span className="flex items-center gap-1.5">
+          <span
+            aria-hidden
+            className="inline-block h-2.5 w-2.5 rounded-sm"
+            style={{ backgroundColor: chart.subject }}
+          />
+          hoje
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span
+            aria-hidden
+            className="inline-block h-2.5 w-2.5 rounded-sm"
+            style={{ backgroundColor: chart.context }}
+          />
+          dias anteriores
+        </span>
+      </div>
     </section>
   );
 }
