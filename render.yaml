@@ -40,6 +40,10 @@ services:
         value: "true"
       - key: CORS_ORIGINS # só p/ acesso browser DIRETO à API; o fluxo normal é
         value: https://ritmo.vercel.app # same-origin (rewrite AD-020) — ajuste ao subdomínio real
+      - key: NVIDIA_MODEL # avaliação IA (AD-026): glm-5.3/flash e deepseek pendurados
+        value: nvidia/nemotron-3.5-super-vl-120b-a12b # na fila da NIM free tier (UAT 25/10); nemotron estável
+      - key: NVIDIA_THINKING # sem raciocínio: ~5k → ~500 tokens gerados (~95s → ~6s, AD-026)
+        value: "none" # números já calculados em Python (AD-003); 5xx retransmitido 3x no nim.py
 
   # ============================================================
   # Ritmo — Documentação técnica (docs-site/)
