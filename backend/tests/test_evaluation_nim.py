@@ -2,7 +2,8 @@
 
 NENHUM teste aqui toca a NIM real (Success Criteria do spec): o
 transporte é sempre um MockTransport local. Valores e corpo pinados
-vêm do design (temperature 0.2, max_tokens 2000, Bearer, URL).
+vêm do design (temperature 0.2, max_tokens 16000, Bearer, URL) e do
+UAT 25/10 (retransmissão de 5xx, thinking desligável por env).
 """
 
 import json
@@ -11,8 +12,10 @@ import httpx
 import pytest
 
 from app.core.config import Settings
+from app.evaluation import nim
 from app.evaluation.nim import (
     MAX_TOKENS,
+    RETRY_ATTEMPTS,
     TEMPERATURE,
     NimError,
     NimInvalidJSON,
@@ -40,9 +43,21 @@ def _envelope(content: str, *, usage: dict | None = None) -> dict:
 
 @pytest.fixture(autouse=True)
 def _clean_nim_env(monkeypatch):
-    for var in ("NVIDIA_API_KEY", "NVIDIA_BASE_URL", "NVIDIA_MODEL", "NVIDIA_TIMEOUT_S"):
+    for var in (
+        "NVIDIA_API_KEY",
+        "NVIDIA_BASE_URL",
+        "NVIDIA_MODEL",
+        "NVIDIA_TIMEOUT_S",
+        "NVIDIA_THINKING",
+    ):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("NVIDIA_API_KEY", "test-key")
+
+
+@pytest.fixture(autouse=True)
+def _retry_instantaneo(monkeypatch):
+    """Retries sem pausa — a suíte mede comportamento, não dormir."""
+    monkeypatch.setattr(nim, "RETRY_SLEEP_S", 0.0)
 
 
 @pytest.fixture()
@@ -107,25 +122,69 @@ def test_content_vazio_levanta_nim_invalid_json(settings) -> None:
 
 
 def test_http_500_levanta_nim_error(settings) -> None:
-    """EVAL-13: HTTP != 200 → NimError (o router mapeia 502)."""
-    transport = httpx.MockTransport(
-        lambda request: httpx.Response(500, text="upstream exploded")
-    )
+    """EVAL-13: HTTP != 200 → NimError (o router mapeia 502) — esgotadas
+    as RETRY_ATTEMPTS retransmissões de 5xx (UAT 25/10)."""
+    calls: list[httpx.Request] = []
+
+    def _always_500(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        return httpx.Response(500, text="upstream exploded")
+
+    transport = httpx.MockTransport(_always_500)
     with pytest.raises(NimError) as exc_info:
         chat_completion("system", "user", settings, transport=transport)
     assert "500" in str(exc_info.value)
     assert not isinstance(exc_info.value, NimTimeout)
+    assert len(calls) == RETRY_ATTEMPTS == 3
+
+
+def test_500_transiente_retransmitido_passa(settings) -> None:
+    """UAT 25/10: a NIM free tier derruba request com 500 instantâneo
+    (0,7s) e o retry seguinte atende — cliente retransmite e devolve o
+    veredito em vez de falhar a avaliação."""
+    calls: list[httpx.Request] = []
+
+    def _flaky(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        if len(calls) == 1:
+            return httpx.Response(
+                500, json={"message": "Failed to generate completions"}
+            )
+        return httpx.Response(200, json=_envelope(json.dumps(VERDICT)))
+
+    transport = httpx.MockTransport(_flaky)
+    verdict, _usage = chat_completion("system", "user", settings, transport=transport)
+    assert verdict == VERDICT
+    assert len(calls) == 2
+
+
+def test_4xx_nao_retransmite(settings) -> None:
+    """4xx é erro de contrato (chave/modelo inválido) — uma tentativa só."""
+    calls: list[httpx.Request] = []
+
+    def _unauthorized(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        return httpx.Response(401, text="bad key")
+
+    transport = httpx.MockTransport(_unauthorized)
+    with pytest.raises(NimError):
+        chat_completion("system", "user", settings, transport=transport)
+    assert len(calls) == 1
 
 
 def test_timeout_levanta_nim_timeout(settings) -> None:
-    """EVAL-13: timeout do httpx → NimTimeout (o router mapeia 504)."""
+    """EVAL-13: timeout do httpx → NimTimeout (o router mapeia 504) —
+    SEM retransmissão: cada tentativa já espera NVIDIA_TIMEOUT_S."""
+    calls: list[httpx.Request] = []
 
     def _timeout(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
         raise httpx.ReadTimeout("read timed out")
 
     transport = httpx.MockTransport(_timeout)
     with pytest.raises(NimTimeout):
         chat_completion("system", "user", settings, transport=transport)
+    assert len(calls) == 1
 
 
 def test_corpo_nao_json_levanta_nim_invalid_json(settings) -> None:
@@ -155,7 +214,8 @@ def test_veredito_nao_objeto_rejeitado(settings) -> None:
 
 def test_requisicao_tem_corpo_do_design(settings) -> None:
     """EVAL-03: Bearer, URL NIM, model do settings, temperature 0.2 e
-    max_tokens 2000 — o contrato da chamada pinado."""
+    max_tokens 16000 — o contrato da chamada pinado. Sem NVIDIA_THINKING
+    o campo não vai no corpo (contrato original)."""
     seen: dict = {}
 
     def _capture(request: httpx.Request) -> httpx.Response:
@@ -177,3 +237,21 @@ def test_requisicao_tem_corpo_do_design(settings) -> None:
         {"role": "system", "content": "system prompt"},
         {"role": "user", "content": "payload do usuário"},
     ]
+    assert "chat_template_kwargs" not in body
+
+
+def test_thinking_env_adiciona_chat_template_kwargs(monkeypatch) -> None:
+    """UAT 25/10: NVIDIA_THINKING=none desliga o raciocínio do modelo
+    (chat_template_kwargs no corpo) — geração ~500 tokens, ~22s."""
+    seen: dict = {}
+
+    def _capture(request: httpx.Request) -> httpx.Response:
+        seen["request"] = request
+        return httpx.Response(200, json=_envelope(json.dumps(VERDICT)))
+
+    monkeypatch.setenv("NVIDIA_THINKING", "none")
+    settings = Settings(_env_file=None)
+    chat_completion("system", "user", settings, transport=httpx.MockTransport(_capture))
+
+    body = json.loads(seen["request"].content.decode("utf-8"))
+    assert body["chat_template_kwargs"] == {"thinking": "none"}

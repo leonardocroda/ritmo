@@ -53,6 +53,12 @@ class Settings(BaseSettings):
     # UAT 18/10 mostrou geração real passando de 120s; 420s cobre o
     # pensamento longo com folga (env NVIDIA_TIMEOUT_S sobrepõe)
     nvidia_timeout_s: float = 420.0  # NVIDIA_TIMEOUT_S
+    # Controle do raciocínio do modelo (UAT 25/10): "none" desliga o
+    # thinking via chat_template_kwargs e corta ~5k tokens de raciocínio
+    # para ~500 — a avaliação cai de ~95s para ~22s sem perder qualidade
+    # (os números já vêm todos calculados do Python). Vazio = não envia
+    # o parâmetro (contrato original dos modelos raciocinadores).
+    nvidia_thinking: str = ""  # NVIDIA_THINKING
     # LTHR de referência para o LLM interpretar FC (EVAL-02 — decisões
     # A/C do ai-evaluation: sem zonas Z1–Z5 formais na v1; 177 = perfil
     # calibrado, recalibração futura sobrepõe por env)

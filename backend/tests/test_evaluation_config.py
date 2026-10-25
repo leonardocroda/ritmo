@@ -14,6 +14,7 @@ EVAL_ENV_VARS = (
     "NVIDIA_BASE_URL",
     "NVIDIA_MODEL",
     "NVIDIA_TIMEOUT_S",
+    "NVIDIA_THINKING",
     "LTHR_BPM",
 )
 
@@ -44,12 +45,21 @@ def test_default_nim_model_and_url() -> None:
     assert settings.nvidia_model == "z-ai/glm-5.3"
 
 
+def test_default_nvidia_thinking() -> None:
+    """UAT 25/10: thinking vazio = campo não vai no corpo (contrato
+    original dos modelos raciocinadores)."""
+    settings = Settings(_env_file=None)
+    assert settings.nvidia_thinking == ""
+
+
 def test_eval_env_overrides(monkeypatch) -> None:
     """Env vars sobrepõem os defaults (config 100% env, INFRA-03)."""
     monkeypatch.setenv("NVIDIA_TIMEOUT_S", "60")
     monkeypatch.setenv("LTHR_BPM", "182")
     monkeypatch.setenv("NVIDIA_MODEL", "z-ai/glm-5.3-flash")
+    monkeypatch.setenv("NVIDIA_THINKING", "none")
     settings = Settings(_env_file=None)
     assert settings.nvidia_timeout_s == 60.0
     assert settings.lthr_bpm == 182
     assert settings.nvidia_model == "z-ai/glm-5.3-flash"
+    assert settings.nvidia_thinking == "none"

@@ -202,6 +202,14 @@
 - **Date**: 2026-10-23
 - **Status**: active
 
+### AD-026
+- **Decision**: Avaliação IA atravessa a instabilidade da NIM free tier com **retransmissão de HTTP 5xx (até 3×, pausa 0,5s — timeout e 4xx não retransmitem)** e ganha **raciocínio desligável por env**: `NVIDIA_THINKING=none` injeta `chat_template_kwargs={"thinking": "none"}` no corpo (vazio = campo ausente, contrato original preservado). Produção fixa `nvidia/nemotron-3.5-super-vl-120b-a12b` no `render.yaml`; `.env` local idem.
+- **Reason**: UAT 25/10/2026 com payload real (~4k tokens): glm-5.3, glm-5.3-flash, deepseek-v4.1-flash e minimax pendurados/504 nas filas da NIM; nemotron atendeu, mas com thinking ligado gera ~5k tokens (~95s) e o nó derruba com 500 instantâneo (0,7s) que o retry seguinte atende. Sem thinking: ~500 tokens, ~6s, veredito equivalente (AD-003 — o Python já calcula todos os números, o LLM só interpreta).
+- **Trade-off**: Veredito sem cadeia de raciocínio do modelo (mitigado pela AD-003: zero cálculo no LLM) em troca de ~15× menos latência e avaliações que atravessam o free tier; acoplamento ao nome do parâmetro por família de modelo (mitigado: default vazio não envia o campo).
+- **Scope**: `backend/app/evaluation/nim.py`, `backend/app/core/config.py`, `backend/tests/test_evaluation_*.py`, `backend/.env` (não commitado), `render.yaml`, docs (README §Avaliar com IA, docs-site backend/arquitetura).
+- **Date**: 2026-10-25
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: `home-panel` — **concluída, validada (PASS 39/39, sensor 5/5) e MESCLADA na main** (`2217aed`, 23/10/2026, UAT do usuário aprovado com "merge"). Compose rebuilt: stack da porta 3000 com a Home. Fix pós-merge no mesmo ciclo: proxy/login/registrar levavam `/treinos` como destino pós-login (herança AUTH-20, invisível pro Verifier — sem AC de proxy no spec); agora a raiz Home é a porta de frente. Emenda UAT 23/10 (2ª rodada): strip e volume da Home em **Recharts** (tooltip ao toque, legenda, eixos com datas/escala) — feedback "estranhos, sem clique, sem legenda, só entende comparando"; usuário escolheu tooltip puro, sem navegação no clique — **aprovado ("Melhorou!")**: os 2 Success Criteria visuais fecham ✓, feature encerrada
@@ -212,4 +220,4 @@
 - **Blockers**: none
 - **Uncommitted files**: none (após o commit do fix)
 - **Branch**: `main` (worktree principal + worktree `ritmo-design-system` na branch `home-panel` sincronizada por merge)
-- **Pendências menores vivas**: flake pré-existente `test_garmin_tokens_store` (monotonicidade de relógio no Windows, ~2/4 runs) · habit tracker (AD-024 — feature futura) · advisory `braces` high dev-only · NVIDIA_MODEL default no `.env` · CLI `set_password` sem política ≥8 · 2 docstrings de teste defasadas
+- **Pendências menores vivas**: flake pré-existente `test_garmin_tokens_store` (monotonicidade de relógio no Windows, ~2/4 runs — falhou de novo na suite completa do AD-026) · habit tracker (AD-024 — feature futura) · advisory `braces` high dev-only · CLI `set_password` sem política ≥8 · 1 docstring de teste defasada (a do `test_evaluation_nim.py` corrigida no ciclo da AD-026)
