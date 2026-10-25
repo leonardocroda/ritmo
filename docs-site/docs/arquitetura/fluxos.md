@@ -115,9 +115,13 @@ sequenceDiagram
 ```
 
 Falhas viram `status=error` **com o motivo gravado na linha** (timeout,
-429, JSON fora do contrato) — a tentativa nunca se perde, e não há retry
-automático (cada pedido custa tokens). Re-avaliar cria linha nova; o
-card mostra sempre a mais recente e o histórico lista as anteriores.
+429, JSON fora do contrato) — a tentativa nunca se perde. A única
+retransmissão é invisível e interna ao `nim.py` (UAT 25/10): HTTP 5xx
+transitório da NIM é tentado até 3× na mesma avaliação (o free tier
+derruba com 500 instantâneo e o retry seguinte atende); persistindo, a
+linha vira `error` — cada avaliação pedida custa uma chamada.
+Re-avaliar cria linha nova; o card mostra sempre a mais recente e o
+histórico lista as anteriores.
 
 ## 4. Login e sessão (stateful, AD-018)
 

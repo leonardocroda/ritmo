@@ -400,7 +400,11 @@ treino…" → card do veredito quando pronto.
   ou JSON fora do contrato → a linha fica `status=error` com o **motivo
   no histórico** (ex.: `finish_reason=length`, HTTP 429) e o card de
   erro mostra a causa; key ausente/404/422 continuam síncronos e nada
-  criam. Sem retry automático — cada pedido custa tokens e é explícito.
+  criam. Uma exceção nasceu do UAT 25/10: **5xx transitório da NIM é
+  retransmitido até 3× dentro da mesma avaliação** (o free tier derruba
+  com 500 instantâneo — 0,7s — e o retry seguinte atende; timeout não
+  retenta, cada tentativa já espera o teto). Persistindo o erro, vira
+  linha `error`; cada avaliação pedida continua custando uma chamada.
 - **Restart seguro**: pending órfãs viram `error` "interrompida" no
   startup (padrão `recover_stale_jobs`).
 - **Re-avaliação**: linha nova, nunca sobrescreve; a mais recente é o
@@ -408,15 +412,26 @@ treino…" → card do veredito quando pronto.
   "Avaliado" na lista de treinos acende quando o veredito chega.
 - **Config** (`backend/.env`): `NVIDIA_API_KEY` (build.nvidia.com — sem
   ela o botão responde 503), `NVIDIA_MODEL` (default `z-ai/glm-5.3`;
-  o flash `z-ai/glm-5.3-flash` é a opção rápida para o dia a dia),
-  `NVIDIA_TIMEOUT_S` (default 420 — o glm-5.3 raciocina além de 120s),
-  `LTHR_BPM` (fallback — default 177; a avaliação usa o LTHR do perfil
-  quando existe, §Zonas de FC no /perfil).
+  UAT 25/10: `nvidia/nemotron-3.5-super-vl-120b-a12b` no `.env` local —
+  veredito em ~6–22s; deepseek-v4.1-flash e glm-5.3-flash estavam
+  pendurados na fila da NIM, deepseek volta em 1 linha quando normalizar),
+  `NVIDIA_THINKING` (`none` desliga o raciocínio via `chat_template_kwargs`
+  — geração cai de ~5k para ~500 tokens, ~95s → ~6s, sem perder
+  qualidade: os números já vêm todos calculados do Python; vazio =
+  não envia o campo), `NVIDIA_TIMEOUT_S` (default 420 — o glm-5.3
+  raciocina além de 120s), `LTHR_BPM` (fallback — default 177; a
+  avaliação usa o LTHR do perfil quando existe, §Zonas de FC no /perfil).
 
 Validação (18/10/2026): suite com 362 testes no Postgres do compose —
 NIM 100% mockada nos testes, nenhum teste chama a API real. UAT aprovado
 no celular via LAN: glm-5.3 (thinking) e flash testados com treino real;
 HTTP 429 virou linha de erro com motivo — a emenda job nasceu desse UAT.
+
+UAT 25/10/2026: NIM free tier instável (500 instantâneo no nemotron,
+glm/deepseek/minimax pendurados) → retry de 5xx no `nim.py` +
+`NVIDIA_THINKING=none` + nemotron no `.env` local. Avaliação real do
+treino 250 (payload ~4k tokens): ~6s por veredito, 2 rodadas estáveis,
+`too_hard` consistente citando FC no teto e drift de 20%.
 
 ## Zonas de FC no /perfil
 

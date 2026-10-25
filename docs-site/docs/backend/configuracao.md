@@ -27,6 +27,7 @@ uma vez por `Settings` pydantic em `app/core/config.py` com cache
 | Env | Default | Efeito |
 |---|---|---|
 | `NVIDIA_MODEL` | `z-ai/glm-5.3` | flash: `z-ai/glm-5.3-flash` (rápido p/ dia a dia) |
+| `NVIDIA_THINKING` | *(vazio)* | `none` desliga o raciocínio do modelo (UAT 25/10: ~95s → ~6s); vazio = não envia o campo |
 | `NVIDIA_TIMEOUT_S` | `420` | glm-5.3 raciocina além de 120s |
 | `NVIDIA_BASE_URL` | `https://integrate.api.nvidia.com/v1` | endpoint NIM |
 | `LTHR_BPM` | `177` | fallback do payload quando o perfil não tem `fclthr` (a métrica do usuário vence, AD-021) |

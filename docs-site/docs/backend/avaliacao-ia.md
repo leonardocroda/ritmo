@@ -29,8 +29,12 @@ stateDiagram-v2
 
 **A tentativa nunca se perde**: qualquer falha vira `status=error` com o
 motivo gravado na coluna `error` (ex.: `finish_reason=length`, `HTTP 429`)
-— o card de erro na UI mostra a causa. Sem retry automático: cada pedido
-custa tokens e é explícito. Re-avaliar cria **linha nova** (nunca
+— o card de erro na UI mostra a causa. A única retransmissão é interna e
+invisível (UAT 25/10): HTTP 5xx transitório da NIM é tentado até 3×
+dentro da mesma avaliação, porque o free tier derruba com 500 instantâneo
+(0,7s) e o retry seguinte atende; timeout não retenta (cada tentativa já
+espera o teto inteiro). Erro que persiste vira `error` — cada avaliação
+pedida custa uma chamada. Re-avaliar cria **linha nova** (nunca
 sobrescreve); a mais recente é o card, as anteriores ficam no histórico.
 
 ## Payload determinístico (`app/evaluation/payload.py`)
@@ -60,10 +64,13 @@ inventado):
 Cliente `httpx` direto para `{NVIDIA_BASE_URL}/chat/completions`
 (OpenAI-compatível), Bearer `NVIDIA_API_KEY`, `temperature=0.2`,
 `max_tokens=16000`, timeout `NVIDIA_TIMEOUT_S` (420s default — o glm-5.3
-é raciocinador e passa de 120s). Erros canônicos: `NimError` /
-`NimTimeout` / `NimInvalidJSON` (inclui `content=null` de
-`finish_reason=length`). Cercas de markdown na resposta são aceitas e
-descascadas.
+é raciocinador e passa de 120s). Com `NVIDIA_THINKING=none` o corpo ganha
+`chat_template_kwargs={"thinking": "none"}` e a geração cai de ~5k para
+~500 tokens (~95s → ~6s) — os números do veredito já vêm todos calculados
+do Python. HTTP 5xx é retransmitido até 3× (transiente da NIM, UAT 25/10);
+timeout não. Erros canônicos: `NimError` / `NimTimeout` / `NimInvalidJSON`
+(inclui `content=null` de `finish_reason=length`). Cercas de markdown na
+resposta são aceitas e descascadas.
 
 ## Veredito (contrato §9.2)
 
@@ -98,7 +105,8 @@ reprodutibilidade por avaliação (AD-003).
 | Env | Default | Efeito |
 |---|---|---|
 | `NVIDIA_API_KEY` | *(vazio)* | vazio → botão responde `503` |
-| `NVIDIA_MODEL` | `z-ai/glm-5.3` | o flash `z-ai/glm-5.3-flash` é a opção rápida |
+| `NVIDIA_MODEL` | `z-ai/glm-5.3` | o flash `z-ai/glm-5.3-flash` é a opção rápida; UAT 25/10: `nvidia/nemotron-3.5-super-vl-120b-a12b` no `.env` local |
+| `NVIDIA_THINKING` | *(vazio)* | `none` desliga o raciocínio (`chat_template_kwargs`) — ~95s → ~6s; vazio = não envia o campo |
 | `NVIDIA_TIMEOUT_S` | `420` | timeout da chamada |
 | `NVIDIA_BASE_URL` | `https://integrate.api.nvidia.com/v1` | endpoint NIM |
 
