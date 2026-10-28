@@ -215,10 +215,10 @@ T10 → T11
 
 **Done when**:
 
-- [ ] `garmin_id_from_external_id` casa `garmin_push_<id>` e devolve o id como string; None para outros formatos/ausente
-- [ ] `find_match` casa dentro das tolerâncias (±2%, ±2%, 5h); 2+ candidatos → `"ambiguous"`; 0 → None
-- [ ] Distância 0 (esteira sem GPS) não casa por distância
-- [ ] Gate: quick (`uv run pytest tests/test_strava_matching.py -q`) — Test count: ≥ 8
+- [x] `garmin_id_from_external_id` casa `garmin_push_<id>` e devolve o id como string; None para outros formatos/ausente
+- [x] `find_match` casa dentro das tolerâncias (±2%, ±2%, 5h); 2+ candidatos → `"ambiguous"`; 0 → None
+- [x] Distância 0 (esteira sem GPS) não casa por distância
+- [x] Gate: quick (`uv run pytest tests/test_strava_matching.py -q`) — Test count: 18
 
 **Tests**: unit
 **Gate**: quick
