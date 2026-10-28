@@ -225,6 +225,22 @@ def get_activity_detail(
     # import seria circular. Uma única implementação da lista (EVAL-17).
     from app.evaluation.service import list_evaluations
 
+    shoe = None
+    if activity.shoe_id is not None:
+        from app.db.models import Shoe
+
+        shoe_obj = db.execute(
+            select(Shoe).where(Shoe.id == activity.shoe_id)
+        ).scalar_one_or_none()
+        if shoe_obj is not None:
+            shoe = {
+                "id": shoe_obj.id,
+                "name": shoe_obj.name,
+                "brand": shoe_obj.brand,
+                "model": shoe_obj.model,
+                "status": shoe_obj.status,
+            }
+
     return {
         "activity": {
             "id": activity.id,
@@ -251,4 +267,5 @@ def get_activity_detail(
         "consistency": consistency_metrics(splits, activity.distance_m),
         "context": _context(db, activity, splits, user_id),
         "evaluations": list_evaluations(db, activity.id, user_id),
+        "shoe": shoe,
     }

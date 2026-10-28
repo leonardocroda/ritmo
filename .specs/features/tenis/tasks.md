@@ -162,10 +162,10 @@ T10 → T11
 
 **Done when**:
 
-- [ ] `PATCH /api/activities/{id}/shoe` com `{"shoe_id": int | null}` associa e responde `{shoe: ShoeSummary | None}`; desassociação com null funciona
-- [ ] 422 em atividade não-corrida; 404 em atividade/tênis de outro usuário; 401 sem sessão
-- [ ] `GET /api/activities/{id}` detail expõe `shoe: {id, name, brand, model, status} | null`
-- [ ] Gate: full (`uv run pytest`) — Test count: ≥ 8 (neste arquivo)
+- [x] `PATCH /api/activities/{id}/shoe` com `{"shoe_id": int | null}` associa e responde `{shoe: ShoeSummary | None}`; desassociação com null funciona
+- [x] 422 em atividade não-corrida; 404 em atividade/tênis de outro usuário; 401 sem sessão
+- [x] `GET /api/activities/{id}` detail expõe `shoe: {id, name, brand, model, status} | null`
+- [x] Gate: full (`uv run pytest`) — Test count: 26
 
 **Tests**: integration
 **Gate**: full

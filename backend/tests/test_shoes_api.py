@@ -289,3 +289,175 @@ def test_envelope_structure(session_client) -> None:
     assert "items" in data
     assert "attribution_30d_pct" in data
     assert data["attribution_30d_pct"] is None
+
+
+# ---------------------------------------------------------------
+# T3: Associação de tênis por atividade
+# ---------------------------------------------------------------
+
+
+def _seed_running_activity(db, *, user_id: int, garmin_id: str, **kwargs) -> Activity:
+    defaults = {
+        "user_id": user_id,
+        "garmin_id": garmin_id,
+        "start_time": datetime(2024, 1, 15, 7, 0),
+        "activity_type": "running",
+        "name": "Morning Run",
+        "distance_m": 5000.0,
+        "duration_s": 1800.0,
+        "shoe_id": None,
+    }
+    defaults.update(kwargs)
+    activity = Activity(**defaults)
+    db.add(activity)
+    db.flush()
+    return activity
+
+
+def _seed_non_running_activity(db, *, user_id: int, garmin_id: str, **kwargs) -> Activity:
+    defaults = {
+        "user_id": user_id,
+        "garmin_id": garmin_id,
+        "start_time": datetime(2024, 1, 15, 7, 0),
+        "activity_type": "cycling",
+        "name": "Bike Ride",
+        "distance_m": 20000.0,
+        "duration_s": 3600.0,
+        "shoe_id": None,
+    }
+    defaults.update(kwargs)
+    activity = Activity(**defaults)
+    db.add(activity)
+    db.flush()
+    return activity
+
+
+def test_assign_shoe_to_running_activity(session_client) -> None:
+    """Done-when T3: PATCH associa tênis a corrida."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        shoe = _seed_shoe(db, user_id=user_id)
+        activity = _seed_running_activity(db, user_id=user_id, garmin_id="act_1")
+        db.commit()
+        shoe_id, activity_id = shoe.id, activity.id
+
+    r = client.patch(f"/api/activities/{activity_id}/shoe", json={"shoe_id": shoe_id})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["shoe"]["id"] == shoe_id
+    assert data["shoe"]["name"] == shoe.name
+
+
+def test_assign_shoe_to_non_running_activity_422(session_client) -> None:
+    """Done-when T3: 422 em atividade não-corrida."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        shoe = _seed_shoe(db, user_id=user_id)
+        activity = _seed_non_running_activity(db, user_id=user_id, garmin_id="act_bike")
+        db.commit()
+        shoe_id, activity_id = shoe.id, activity.id
+
+    r = client.patch(f"/api/activities/{activity_id}/shoe", json={"shoe_id": shoe_id})
+    assert r.status_code == 422
+    assert "não é uma corrida" in r.json()["detail"]
+
+
+def test_assign_shoe_404_activity_other_user(session_client) -> None:
+    """Done-when T3: 404 posse - atividade de outro usuário."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        shoe = _seed_shoe(db, user_id=user_id)
+        other = User(display_name="Outro", email="outro@example.com")
+        db.add(other)
+        db.flush()
+        activity = _seed_running_activity(db, user_id=other.id, garmin_id="act_other")
+        db.commit()
+        shoe_id, activity_id = shoe.id, activity.id
+
+    r = client.patch(f"/api/activities/{activity_id}/shoe", json={"shoe_id": shoe_id})
+    assert r.status_code == 404
+    assert "não encontrada" in r.json()["detail"]
+
+
+def test_assign_shoe_404_shoe_other_user(session_client) -> None:
+    """Done-when T3: 404 posse - tênis de outro usuário."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        other = User(display_name="Outro", email="outro@example.com")
+        db.add(other)
+        db.flush()
+        shoe = _seed_shoe(db, user_id=other.id)
+        activity = _seed_running_activity(db, user_id=user_id, garmin_id="act_1")
+        db.commit()
+        shoe_id, activity_id = shoe.id, activity.id
+
+    r = client.patch(f"/api/activities/{activity_id}/shoe", json={"shoe_id": shoe_id})
+    assert r.status_code == 404
+    assert "não encontrada" in r.json()["detail"]
+
+
+def test_assign_shoe_404_activity_not_found(session_client) -> None:
+    """Done-when T3: 404 atividade inexistente."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        shoe = _seed_shoe(db, user_id=user_id)
+        db.commit()
+        shoe_id = shoe.id
+
+    r = client.patch("/api/activities/99999/shoe", json={"shoe_id": shoe_id})
+    assert r.status_code == 404
+    assert "não encontrada" in r.json()["detail"]
+
+
+def test_unassign_shoe(session_client) -> None:
+    """Done-when T3: desassociação com null funciona."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        shoe = _seed_shoe(db, user_id=user_id)
+        activity = _seed_running_activity(db, user_id=user_id, garmin_id="act_1", shoe_id=shoe.id)
+        db.commit()
+        activity_id = activity.id
+
+    r = client.patch(f"/api/activities/{activity_id}/shoe", json={"shoe_id": None})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["shoe"] is None
+
+    # Verifica no banco
+    with SessionLocal() as db:
+        activity = db.get(Activity, activity_id)
+        assert activity.shoe_id is None
+
+
+def test_activity_detail_includes_shoe(session_client) -> None:
+    """Done-when T3: GET /api/activities/{id} detail expõe shoe summary."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        shoe = _seed_shoe(db, user_id=user_id, name="Kayano 30", brand="ASICS", model="Gel-Kayano 30")
+        activity = _seed_running_activity(db, user_id=user_id, garmin_id="act_1", shoe_id=shoe.id)
+        db.commit()
+        activity_id = activity.id
+
+    r = client.get(f"/api/activities/{activity_id}")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["shoe"] is not None
+    assert data["shoe"]["id"] == shoe.id
+    assert data["shoe"]["name"] == "Kayano 30"
+    assert data["shoe"]["brand"] == "ASICS"
+    assert data["shoe"]["model"] == "Gel-Kayano 30"
+    assert data["shoe"]["status"] == "ativo"
+
+
+def test_activity_detail_shoe_null_when_unassigned(session_client) -> None:
+    """Done-when T3: detail expõe shoe: null quando sem tênis."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        activity = _seed_running_activity(db, user_id=user_id, garmin_id="act_1")
+        db.commit()
+        activity_id = activity.id
+
+    r = client.get(f"/api/activities/{activity_id}")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["shoe"] is None

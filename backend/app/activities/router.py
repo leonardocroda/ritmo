@@ -19,6 +19,7 @@ from app.core.config import get_settings
 from app.db.engine import get_db
 from app.db.models import User
 from app.evaluation.schemas import EvaluationOut
+from app.shoes import service as shoes_service
 from app.vdot.zones import ZoneConfig, ZoneConfigError, load_zone_config
 
 router = APIRouter(prefix="/api/activities")
@@ -93,6 +94,46 @@ class ActivityDetailOut(BaseModel):
     consistency: dict | None
     context: dict
     evaluations: list[EvaluationOut]
+    shoe: "ShoeSummaryOut | None" = None
+
+
+class ShoeSummaryOut(BaseModel):
+    id: int
+    name: str
+    brand: str | None
+    model: str | None
+    status: str
+
+
+class ShoeAssignmentIn(BaseModel):
+    shoe_id: int | None
+
+
+@router.patch("/{activity_id}/shoe")
+def assign_shoe(
+    activity_id: int,
+    payload: ShoeAssignmentIn,
+    user: User = Depends(require_session),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Associa/desassocia tênis à atividade (alimentado pelo modal).
+
+    Validações via shoes_service.associate:
+    - 404: atividade não encontrada ou de outro usuário
+    - 422: atividade não é running/trail_running
+    - 404: tênis não encontrado ou de outro usuário
+    - shoe_id=null desassocia (sempre permitido para atividades do usuário)
+    """
+    try:
+        result = shoes_service.associate(db, user.id, activity_id, payload.shoe_id)
+        db.commit()
+        return result
+    except shoes_service.AssociationError as exc:
+        if exc.code in ("activity_not_found", "shoe_not_found", "shoe_not_owned"):
+            raise HTTPException(status_code=404, detail="atividade não encontrada") from exc
+        if exc.code == "not_running":
+            raise HTTPException(status_code=422, detail="atividade não é uma corrida") from exc
+        raise HTTPException(status_code=400, detail=exc.code) from exc
 
 
 def get_zone_config() -> ZoneConfig:
