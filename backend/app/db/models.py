@@ -89,6 +89,9 @@ class Activity(Base):
     rpe: Mapped[int | None] = mapped_column(Integer)
     raw_json: Mapped[dict | None] = mapped_column(JSON)
     evaluated: Mapped[bool] = mapped_column(Boolean, default=False)
+    shoe_id: Mapped[int | None] = mapped_column(
+        ForeignKey("shoes.id", ondelete="SET NULL"), index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
 
@@ -424,3 +427,28 @@ class GarminToken(Base):
     token_encrypted: Mapped[str] = mapped_column(Text)  # blob Fernet (base64) do dumps() da lib
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
+
+
+class Shoe(Base):
+    """Tênis do corredor (feature tenis) — user-scoped, ciclo de vida sem
+    exclusão (status ativo/aposentado). Km acumulada é derivada:
+    ``initial_km + Σ activities.distance_m``."""
+
+    __tablename__ = "shoes"
+    __table_args__ = (
+        UniqueConstraint("user_id", "strava_gear_id", name="uq_shoe_user_strava"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    name: Mapped[str] = mapped_column(String(200))
+    brand: Mapped[str | None] = mapped_column(String(100))
+    model: Mapped[str | None] = mapped_column(String(200))
+    acquired_date: Mapped[date | None] = mapped_column(Date)
+    initial_km: Mapped[float] = mapped_column(Float, default=0.0)
+    max_km: Mapped[float | None] = mapped_column(Float)
+    status: Mapped[str] = mapped_column(String(20), default="ativo")  # ativo | aposentado
+    strava_gear_id: Mapped[str | None] = mapped_column(String(64))  # múltiplos NULL ok no unique do Postgres
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)

@@ -43,16 +43,15 @@ def get_db() -> Iterator[Session]:
         db.close()
 
 
-def _migrate_schema() -> None:
-    """Colunas de auth em bases criadas ANTES da feature (emenda UAT, 20/10).
+def _migrate_users_columns() -> None:
+    """Migração idempotente das colunas de auth em bases criadas ANTES da
+    feature (emenda UAT, 20/10).
 
     O ``create_all`` só cria tabela AUSENTE — nunca altera tabela
     existente. Bancos de dev/produção anteriores à feature auth têm a
     ``users`` sem ``email``/``password_hash`` e crasham no startup
-    (UndefinedColumn). Migração idempotente no estilo do projeto (mesmo
-    espírito do setval abaixo): zero dependência nova; Alembic fica para
-    a Fase 2.5 se o schema crescer (AD-019). Condicional à coluna: base
-    nova (create_all já criou tudo, inclusive a unique) não ganha índice
+    (UndefinedColumn). Migração condicional à coluna: base nova
+    (create_all já criou tudo, inclusive a unique) não ganha índice
     redundante.
     """
     with engine.begin() as conn:
@@ -72,6 +71,40 @@ def _migrate_schema() -> None:
         # Múltiplos NULL são permitidos em unique index (Postgres) — o seed
         # id 1 nasce sem email até o CLI vinculá-lo (AUTH-25)
         conn.execute(text("CREATE UNIQUE INDEX uq_users_email ON users (email)"))
+
+
+def _migrate_activities_shoe_id() -> None:
+    """Migração idempotente da coluna ``shoe_id`` em ``activities`` (feature tenis).
+
+    Condicional à coluna: base nova (create_all já criou a FK e o índice)
+    não tenta recriar. Executa em transação própria para isolar falhas.
+    """
+    with engine.begin() as conn:
+        columns = {
+            row[0]
+            for row in conn.execute(
+                text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name = 'activities'"
+                )
+            )
+        }
+        if "shoe_id" in columns:
+            return
+        conn.execute(
+            text(
+                "ALTER TABLE activities ADD COLUMN shoe_id INTEGER "
+                "REFERENCES shoes(id) ON DELETE SET NULL"
+            )
+        )
+        conn.execute(text("CREATE INDEX ix_activities_shoe_id ON activities (shoe_id)"))
+
+
+def _migrate_schema() -> None:
+    """Executa todas as migrações idempotentes de schema, cada uma em seu
+    bloco independente. Ordem: users (auth) → activities (tenis)."""
+    _migrate_users_columns()
+    _migrate_activities_shoe_id()
 
 
 def init_db() -> None:
