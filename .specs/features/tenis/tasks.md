@@ -270,15 +270,15 @@ T10 → T11
 
 **Done when**:
 
-- [ ] Cards com nome, marca/modelo, km atual vs `max_km` (barra com marcos 75/90%), status, último uso, contagem de corridas
-- [ ] Criar/editar inline com os campos do design; criação sugere 800 km
-- [ ] Estado vazio com atalho para cadastro; loading com Skeleton; erro com card textual do padrão
-- [ ] `ActivityDetail` type ganha `shoe: ShoeSummary | null`
-- [ ] Gate: build (`cd frontend && npm run build`)
+- [x] Cards com nome, marca/modelo, km atual vs `max_km` (barra com marcos 75/90%), status, último uso, contagem de corridas
+- [x] Criar/editar inline com os campos do design; criação sugere 800 km
+- [x] Estado vazio com atalho para cadastro; loading com Skeleton; erro com card textual do padrão
+- [x] `ActivityDetail` type ganha `shoe: ShoeSummary | null`
+- [x] Gate: build (`cd frontend && npm run build`)
 
 **Tests**: none (frontend sem suite — build gate)
 **Gate**: build
-**Commit**: `feat(treinos): seção Tênis com barra de vida e CRUD`
+**Commit**: `feat(treinos): seção Tênis com barra de vida e CRUD` (hash: pending)
 
 ---
 

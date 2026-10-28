@@ -240,7 +240,7 @@ export type ContextOut = {
   temperature_c?: number;
 };
 
-/** Espelho do `ActivityDetailOut` do detalhe (TRN-13/19/26/27 + EVAL-17). */
+/** Espelho do `ActivityDetailOut` do detalhe (TRN-13/19/26/27 + EVAL-17 + TEN-21). */
 export type ActivityDetailOut = {
   activity: ActivityOut;
   splits: SplitOut[];
@@ -249,6 +249,7 @@ export type ActivityDetailOut = {
   consistency: Consistency | null;
   context: ContextOut;
   evaluations: EvaluationOut[];
+  shoe: ShoeSummary | null;
 };
 
 /** Lista paginada de atividades (TRN-04/05/06). 422 para limit/offset inválidos. */
@@ -845,4 +846,107 @@ export async function getGarminConnection(): Promise<GarminConnectionOut> {
   });
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as GarminConnectionOut;
+}
+
+// ---- Tênis: contratos do design tenis ----
+
+/** Resumo do tênis para listas e associação (espelho do ShoeSummaryOut). */
+export type ShoeSummary = {
+  id: number;
+  name: string;
+  brand: string | null;
+  model: string | null;
+  status: "ativo" | "aposentado";
+};
+
+/** Tênis completo da listagem (espelho do ShoeOut). */
+export type Shoe = {
+  id: number;
+  name: string;
+  brand: string | null;
+  model: string | null;
+  acquired_date: string | null;
+  initial_km: number;
+  max_km: number | null;
+  status: "ativo" | "aposentado";
+  strava_gear_id: string | null;
+  created_at: string;
+  current_km: number;
+  run_count: number;
+  last_use: string | null;
+  life_pct: number | null;
+};
+
+/** Entrada para criar tênis (espelho do ShoeCreateIn). */
+export type ShoeCreate = {
+  name: string;
+  brand?: string | null;
+  model?: string | null;
+  acquired_date?: string | null;
+  initial_km?: number;
+  max_km?: number | null;
+  status?: "ativo" | "aposentado";
+};
+
+/** Entrada para editar tênis (espelho do ShoeUpdateIn). */
+export type ShoeUpdate = {
+  name?: string;
+  brand?: string | null;
+  model?: string | null;
+  acquired_date?: string | null;
+  initial_km?: number;
+  max_km?: number | null;
+  status?: "ativo" | "aposentado";
+};
+
+/** Resposta da listagem — envelope com badge de higiene (TEN-28). */
+export type ShoesOut = {
+  items: Shoe[];
+  attribution_30d_pct: number | null;
+};
+
+/** Lista os tênis do usuário (GET /api/shoes). */
+export async function getShoes(): Promise<ShoesOut> {
+  const res = await apiFetch("/api/shoes", { cache: "no-store" });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as ShoesOut;
+}
+
+/** Cria um tênis (POST /api/shoes). */
+export async function createShoe(body: ShoeCreate): Promise<Shoe> {
+  const res = await apiFetch("/api/shoes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as Shoe;
+}
+
+/** Edita um tênis (PATCH /api/shoes/{id}). */
+export async function updateShoe(id: number, body: ShoeUpdate): Promise<Shoe> {
+  const res = await apiFetch(`/api/shoes/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as Shoe;
+}
+
+/** Associa/desassocia tênis a uma atividade (PATCH /api/activities/{id}/shoe). */
+export async function setActivityShoe(
+  activityId: number,
+  shoeId: number | null,
+): Promise<{ shoe: ShoeSummary | null }> {
+  const res = await apiFetch(`/api/activities/${activityId}/shoe`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ shoe_id: shoeId }),
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as { shoe: ShoeSummary | null };
 }
