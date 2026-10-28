@@ -323,15 +323,15 @@ T10 → T11
 
 **Done when**:
 
-- [ ] Modal renderiza sobre overlay com blur; fecha ao escolher, ao dispensar e ao clicar fora
-- [ ] Ordenação: padrão do tipo primeiro, depois último uso; aposentados em bloco separado e visíveis
-- [ ] "Definir como padrão para [tipo]" grava no localStorage e afeta a próxima ordenação
-- [ ] Props: `activityId`, `inferredType`, `onAssigned(shoe)`, `onDismiss`
-- [ ] Gate: build (`cd frontend && npm run build`)
+- [x] Modal renderiza sobre overlay com blur; fecha ao escolher, ao dispensar e ao clicar fora
+- [x] Ordenação: padrão do tipo primeiro, depois último uso; aposentados em bloco separado e visíveis
+- [x] "Definir como padrão para [tipo]" grava no localStorage e afeta a próxima ordenação
+- [x] Props: `activityId`, `inferredType`, `onAssigned(shoe)`, `onDismiss`
+- [x] Gate: build (`cd frontend && npm run build`)
 
 **Tests**: none (frontend sem suite — build gate)
 **Gate**: build
-**Commit**: `feat(treinos): modal de seleção de tênis`
+**Commit**: `feat(treinos): modal de seleção de tênis` (hash: pending)
 
 ---
 
