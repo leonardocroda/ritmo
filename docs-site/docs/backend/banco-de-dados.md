@@ -38,6 +38,8 @@ erDiagram
     users ||--o{ user_hr_metrics : "possui"
     users ||--o{ hr_zone_configs : "possui"
     users ||--o{ user_hr_sync_prefs : "possui"
+    users ||--o{ shoes : "possui"
+    shoes ||--o{ activities : "tênis usado (SET NULL)"
 ```
 
 ## Identidade e sessão
@@ -74,6 +76,7 @@ erDiagram
 | `distance_m` / `duration_s` | Float | — |
 | `avg_hr` / `max_hr` / `feel` / `rpe` | int | nullable |
 | `avg_cadence` / `power` / `elevation_gain_m` / `aerobic_te` / `anaerobic_te` / `training_load` | Float | nullable |
+| `shoe_id` | FK shoes | **ondelete SET NULL**, nullable, index |
 | `raw_json` | JSON | nullable — payload original preservado |
 | `evaluated` | Boolean | default False (acende com veredito `done`) |
 | `created_at` | DateTime | default |
@@ -89,6 +92,23 @@ erDiagram
 | `pace_s` / `avg_cadence` / `avg_temperature` / `elevation_m` | Float | nullable |
 | `avg_hr` | int | nullable |
 | `intensity_type` | String(30) | nullable (lapDTO `intensityType`) |
+
+### `shoes` — Tênis (T7–T11)
+| Coluna | Tipo | Constraints |
+|---|---|---|
+| `id` | int | PK |
+| `user_id` | FK users | index |
+| `name` | String(200) | NOT NULL |
+| `brand` | String(100) | nullable |
+| `model` | String(200) | nullable |
+| `acquired_date` | Date | nullable |
+| `initial_km` | Float | NOT NULL, default 0.0 |
+| `max_km` | Float | nullable |
+| `status` | String(20) | NOT NULL, default "ativo" (`ativo` \| `aposentado`) |
+| `strava_gear_id` | String(64) | nullable, **UQ `(user_id, strava_gear_id)`** `uq_shoe_user_strava` |
+| `created_at` | DateTime | default utcnow |
+
+**Km derivada**: não é coluna — calculada on-the-fly como `initial_km + Σ activities.distance_m` das atividades associadas. Reatribuição retroativa recalcula automaticamente.
 
 ## Saúde (1 linha por `(user_id, date)`)
 
@@ -186,6 +206,7 @@ Rodar o sync 2× não duplica nada — toda escrita é upsert por chave natural:
 | `personal_records` · `race_predictions` | `(user_id, event)` |
 | `user_hr_metrics` · `hr_zone_configs` | linha nova por mudança (effective-dated); valor igual não cria linha |
 | `sync_state` | `(user_id, data_type)` — só avança em fase bem-sucedida |
+| `shoes` | `(user_id, strava_gear_id)` — upsert no backfill Strava (T6) |
 
 ## Seeds do `init_db`
 

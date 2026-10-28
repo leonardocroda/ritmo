@@ -376,14 +376,14 @@ T10 → T11
 
 **Done when**:
 
-- [ ] `tenis.md` cobre: endpoints com exemplos de payload, km derivada, OAuth manual passo-a-passo, CLI com flags e saída do relatório
-- [ ] `banco-de-dados.md` atualizado com `shoes` e `activities.shoe_id`
-- [ ] `mkdocs.yml` navegação atualizada
-- [ ] Gate: build (suite backend + build frontend — fechamento da feature)
+- [x] `tenis.md` cobre: endpoints com exemplos de payload, km derivada, OAuth manual passo-a-passo, CLI com flags e saída do relatório
+- [x] `banco-de-dados.md` atualizado com `shoes` e `activities.shoe_id`
+- [x] `mkdocs.yml` navegação atualizada
+- [x] Gate: build (suite backend + build frontend — fechamento da feature)
 
 **Tests**: none (docs — build gate only)
 **Gate**: build
-**Commit**: `docs(tenis): doc técnica de tênis no docs-site`
+**Commit**: `docs(tenis): doc técnica de tênis no docs-site` (hash: pending)
 
 ---
 
