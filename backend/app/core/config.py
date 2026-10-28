@@ -71,6 +71,13 @@ class Settings(BaseSettings):
     # não sobe (fail-fast, GTDB-14)
     token_encryption_key: str = ""
 
+    # Strava — backfill one-shot (feature tenis). Crie app em
+    # strava.com/settings/api com redirect localhost; escopos
+    # profile:read_all,activity:read_all. Credenciais vêm de env vars,
+    # token vive só na memória do CLI (TEN-11).
+    strava_client_id: str = ""
+    strava_client_secret: str = ""
+
     # Garmin sync — janelas, cadência e guard rails (SYNC_*)
     sync_repull_days: int = 3                 # SYNC_REPULL_DAYS
     sync_backfill_activities_days: int = 180  # SYNC_BACKFILL_ACTIVITIES_DAYS

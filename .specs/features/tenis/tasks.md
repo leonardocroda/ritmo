@@ -188,11 +188,11 @@ T10 → T11
 
 **Done when**:
 
-- [ ] `exchange_code` troca code por token via POST oauth; `fetch_*` autenticam via header Bearer
-- [ ] Paginação para em página vazia; filtro `type == "Run"` no cliente
-- [ ] 429/5xx → backoff (2, 4, 8) e até 3 tentativas, depois erro de domínio com o que faltou buscar
-- [ ] Token nunca é gravado em banco ou log
-- [ ] Gate: quick (`uv run pytest tests/test_strava_client.py -q`) — Test count: ≥ 5
+- [x] `exchange_code` troca code por token via POST oauth; `fetch_*` autenticam via header Bearer
+- [x] Paginação para em página vazia; filtro `type == "Run"` no cliente
+- [x] 429/5xx → backoff (2, 4, 8) e até 3 tentativas, depois erro de domínio com o que faltou buscar
+- [x] Token nunca é gravado em banco ou log
+- [x] Gate: quick (`uv run pytest tests/test_strava_client.py -q`) — Test count: 11
 
 **Tests**: unit
 **Gate**: quick
