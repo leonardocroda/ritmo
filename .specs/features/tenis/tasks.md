@@ -135,11 +135,11 @@ T10 → T11
 
 **Done when**:
 
-- [ ] `GET /api/shoes` devolve `current_km = initial_km + Σ distance_m`, `run_count`, `last_use`, `life_pct` (null sem `max_km`), ordenado: ativos primeiro, `last_use` desc
-- [ ] `POST` cria com status "ativo" default; `user_id` explícito (nunca o default do modelo)
-- [ ] `PATCH` edita campos e status; sem rota de DELETE (405 se chamada)
-- [ ] 422: nome vazio, `initial_km < 0`, status inválido; 404: tênis de outro usuário; 401: sem sessão
-- [ ] Gate: full (`uv run pytest`) — Test count: ≥ 12
+- [x] `GET /api/shoes` devolve `current_km = initial_km + Σ distance_m`, `run_count`, `last_use`, `life_pct` (null sem `max_km`), ordenado: ativos primeiro, `last_use` desc
+- [x] `POST` cria com status "ativo" default; `user_id` explícito (nunca o default do modelo)
+- [x] `PATCH` edita campos e status; sem rota de DELETE (405 se chamada)
+- [x] 422: nome vazio, `initial_km < 0`, status inválido; 404: tênis de outro usuário; 401: sem sessão
+- [x] Gate: full (`uv run pytest`) — Test count: 18
 
 **Tests**: integration
 **Gate**: full
