@@ -9,11 +9,22 @@ arquitetura do projeto vive em `docs-site/docs/arquitetura/decisoes.md`
 ## Handoff
 
 - **Feature**: tenis (`.specs/features/tenis/`)
-- **Phase / Task**: Batch 1 (T1-T6) CONCLUÍDO — 6 tasks, 92 testes (74 novos + 55 regressão), 6 commits
-- **Completed**: T1 (modelo+migração), T2 (CRUD), T3 (associação), T4 (cliente Strava), T5 (matching), T6 (CLI backfill)
+- **Phase / Task**: **COMPLETA** — Batch 1 (T1-T6 backend) + Batch 2 (T7-T11 frontend+docs) concluídos
+- **Completed**: 
+  - T1: Modelo + migração (7 testes, commit 4596643)
+  - T2: CRUD + km derivada (18 testes, 68bacff)
+  - T3: Associação + detail shoe (26 testes, 533f65f)
+  - T4: Cliente Strava httpx + backoff (11 testes, 82bc30c)
+  - T5: Matching Strava↔Garmin (18 testes, 90e140b)
+  - T6: CLI backfill one-shot + checksum (12 testes, 47fcbb3)
+  - T7: Seção Tênis Treinos + api.ts (build OK, 5315724)
+  - T8: Aposentar + badge higiene + backend field (5 testes novos, 7c68fdb)
+  - T9: Modal ShoePicker (da0ac4b)
+  - T10: Gatilho no WorkoutDetail (c9d6562)
+  - T11: Docs-site tenis.md + banco-de-dados.md + nav (539b671)
 - **In-progress**: none
-- **Next step**: Batch 2 (T7-T11) — frontend gestão + modal + docs
+- **Next step**: Verifier roda automaticamente (spec-anchored + discrimination sensor)
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: master
-- **Last commits**: 4596643 (T1), 68bacff (T2), 533f65f (T3), 82bc30c (T4), 90e140b (T5), 47fcbb3 (T6)
+- **Total**: 11 commits, 143 testes backend, frontend build OK, docs build OK

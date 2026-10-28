@@ -77,6 +77,7 @@ class Settings(BaseSettings):
     # token vive só na memória do CLI (TEN-11).
     strava_client_id: str = ""
     strava_client_secret: str = ""
+    strava_redirect_uri: str = "http://localhost:8080/callback"
 
     # Garmin sync — janelas, cadência e guard rails (SYNC_*)
     sync_repull_days: int = 3                 # SYNC_REPULL_DAYS

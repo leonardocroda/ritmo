@@ -83,7 +83,11 @@ def exchange_code(code: str, http: httpx.Client | None = None) -> str:
 
     POST https://www.strava.com/oauth/token
     """
-    client_id, client_secret = _get_client_id_secret()
+    settings = get_settings()
+    client_id = settings.strava_client_id
+    client_secret = settings.strava_client_secret
+    redirect_uri = settings.strava_redirect_uri
+    print(f"[DEBUG] exchange_code: client_id={client_id}, redirect_uri={redirect_uri}")
     http = _make_client(http)
 
     data = {
@@ -91,6 +95,7 @@ def exchange_code(code: str, http: httpx.Client | None = None) -> str:
         "client_secret": client_secret,
         "code": code,
         "grant_type": "authorization_code",
+        "redirect_uri": redirect_uri,
     }
     resp = _request_with_backoff(http, "POST", STRAVA_TOKEN_URL, data=data)
     if resp.status_code != 200:

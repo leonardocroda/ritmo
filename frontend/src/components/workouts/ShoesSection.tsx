@@ -30,7 +30,7 @@ function ShoeCard({
   const isRetired = shoe.status === "aposentado";
 
   return (
-    <div className={`rounded-card border border-border bg-card p-4 ${isRetired ? "opacity-60" : ""}`}>
+    <div className="rounded-card border border-border bg-card p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
@@ -68,10 +68,10 @@ function ShoeCard({
                     width: `${Math.min(lifePct, 100)}%`,
                     backgroundColor:
                       lifePct >= 90
-                        ? "var(--color-destructive)"
+                        ? "var(--color-alert)"
                         : lifePct >= 75
-                        ? "var(--color-warning)"
-                        : "var(--color-accent)",
+                        ? "var(--color-attention)"
+                        : "var(--color-good)",
                   }}
                 />
                 {/* Marcas 75% e 90% */}
@@ -252,7 +252,7 @@ function ShoeForm({
       <div className="mt-4 flex items-center gap-2">
         <button
           type="submit"
-          className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:bg-accent/90 transition-colors"
+          className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent/90 transition-colors"
         >
           {isEditing ? "Salvar" : "Criar tênis"}
         </button>
@@ -292,7 +292,6 @@ export default function ShoesSection() {
     try {
       await createShoe(data);
       setShowCreateForm(false);
-      // Refresh
       const fresh = await getShoes();
       setState(fresh.items.length === 0 ? { kind: "empty" } : { kind: "ready", data: fresh });
     } catch (err: unknown) {
@@ -377,11 +376,20 @@ export default function ShoesSection() {
         title="Tênis"
         subtitle="Gerencie seus tênis: quilometragem, vida útil e aposentadoria"
       >
+        {showCreateForm && (
+          <div className="mb-4 rounded-card border border-border bg-card p-4">
+            <h4 className="mb-3 font-medium">Cadastrar tênis</h4>
+            <ShoeForm shoe={null} onSubmit={handleCreate} onCancel={handleCancelCreate} />
+          </div>
+        )}
         <div className="rounded-card border border-border bg-card px-4 py-6 text-sm text-muted text-center">
           <p className="mb-3">Nenhum tênis cadastrado ainda.</p>
           <button
-            onClick={() => setShowCreateForm(true)}
-            className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:bg-accent/90 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCreateForm(true);
+            }}
+            className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent/90 transition-colors cursor-pointer"
           >
             Cadastrar primeiro tênis
           </button>
@@ -420,7 +428,7 @@ export default function ShoesSection() {
       {!showCreateForm && !editingShoe && (
         <button
           onClick={() => setShowCreateForm(true)}
-          className="mb-4 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent/10 transition-colors"
+          className="mb-4 rounded-full bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent/90 transition-colors cursor-pointer"
         >
           + Cadastrar tênis
         </button>
