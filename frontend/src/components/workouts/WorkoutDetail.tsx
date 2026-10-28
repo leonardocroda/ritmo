@@ -7,12 +7,13 @@
 // gráfico. 404 → "Treino não encontrado" + volta à lista. O gráfico de
 // splits entra aqui na T12.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 
 import {
   getActivityDetail,
   getEvaluation,
+  setActivityShoe,
   ApiError,
   type ActivityDetailOut,
   type EvaluationOut,
@@ -30,6 +31,7 @@ import SplitsChart from "@/components/workouts/SplitsChart";
 import Skeleton from "@/components/Skeleton";
 import EvaluateForm from "@/components/workouts/EvaluateForm";
 import EvaluationCard, { EvaluationHistory } from "@/components/workouts/EvaluationCard";
+import ShoePickerModal from "@/components/workouts/ShoePickerModal";
 
 type DetailState =
   | { kind: "loading" }
@@ -75,6 +77,8 @@ export default function WorkoutDetail({ id }: { id: number }) {
   // key={id} no server page remonta este componente por treino: o estado
   // inicial "loading" já cobre cada id novo (sem setState síncrono em effect).
   const [state, setState] = useState<DetailState>({ kind: "loading" });
+  const [showShoeModal, setShowShoeModal] = useState(false);
+  const modalShownRef = useRef(false);
 
   // Polling (~2s) enquanto existe avaliação pending (EVAL-25) — o worker
   // conclui em background; cada tick busca o status das pendentes e
@@ -113,6 +117,34 @@ export default function WorkoutDetail({ id }: { id: number }) {
     }, 2000);
     return () => clearInterval(timer);
   }, [state]);
+
+  // Gatilho do modal de tênis: abre 1x por visita se for corrida sem tênis
+  useEffect(() => {
+    if (state.kind !== "ready") return;
+    const { activity, shoe } = state.detail;
+    const isRunning =
+      activity.activity_type === "running" || activity.activity_type === "trail_running";
+    
+    if (isRunning && shoe === null && !modalShownRef.current) {
+      modalShownRef.current = true;
+      setShowShoeModal(true);
+    }
+  }, [state]);
+
+  const handleShoeAssigned = async (shoe: { id: number; name: string; brand: string | null; model: string | null; status: string }) => {
+    setShowShoeModal(false);
+    // Refetch do detail para mostrar o badge
+    try {
+      const fresh = await getActivityDetail(id);
+      setState({ kind: "ready", detail: fresh });
+    } catch {
+      // erro silencioso - o estado atual permanece
+    }
+  };
+
+  const handleShoeDismissed = () => {
+    setShowShoeModal(false);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -197,7 +229,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
     );
   }
 
-  const { activity, splits, consistency, context, evaluations } = state.detail;
+  const { activity, splits, consistency, context, evaluations, shoe } = state.detail;
   // Avaliação existe para corrida (EVAL-10): mesmo vocabulário do backend
   const isRunning =
     activity.activity_type === "running" || activity.activity_type === "trail_running";
@@ -223,6 +255,11 @@ export default function WorkoutDetail({ id }: { id: number }) {
           {activity.evaluated && (
             <span className="rounded-full bg-accent/15 px-2 py-0.5 text-sm font-medium text-accent">
               Avaliado
+            </span>
+          )}
+          {shoe !== null && (
+            <span className="rounded-full bg-accent/15 px-2 py-0.5 text-sm font-medium text-accent">
+              {shoe.name}
             </span>
           )}
         </p>
@@ -375,6 +412,16 @@ export default function WorkoutDetail({ id }: { id: number }) {
             />
           </div>
         </section>
+      )}
+
+      {/* Modal de seleção de tênis (T10): abre 1x por visita para corrida sem tênis */}
+      {showShoeModal && (
+        <ShoePickerModal
+          activityId={activity.id}
+          inferredType={activity.inferred_type}
+          onAssigned={handleShoeAssigned}
+          onDismiss={handleShoeDismissed}
+        />
       )}
     </main>
   );

@@ -350,14 +350,14 @@ T10 → T11
 
 **Done when**:
 
-- [ ] Abrir corrida sem tênis → modal 1×; dispensar → não reabre na mesma visita; navegar de volta e abrir de novo → pergunta de novo
-- [ ] Confirmar sugestão em um toque associa; badge com o nome do tênis aparece no header do detalhe
-- [ ] Não-corridas nunca disparam o modal
-- [ ] Gate: build (`cd frontend && npm run build`)
+- [x] Abrir corrida sem tênis → modal 1×; dispensar → não reabre na mesma visita; navegar de volta e abrir de novo → pergunta de novo
+- [x] Confirmar sugestão em um toque associa; badge com o nome do tênis aparece no header do detalhe
+- [x] Não-corridas nunca disparam o modal
+- [x] Gate: build (`cd frontend && npm run build`)
 
 **Tests**: none (frontend sem suite — build gate)
 **Gate**: build
-**Commit**: `feat(treinos): gatilho do modal no detalhe de corrida sem tênis`
+**Commit**: `feat(treinos): gatilho do modal no detalhe de corrida sem tênis` (hash: pending)
 
 ---
 
