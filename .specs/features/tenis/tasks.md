@@ -241,13 +241,13 @@ T10 → T11
 
 **Done when**:
 
-- [ ] Execução cria/atualiza cada tênis do Strava com km derivada = `distance` do gear (±0,1 km)
-- [ ] Corrida com `gear_id` + match → associação retroativa; sem `gear_id` → fica null e entra no relatório como não alocada
-- [ ] Ambíguas e sem match ficam null e listadas; nenhuma associação inventada
-- [ ] Re-run não duplica tênis nem associações (idempotente)
-- [ ] Token inválido/expirado aborta antes de qualquer escrita; erro 429/5xx persistente aborta com estado consistente (commit único)
-- [ ] Relatório final imprime checksum: `initial_km + Σ casadas + não alocada = total Strava` por tênis
-- [ ] Gate: full (`uv run pytest`) — Test count: ≥ 8 (neste arquivo; client Strava falso injetado)
+- [x] Execução cria/atualiza cada tênis do Strava com km derivada = `distance` do gear (±0,1 km)
+- [x] Corrida com `gear_id` + match → associação retroativa; sem `gear_id` → fica null e entra no relatório como não alocada
+- [x] Ambíguas e sem match ficam null e listadas; nenhuma associação inventada
+- [x] Re-run não duplica tênis nem associações (idempotente)
+- [x] Token inválido/expirado aborta antes de qualquer escrita; erro 429/5xx persistente aborta com estado consistente (commit único)
+- [x] Relatório final imprime checksum: `initial_km + Σ casadas + não alocada = total Strava` por tênis
+- [x] Gate: full (`uv run pytest`) — Test count: 12 (neste arquivo; client Strava falso injetado)
 
 **Tests**: integration
 **Gate**: full
