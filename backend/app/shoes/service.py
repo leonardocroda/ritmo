@@ -5,7 +5,7 @@ reatribuição retroativa recalcula sozinha. Service não commita — quem
 chama controla a transação. Isolamento por user_id sempre explícito.
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Literal
 
 from sqlalchemy import func, select
@@ -73,6 +73,38 @@ def list_shoes(db: Session, user_id: int) -> list[dict]:
             }
         )
     return result
+
+
+def calculate_attribution_30d_pct(db: Session, user_id: int) -> float | None:
+    """Calcula % de corridas dos últimos 30 dias com tênis associado.
+
+    Returns None se não há corridas na janela (evita 0% enganoso).
+    """
+    cutoff = datetime.utcnow() - timedelta(days=30)
+    
+    # Total de corridas nos últimos 30 dias
+    total_runs = db.execute(
+        select(func.count(Activity.id)).where(
+            Activity.user_id == user_id,
+            Activity.activity_type.in_(RUNNING_TYPES),
+            Activity.start_time >= cutoff,
+        )
+    ).scalar_one()
+    
+    if total_runs == 0:
+        return None
+    
+    # Corridas com tênis associado
+    runs_with_shoe = db.execute(
+        select(func.count(Activity.id)).where(
+            Activity.user_id == user_id,
+            Activity.activity_type.in_(RUNNING_TYPES),
+            Activity.start_time >= cutoff,
+            Activity.shoe_id.is_not(None),
+        )
+    ).scalar_one()
+    
+    return round((runs_with_shoe / total_runs) * 100, 1)
 
 
 def create_shoe(db: Session, user_id: int, data: dict) -> dict:

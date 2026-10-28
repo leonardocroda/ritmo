@@ -297,14 +297,14 @@ T10 → T11
 
 **Done when**:
 
-- [ ] Aposentar pede confirmação; após confirmar, o tênis permanece listável (status "aposentado") e sai das sugestões
-- [ ] `GET /api/shoes` responde `attribution_30d_pct` correto (com e sem corridas na janela) — backend testado
-- [ ] Badge visível na seção
-- [ ] Gate: full (`uv run pytest` + `cd frontend && npm run build`) — Test count backend: ≥ 2 (novos)
+- [x] Aposentar pede confirmação; após confirmar, o tênis permanece listável (status "aposentado") e sai das sugestões
+- [x] `GET /api/shoes` responde `attribution_30d_pct` correto (com e sem corridas na janela) — backend testado
+- [x] Badge visível na seção
+- [x] Gate: full (`uv run pytest` + `cd frontend && npm run build`) — Test count backend: ≥ 2 (novos)
 
 **Tests**: integration
 **Gate**: full
-**Commit**: `feat(treinos): aposentar tênis com confirmação e badge de higiene`
+**Commit**: `feat(treinos): aposentar tênis com confirmação e badge de higiene` (hash: pending)
 
 ---
 

@@ -74,10 +74,11 @@ def list_shoes(
 
     current_km = initial_km + Σ distance_m das atividades associadas
     (agregado em 1 query no service). Ordenação: ativos primeiro,
-    depois last_use DESC. Envelope com attribution_30d_pct (null até T8).
+    depois last_use DESC. Envelope com attribution_30d_pct (T8).
     """
     items = service.list_shoes(db, user.id)
-    return ShoesListOut(items=items, attribution_30d_pct=None)
+    attribution_30d_pct = service.calculate_attribution_30d_pct(db, user.id)
+    return ShoesListOut(items=items, attribution_30d_pct=attribution_30d_pct)
 
 
 @router.post("")

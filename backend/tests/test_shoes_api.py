@@ -6,13 +6,18 @@ o user_id devolvido; 401 sem sessão e 404 para recurso de outro
 usuário são afirmados aqui. Envelope {items, attribution_30d_pct}.
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from fastapi.testclient import TestClient
 
 from app.db.engine import SessionLocal
 from app.db.models import Activity, Shoe, User
 from app.main import app
+
+
+def _recent_dt(days_ago: int = 1) -> datetime:
+    """Retorna datetime dentro da janela de 30 dias para testes de attribution."""
+    return datetime.utcnow() - timedelta(days=days_ago)
 
 
 def _seed_shoe(db, *, user_id: int, **kwargs) -> Shoe:
@@ -37,7 +42,7 @@ def _seed_activity(db, *, user_id: int, garmin_id: str, distance_m: float = 5000
     defaults = {
         "user_id": user_id,
         "garmin_id": garmin_id,
-        "start_time": datetime(2024, 1, 15, 7, 0),
+        "start_time": _recent_dt(1),
         "activity_type": "running",
         "name": "Morning Run",
         "distance_m": distance_m,
@@ -300,7 +305,7 @@ def _seed_running_activity(db, *, user_id: int, garmin_id: str, **kwargs) -> Act
     defaults = {
         "user_id": user_id,
         "garmin_id": garmin_id,
-        "start_time": datetime(2024, 1, 15, 7, 0),
+        "start_time": _recent_dt(1),
         "activity_type": "running",
         "name": "Morning Run",
         "distance_m": 5000.0,
@@ -318,7 +323,7 @@ def _seed_non_running_activity(db, *, user_id: int, garmin_id: str, **kwargs) ->
     defaults = {
         "user_id": user_id,
         "garmin_id": garmin_id,
-        "start_time": datetime(2024, 1, 15, 7, 0),
+        "start_time": _recent_dt(1),
         "activity_type": "cycling",
         "name": "Bike Ride",
         "distance_m": 20000.0,
@@ -461,3 +466,100 @@ def test_activity_detail_shoe_null_when_unassigned(session_client) -> None:
     assert r.status_code == 200
     data = r.json()
     assert data["shoe"] is None
+
+
+# ---------------------------------------------------------------
+# T8: attribution_30d_pct (higiene dos dados)
+# ---------------------------------------------------------------
+
+
+def test_attribution_30d_pct_with_shoe(session_client) -> None:
+    """Done-when T8: GET /api/shoes devolve attribution_30d_pct correto com tênis."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        shoe = _seed_shoe(db, user_id=user_id)
+        # 3 corridas nos últimos 30 dias, todas com tênis
+        _seed_running_activity(db, user_id=user_id, garmin_id="act_1", shoe_id=shoe.id)
+        _seed_running_activity(db, user_id=user_id, garmin_id="act_2", shoe_id=shoe.id)
+        _seed_running_activity(db, user_id=user_id, garmin_id="act_3", shoe_id=shoe.id)
+        db.commit()
+
+    r = client.get("/api/shoes")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["attribution_30d_pct"] == 100.0
+
+
+def test_attribution_30d_pct_partial(session_client) -> None:
+    """Done-when T8: attribution_30d_pct parcial (2 de 3 com tênis = 66.7%)."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        shoe = _seed_shoe(db, user_id=user_id)
+        # 2 com tênis, 1 sem tênis
+        _seed_running_activity(db, user_id=user_id, garmin_id="act_1", shoe_id=shoe.id)
+        _seed_running_activity(db, user_id=user_id, garmin_id="act_2", shoe_id=shoe.id)
+        _seed_running_activity(db, user_id=user_id, garmin_id="act_3", shoe_id=None)
+        db.commit()
+
+    r = client.get("/api/shoes")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["attribution_30d_pct"] == 66.7
+
+
+def test_attribution_30d_pct_none_when_no_runs(session_client) -> None:
+    """Done-when T8: attribution_30d_pct null quando não há corridas na janela."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        _seed_shoe(db, user_id=user_id)
+        # Sem atividades nos últimos 30 dias
+        db.commit()
+
+    r = client.get("/api/shoes")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["attribution_30d_pct"] is None
+
+
+def test_attribution_30d_pct_ignores_old_runs(session_client) -> None:
+    """Done-when T8: corridas >30 dias não contam para attribution_30d_pct."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        shoe = _seed_shoe(db, user_id=user_id)
+        # 2 corridas antigas (não contam)
+        _seed_running_activity(
+            db, user_id=user_id, garmin_id="act_old1", shoe_id=shoe.id,
+            start_time=datetime(2020, 1, 1)
+        )
+        _seed_running_activity(
+            db, user_id=user_id, garmin_id="act_old2", shoe_id=None,
+            start_time=datetime(2020, 1, 1)
+        )
+        # 1 corrida recente sem tênis
+        _seed_running_activity(db, user_id=user_id, garmin_id="act_new", shoe_id=None)
+        db.commit()
+
+    r = client.get("/api/shoes")
+    assert r.status_code == 200
+    data = r.json()
+    # Só 1 corrida na janela (a recente), sem tênis = 0%
+    assert data["attribution_30d_pct"] == 0.0
+
+
+def test_attribution_30d_pct_ignores_non_running(session_client) -> None:
+    """Done-when T8: atividades não-corrida não contam para attribution_30d_pct."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        shoe = _seed_shoe(db, user_id=user_id)
+        # 1 corrida com tênis
+        _seed_running_activity(db, user_id=user_id, garmin_id="act_run", shoe_id=shoe.id)
+        # 5 bikes (não contam)
+        for i in range(5):
+            _seed_non_running_activity(db, user_id=user_id, garmin_id=f"act_bike_{i}")
+        db.commit()
+
+    r = client.get("/api/shoes")
+    assert r.status_code == 200
+    data = r.json()
+    # Só 1 corrida na janela, com tênis = 100%
+    assert data["attribution_30d_pct"] == 100.0
