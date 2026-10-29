@@ -1,89 +1,46 @@
 "use client";
 
-// /perfil — nasce aqui com a tela de zonas de FC (feature hr-zones):
-// "Conexão Garmin" no topo (sem índice — pré-requisito, não passo do
-// fio condutor; abriga o botão "Puxar do Garmin" — AD-023) e 1
-// "Valores", 2 "Método e zonas" e 3 "Histórico" (HRZ-13/14/15).
+// /perfil — hub do usuário: Conexão Garmin + atalhos para Equipamentos e Zonas de FC.
 // Página client no padrão do /login: o proxy protege a rota (sem
-// cookie → /login?next=/perfil, HRZ-16) e o apiFetch redireciona na
-// sessão expirada em uso. O GET carrega o shape completo e o
-// histórico; cada seção que salva chama o PUT e a página
-// re-renderiza da resposta — "salvar → zonas mudam na hora" —
-// rebuscando o histórico para a seção 3 refletir as linhas novas.
+// cookie → /login?next=/perfil) e o apiFetch redireciona na
+// sessão expirada em uso.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import PanelSection from "@/components/PanelSection";
 import ConnectionCard from "@/components/profile/ConnectionCard";
 import Skeleton from "@/components/Skeleton";
 import SyncButton from "@/components/SyncButton";
-import HrHistoryList from "@/components/profile/HrHistoryList";
-import HrMethodCard from "@/components/profile/HrMethodCard";
-import HrValuesCard from "@/components/profile/HrValuesCard";
-import HrZonesPreview from "@/components/profile/HrZonesPreview";
 import {
   getGarminConnection,
-  getHrZones,
-  getHrZonesHistory,
   type GarminConnectionOut,
-  type HrZonesHistory,
-  type HrZonesOut,
 } from "@/lib/api";
 
 type PageState =
   | { kind: "loading" }
   | { kind: "error"; message: string }
-  | {
-      kind: "ready";
-      data: HrZonesOut;
-      history: HrZonesHistory;
-      connection: GarminConnectionOut;
-    };
+  | { kind: "ready"; connection: GarminConnectionOut };
 
 export default function PerfilPage() {
   const [state, setState] = useState<PageState>({ kind: "loading" });
-  const historySeq = useRef(0);
 
   useEffect(() => {
-    Promise.all([getHrZones(), getHrZonesHistory(), getGarminConnection()])
-      .then(([data, history, connection]) =>
-        setState({ kind: "ready", data, history, connection }),
-      )
+    getGarminConnection()
+      .then((connection) => setState({ kind: "ready", connection }))
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : "Erro inesperado";
         setState({ kind: "error", message });
       });
   }, []);
 
-  // Resposta do PUT vira o estado (zonas mudam na hora, HRZ-14) e o
-  // histórico é rebuscado — o PUT criou linha(s) nova(s) (HRZ-02/08).
-  // O seq descarta resposta velha em saves rápidos (padrão
-  // HealthPanel); falha mantém o histórico anterior na tela.
-  function handleSaved(out: HrZonesOut) {
-    setState((prev) =>
-      prev.kind === "ready" ? { ...prev, data: out } : prev,
-    );
-    const seq = ++historySeq.current;
-    getHrZonesHistory()
-      .then((history) => {
-        if (seq !== historySeq.current) return;
-        setState((prev) =>
-          prev.kind === "ready" ? { ...prev, history } : prev,
-        );
-      })
-      .catch(() => {});
-  }
-
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
       <h1 className="text-2xl font-semibold tracking-tight">Perfil</h1>
       {state.kind === "loading" && (
-        // Skeleton no lugar do texto de carregamento (DSN-23)
         <div className="mt-6 space-y-3">
           <Skeleton className="h-5 w-1/3 rounded-ctl" />
-          <Skeleton className="h-56 w-full rounded-card" />
-          <Skeleton className="h-4 w-2/3 rounded-ctl" />
-          <Skeleton className="h-4 w-1/2 rounded-ctl" />
+          <Skeleton className="h-32 w-full rounded-card" />
         </div>
       )}
       {state.kind === "error" && (
@@ -101,46 +58,63 @@ export default function PerfilPage() {
               state={state.connection.state}
               tokensUpdatedAt={state.connection.tokens_updated_at}
             />
-            {/* Status de conexão e ação de sync no mesmo lugar (AD-023) */}
             <div className="mt-4">
               <SyncButton />
             </div>
           </PanelSection>
           <PanelSection
             index={1}
-            title="Valores"
-            subtitle="Quais são os seus números? FC máxima, FC de repouso e LTHR — a matéria-prima das zonas. O sync do Garmin preenche os três (a FC de repouso vem do mínimo dos últimos 7 dias); a edição manual aqui vence até você mandar voltar a puxar do Garmin."
+            title="Zonas de FC"
+            subtitle="Valores (FC máx, repouso, LTHR), método de cálculo e histórico de mudanças."
           >
-            <HrValuesCard
-              metrics={state.data.metrics}
-              modes={state.data.modes}
-              onSaved={handleSaved}
-            />
+            <Link
+              href="/zonas-fc"
+              className="flex items-center justify-between gap-3 rounded-card border border-border bg-card px-4 py-3 hover:border-accent/40"
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-full bg-accent/15 text-accent">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 20.3C7.4 16.7 3.5 13.4 3.5 9.6 3.5 6.9 5.4 5 7.9 5c1.6 0 3.1.8 4.1 2.2C13 5.8 14.5 5 16.1 5c2.5 0 4.4 1.9 4.4 4.6 0 3.8-3.9 7.1-8.5 10.7Z" />
+                    <path d="M12 8v8" />
+                    <path d="M8 12h8" />
+                  </svg>
+                </span>
+                <div>
+                  <p className="font-medium">Zonas de FC</p>
+                  <p className="text-sm text-muted">Valores, método, zonas e histórico</p>
+                </div>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-muted shrink-0">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </Link>
           </PanelSection>
           <PanelSection
             index={2}
-            title="Método e zonas"
-            subtitle="Como as zonas são calculadas? Escolha o método — LTHR%, reserva cardíaca (Karvonen) ou FC máx% — e ajuste os percentuais por zona. Salvar recalcula as zonas em bpm na hora; treinos antigos continuam com as zonas da época deles."
+            title="Equipamentos"
+            subtitle="Seus tênis: quilometragem, vida útil e aposentadoria. Acesse para cadastrar, editar ou aposentar pares."
           >
-            <div className="space-y-3">
-              <HrMethodCard
-                config={state.data.config}
-                defaults={state.data.defaults}
-                onSaved={handleSaved}
-              />
-              <HrZonesPreview
-                zones={state.data.zones}
-                config={state.data.config}
-                metrics={state.data.metrics}
-              />
-            </div>
-          </PanelSection>
-          <PanelSection
-            index={3}
-            title="Histórico"
-            subtitle="O que mudou e quando? Cada mudança de valor ou de configuração vira uma entrada datada, mais recente primeiro — a edição manual vence o sync e nada é apagado: corrigir é salvar valor novo."
-          >
-            <HrHistoryList history={state.history} />
+            <Link
+              href="/equipamentos"
+              className="flex items-center justify-between gap-3 rounded-card border border-border bg-card px-4 py-3 hover:border-accent/40"
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-full bg-accent/15 text-accent">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M6 16c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8Z" />
+                    <path d="M10 10h4" />
+                    <path d="M12 8v4" />
+                  </svg>
+                </span>
+                <div>
+                  <p className="font-medium">Meus tênis</p>
+                  <p className="text-sm text-muted">Gerenciar quilometragem e vida útil</p>
+                </div>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-muted shrink-0">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </Link>
           </PanelSection>
         </>
       )}
