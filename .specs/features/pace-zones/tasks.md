@@ -225,12 +225,12 @@ T8
 - Skill: NONE
 
 **Done when**:
-- [ ] Endpoint `GET /api/profile/pace-zones` added
-- [ ] Returns `PaceZonesOut` with all fields from spec (vdot, source, test_date, distancia_metros, tempo_segundos, zones dict, equivalencias dict)
-- [ ] 500 "zonas VDOT não configuradas" if no row for user
-- [ ] 401 if no session (via `require_session`)
-- [ ] User-scope: only returns current user's data
-- [ ] Gate: `pytest backend/tests/test_pace_zones_api.py -v` passes (new test file)
+- [x] Endpoint `GET /api/profile/pace-zones` added
+- [x] Returns `PaceZonesOut` with all fields from spec (vdot, source, test_date, distancia_metros, tempo_segundos, zones dict, equivalencias dict)
+- [x] 500 "zonas VDOT não configuradas" if no row for user
+- [x] 401 if no session (via `require_session`)
+- [x] User-scope: only returns current user's data
+- [x] Gate: `pytest backend/tests/test_pace_zones_api.py -v` passes (new test file)
 
 **Tests**: e2e
 **Gate**: full

@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.deps import require_session
 from app.db.engine import get_db
-from app.db.models import HrZoneConfig, User, UserHrMetric
+from app.db.models import HrZoneConfig, User, UserHrMetric, VdotZoneConfig
 from app.profile import calc, service
 
 router = APIRouter(prefix="/api/profile")
@@ -103,6 +103,31 @@ class ConnectionOut(BaseModel):
 
     state: Literal["connected", "reauth_needed", "not_connected"]
     tokens_updated_at: datetime | None
+
+
+# =============================================================================
+# Pace Zones (VDOT) — feature pace-zones
+# =============================================================================
+
+
+class PaceZoneOut(BaseModel):
+    key: Literal["easy", "marathon", "threshold", "interval", "repetition"]
+    pace_range: str | None = None
+    pace: str | None = None
+    ms_min: float | None = None
+    ms_max: float | None = None
+    ms: float | None = None
+    description: str
+
+
+class PaceZonesOut(BaseModel):
+    vdot: float
+    source: str
+    test_date: date
+    distancia_metros: float
+    tempo_segundos: float
+    zones: dict[str, PaceZoneOut]
+    equivalencias: dict[str, str]
 
 
 def _hr_zones_payload(db: Session, user_id: int) -> HrZonesOut:
@@ -278,3 +303,43 @@ def get_garmin_connection(
     main."""
     state, tokens_updated_at = service.garmin_connection(db, user.id)
     return ConnectionOut(state=state, tokens_updated_at=tokens_updated_at)
+
+
+@router.get("/pace-zones")
+def get_pace_zones(
+    user: User = Depends(require_session),
+    db: Session = Depends(get_db),
+) -> PaceZonesOut:
+    """Retorna as zonas de ritmo (VDOT) do usuário logado.
+
+    Inclui: VDOT, fonte, data do teste, distância, tempo, 5 zonas
+    (com pace range/pace, ms_min/ms_max/ms, descrição) e equivalências
+    de prova. 500 se não houver configuração para o usuário.
+    """
+    config = (
+        db.query(VdotZoneConfig)
+        .filter(VdotZoneConfig.user_id == user.id)
+        .order_by(VdotZoneConfig.valid_from.desc(), VdotZoneConfig.id.desc())
+        .first()
+    )
+    if config is None:
+        raise HTTPException(
+            status_code=500, detail="zonas VDOT não configuradas"
+        )
+
+    # Adicionar key a cada zona (o JSON no banco não tem key dentro de cada zona)
+    zones_with_key = {}
+    for key, zone in config.zones.items():
+        zone_copy = dict(zone)
+        zone_copy["key"] = key
+        zones_with_key[key] = zone_copy
+
+    return PaceZonesOut(
+        vdot=config.vdot,
+        source=config.source,
+        test_date=config.test_date,
+        distancia_metros=config.distance_m,
+        tempo_segundos=config.time_s,
+        zones=zones_with_key,
+        equivalencias=config.equivalencias,
+    )
