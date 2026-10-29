@@ -170,7 +170,7 @@ export default function ShoePickerModal({
         onClick={(e) => e.stopPropagation()}
         style={{ maxHeight: "90vh" }}
       >
-        <div className="overflow-y-auto overflow-x-hidden" style={{ maxHeight: "calc(90vh - 120px)" }}>
+        <div className="overflow-y-auto overflow-x-hidden pr-4" style={{ maxHeight: "calc(90vh - 120px)" }}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h2 className="font-semibold">Qual tênis foi usado?</h2>
