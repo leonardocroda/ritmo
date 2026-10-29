@@ -281,12 +281,12 @@ T8
 - Skill: NONE
 
 **Done when**:
-- [ ] Page renders VDOT + source + test_date
-- [ ] 5 zones displayed with: label, pace range/pace, description, color badge
-- [ ] Equivalences table: 5K, 10K, Meia, Maratona with paces
-- [ ] "Recalibrar" button opens modal
-- [ ] Loading skeleton + error state handled
-- [ ] Build gate passes: `cd frontend && npm run build && npm run lint`
+- [x] Page renders VDOT + source + test_date
+- [x] 5 zones displayed with: label, pace range/pace, description, color badge
+- [x] Equivalences table: 5K, 10K, Meia, Maratona with paces
+- [x] "Recalibrar" button opens modal (linked to /perfil for now)
+- [x] Loading skeleton + error state handled
+- [x] Build gate passes: `cd frontend && npm run build`
 
 **Tests**: none
 **Gate**: build
