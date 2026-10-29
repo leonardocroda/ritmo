@@ -389,6 +389,29 @@ class HrZoneConfig(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
 
+class VdotZoneConfig(Base):
+    """Config de zonas de ritmo (VDOT) — VDOT corrente + teste que o gerou,
+    zonas calculadas (JSON) e equivalências de prova (JSON). Uma linha
+    vigente por usuário (upsert na recalibração)."""
+
+    __tablename__ = "vdot_zone_configs"
+    __table_args__ = (
+        Index("ix_vdotzoneconfigs_user_valid_from", "user_id", "valid_from"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), default=DEFAULT_USER_ID, index=True)
+    vdot: Mapped[float] = mapped_column(Float)
+    source: Mapped[str] = mapped_column(String(60))
+    test_date: Mapped[date] = mapped_column(Date)
+    distance_m: Mapped[float] = mapped_column(Float)
+    time_s: Mapped[float] = mapped_column(Float)
+    zones: Mapped[dict] = mapped_column(JSON)
+    equivalencias: Mapped[dict] = mapped_column(JSON)
+    valid_from: Mapped[date] = mapped_column(Date, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
 class UserHrSyncPref(Base):
     """Preferência de posse por métrica (HRZ-20/21, emenda 21/10/2026) —
     config, não histórico: uma linha por (user, kind), update-in-place.
