@@ -99,6 +99,7 @@ def _voltas(detail: dict) -> list[dict] | None:
                 "km": split["km_label"],
                 "duracao_s": split["duration_s"],
                 "pace": _fmt_pace(split["pace_s"]),
+                "pace_s": split["pace_s"],  # segundos/km puro — direção sem ambiguidade (menor = mais rápido)
                 "zona": split["zone"],
                 "fc": split["avg_hr"],
                 "cadencia": split["avg_cadence"],

@@ -201,6 +201,7 @@ def test_payload_completo_blocos_e_matematica_exata(db, settings, zone_config) -
         "km": "1,0",
         "duracao_s": 300.0,
         "pace": "5:00/km",
+        "pace_s": 300.0,  # segundos/km puro — direção sem ambiguidade (menor = mais rápido)
         "zona": "easy",
         "fc": 142,
         "cadencia": 165.0,
@@ -209,6 +210,7 @@ def test_payload_completo_blocos_e_matematica_exata(db, settings, zone_config) -
     }
     assert voltas[4]["km"] == "5,0" and voltas[4]["zona"] == "repetition"
     assert voltas[4]["pace"] == "3:40/km"
+    assert voltas[4]["pace_s"] == 220.0
 
     # Contexto do dia — só o que existir, chaves PT-BR
     assert payload["contexto"]["sono"] == {"duracao_s": 28800.0, "score": 85}

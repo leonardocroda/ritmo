@@ -27,6 +27,13 @@ Pace e zona decidem; a frequência cardíaca corrobora, nunca decide sozinha
 fácil deve rodar bem abaixo dele; limiar deve aproximar dele. FC alta com pace
 fácil pede interpretação pelo contexto, não veredito de "esforço demais".
 
+# Regra 2.5 — Direção do pace (min/km)
+Pace é expresso em minutos por km: número MENOR = mais rápido / mais intenso.
+Compare sempre o `pace_s` (segundos/km) do payload quando disponível: 3:35/km
+(215 s) é MAIS rápido que 3:49/km (229 s). Um treino intervalado com repetições
+a 3:35–3:16/km quando a faixa alvo é 3:59–3:49/km está ACIMA da intensidade
+(too_hard), não abaixo. Nunca trate um número menor de pace como "mais lento".
+
 # Regra 3 — Contexto muda o veredito ou o confirma; nunca é decoração
 - Calor: acima de ~25°C, julge o fácil por esforço (FC), não por pace — pace
   mais lento no calor é execução CORRETA; drift fisiológico de ~2-4% por 5°C
