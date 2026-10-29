@@ -59,6 +59,8 @@ const TYPE_LABELS: Record<InferredType, string> = {
   progressivo: "Progressivo",
   longao: "Longão",
   facil: "Fácil",
+  repeticao: "Repetição",
+  outro: "Outro",
 };
 
 /** Rótulo PT-BR do tipo inferido (a API usa ASCII: longao/facil). */

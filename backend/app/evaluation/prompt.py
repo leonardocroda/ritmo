@@ -34,6 +34,16 @@ Compare sempre o `pace_s` (segundos/km) do payload quando disponível: 3:35/km
 a 3:35–3:16/km quando a faixa alvo é 3:59–3:49/km está ACIMA da intensidade
 (too_hard), não abaixo. Nunca trate um número menor de pace como "mais lento".
 
+# Regra 2.6 — Intenções fora do padrão (repetição / outro)
+- "repetição": julgue as repetições contra a zona de repetição do VDOT do
+  payload (faixa de repetition), não contra intervalo ou limiar.
+- "outro": não há zona alvo única. O texto livre da intenção é a fonte
+  principal para julgar execução vs intenção; os números do payload (pace,
+  zona, FC, LTHR, carga) continuam sendo a fonte da verdade numérica — nunca
+  recalcular, nunca ignorar. Com "outro", dê mais peso ao que o corredor
+  declarou querer treinar (ex.: técnica, progressão livre, recuperação com
+  estímulo misto) do que a um ideal genérico de zona.
+
 # Regra 3 — Contexto muda o veredito ou o confirma; nunca é decoração
 - Calor: acima de ~25°C, julge o fácil por esforço (FC), não por pace — pace
   mais lento no calor é execução CORRETA; drift fisiológico de ~2-4% por 5°C

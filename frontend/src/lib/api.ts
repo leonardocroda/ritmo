@@ -98,7 +98,9 @@ export type InferredType =
   | "tempo"
   | "progressivo"
   | "longao"
-  | "facil";
+  | "facil"
+  | "repeticao"
+  | "outro";
 
 // ---- Avaliar com IA: contratos do design ai-evaluation ----
 

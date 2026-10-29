@@ -20,16 +20,20 @@ from app.profile.calc import classify
 from app.profile.service import metric_on, zones_on
 
 # Zonas alvo por intenção (assumption do spec): facil→easy;
-# tempo/limiar→threshold; intervalado→interval; longao→easy∪marathon;
-# progressivo e prova julgam por distribuição/PRs — sem zona alvo única.
+# tempo/limiar→threshold; intervalado→interval; repetição→repetition;
+# longao→easy∪marathon; progressivo e prova julgam por distribuição/PRs —
+# sem zona alvo única; "outro" também sem zona alvo única (texto livre
+# orienta o julgamento do LLM — EVAL-26/27).
 TARGET_ZONES: dict[str, list[str] | None] = {
     "facil": ["easy"],
     "tempo": ["threshold"],
     "limiar": ["threshold"],
     "intervalado": ["interval"],
+    "repeticao": ["repetition"],
     "longao": ["easy", "marathon"],
     "progressivo": None,
     "prova": None,
+    "outro": None,
 }
 
 # PRs canônicos de corrida → rótulo PT-BR (mesma chave de evento do

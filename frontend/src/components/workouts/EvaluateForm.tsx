@@ -16,15 +16,17 @@ import {
 } from "@/lib/api";
 import { formatInferredType } from "@/lib/format";
 
-// Ordem do plano §4.6: fácil → prova
+// Ordem do plano §4.6: fácil → prova, com repetição após intervalado e outro por último
 const INTENT_OPTIONS: InferredType[] = [
   "facil",
   "tempo",
   "limiar",
   "intervalado",
+  "repeticao",
   "longao",
   "progressivo",
   "prova",
+  "outro",
 ];
 
 const MAX_INTENT_TEXT = 500;

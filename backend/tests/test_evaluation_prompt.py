@@ -89,3 +89,14 @@ def test_prompt_pina_regras_centrais_do_spec() -> None:
     assert "Contexto muda o veredito ou o confirma; nunca é decoração" in SYSTEM_PROMPT_V1
     # Regra 3: elevação por volta explica desvio
     assert "voltas com muito ganho de elevação explicam pace mais lento" in SYSTEM_PROMPT_V1
+
+
+def test_prompt_traz_regra_repeticao_e_outro() -> None:
+    """EVAL-26/27/29: prompt ensina a julgar repetição contra a zona VDOT
+    de repetition e "outro" com texto livre como fonte principal."""
+    # Repetição compara contra zona de repetition do VDOT
+    assert "zona de repetição do VDOT" in SYSTEM_PROMPT_V1
+    assert "faixa de repetition" in SYSTEM_PROMPT_V1
+    # "outro": texto livre é fonte principal, payload confirma os números
+    assert "texto livre da intenção é a fonte" in SYSTEM_PROMPT_V1
+    assert "recalcular, nunca ignorar" in SYSTEM_PROMPT_V1

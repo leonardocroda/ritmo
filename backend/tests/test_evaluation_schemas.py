@@ -95,8 +95,8 @@ def test_verdict_json_pct_zona_alvo_nulo() -> None:
     assert verdict.execucao_vs_intencao.pct_zona_alvo is None
 
 
-def test_evaluate_in_aceita_sete_tipos() -> None:
-    """EVAL-01/11: os 7 tipos de intenção (chaves 1:1 com inferred_type)."""
+def test_evaluate_in_aceita_nove_tipos() -> None:
+    """EVAL-28: os 9 tipos de intenção (7 originais + repeticao + outro)."""
     for intent_type in (
         "prova",
         "intervalado",
@@ -105,6 +105,8 @@ def test_evaluate_in_aceita_sete_tipos() -> None:
         "progressivo",
         "longao",
         "facil",
+        "repeticao",
+        "outro",
     ):
         request = EvaluateIn(intent_type=intent_type)
         assert request.intent_type == intent_type
@@ -119,12 +121,14 @@ def test_evaluate_in_aceita_texto_livre_ate_500() -> None:
     assert len(request_limite.intent_text) == 500
 
 
-def test_evaluate_in_rejeita_tipo_fora_dos_sete() -> None:
-    """EVAL-11: intent_type fora dos 7 tipos → 422 (pydantic rejeita na validação)."""
+def test_evaluate_in_rejeita_tipo_fora_dos_nove() -> None:
+    """EVAL-28: intent_type fora dos 9 tipos → rejeitado (pydantic)."""
     with pytest.raises(ValidationError):
         EvaluateIn(intent_type="fácil")  # acento não faz parte do enum ASCII
     with pytest.raises(ValidationError):
         EvaluateIn(intent_type="recovery")
+    with pytest.raises(ValidationError):
+        EvaluateIn(intent_type="repeticao_com_acento")  # não existe
 
 
 def test_evaluate_in_rejeita_texto_acima_de_500() -> None:

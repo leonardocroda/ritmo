@@ -18,7 +18,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-# Os 7 tipos de intenção — mesmas chaves do infer.py (pré-preenchimento 1:1)
+# Os 9 tipos de intenção — mesmas chaves do infer.py (pré-preenchimento 1:1)
+# "repeticao" e "outro" estendem os 7 originais (EVAL-26/27/28).
 IntentType = Literal[
     "prova",
     "intervalado",
@@ -27,6 +28,8 @@ IntentType = Literal[
     "progressivo",
     "longao",
     "facil",
+    "repeticao",
+    "outro",
 ]
 
 # Vereditos do plano §9.2

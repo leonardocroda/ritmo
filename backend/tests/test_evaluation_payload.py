@@ -264,16 +264,19 @@ def test_progressivo_e_prova_sem_zona_alvo(db, settings, zone_config) -> None:
         ("tempo", ["threshold"]),
         ("limiar", ["threshold"]),
         ("intervalado", ["interval"]),
+        ("repeticao", ["repetition"]),
         ("longao", ["easy", "marathon"]),
         ("progressivo", None),
         ("prova", None),
+        ("outro", None),
     ],
 )
 def test_zona_alvo_por_intencao_mapa_completo(
     db, settings, zone_config, intent_type, expected_zones
 ) -> None:
     """EVAL-02 (gap do Verifier, Fix 2): o mapa de zonas alvo cobre as
-    7 intenções — mutar qualquer entrada (ex.: tempo→easy) falha aqui."""
+    7 intenções + repeticao + outro — mutar qualquer entrada (ex.: tempo→easy)
+    falha aqui."""
     activity = _seed_activity(db)
     for idx in range(1, 5):
         _seed_split(db, activity.id, idx)
