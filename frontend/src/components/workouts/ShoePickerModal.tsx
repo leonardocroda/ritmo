@@ -168,6 +168,7 @@ export default function ShoePickerModal({
       <div
         className="w-full max-w-md mx-4 bg-background rounded-card border border-border overflow-hidden"
         onClick={(e) => e.stopPropagation()}
+        style={{ maxHeight: "90vh", overflow: "auto" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -181,7 +182,7 @@ export default function ShoePickerModal({
             <h3 className="text-xs font-medium text-muted uppercase tracking-wider mb-3">
               Tênis ativos
             </h3>
-            <div className="space-y-2 max-h-80 overflow-y-auto">
+            <div className="space-y-2 max-h-80 overflow-y-auto overflow-x-hidden">
               {sortedActive.map((shoe) => (
                 <ShoeModalItem
                   key={shoe.id}
@@ -203,7 +204,7 @@ export default function ShoePickerModal({
             <h3 className="text-xs font-medium text-muted uppercase tracking-wider mb-3">
               Aposentados (atribuição retroativa)
             </h3>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
+            <div className="space-y-2 max-h-40 overflow-y-auto overflow-x-hidden">
               {sortedRetired.map((shoe) => (
                 <ShoeModalItem
                   key={shoe.id}
@@ -236,7 +237,7 @@ export default function ShoePickerModal({
         )}
 
         {/* Footer */}
-        <div className="border-t border-border px-4 py-3 flex items-center justify-end gap-2">
+        <div className="border-t border-border px-4 py-3 flex items-center justify-end gap-2 flex-wrap overflow-x-hidden">
           {isEditing && (
             <button
               onClick={handleRemove}
@@ -293,7 +294,7 @@ function ShoeModalItem({
         </span>
       )}
 
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3 min-w-0">
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
             <h4 className="font-medium truncate">{shoe.name}</h4>
