@@ -166,24 +166,23 @@ export default function ShoePickerModal({
       aria-label="Selecionar tênis"
     >
       <div
-        className="w-full max-w-md mx-4 bg-background rounded-card border border-border"
+        className="max-w-md mx-4 bg-background rounded-card border border-border overflow-hidden max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxHeight: "90vh" }}
       >
-        <div className="overflow-y-auto overflow-x-hidden" style={{ maxHeight: "calc(90vh - 120px)", scrollbarGutter: "stable" }}>
+        <div className="overflow-y-auto overflow-x-hidden px-6 py-6 flex-1 min-h-0">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between border-b border-border pb-3">
           <h2 className="font-semibold">Qual tênis foi usado?</h2>
           <p className="text-sm text-muted">{typeLabel}</p>
         </div>
 
         {/* Lista de tênis ativos */}
         {sortedActive.length > 0 && (
-          <div className="py-4 px-4">
+          <div className="py-4">
             <h3 className="text-xs font-medium text-muted uppercase tracking-wider mb-3">
               Tênis ativos
             </h3>
-            <div className="space-y-2 max-h-80 overflow-y-auto">
+            <div className="space-y-2">
               {sortedActive.map((shoe) => (
                 <ShoeModalItem
                   key={shoe.id}
@@ -201,11 +200,11 @@ export default function ShoePickerModal({
 
         {/* Lista de tênis aposentados */}
         {sortedRetired.length > 0 && (
-          <div className="border-t border-border py-4 px-4">
+          <div className="border-t border-border py-4">
             <h3 className="text-xs font-medium text-muted uppercase tracking-wider mb-3">
               Aposentados (atribuição retroativa)
             </h3>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
+            <div className="space-y-2">
               {sortedRetired.map((shoe) => (
                 <ShoeModalItem
                   key={shoe.id}
@@ -224,7 +223,7 @@ export default function ShoePickerModal({
 
         {/* Estado vazio */}
         {sortedActive.length === 0 && sortedRetired.length === 0 && (
-          <div className="py-6 px-4 text-center text-muted">
+          <div className="py-6 text-center text-muted">
             <p className="mb-3">Nenhum tênis cadastrado.</p>
             <p className="text-sm">Cadastre um tênis na seção Tênis da página Treinos.</p>
           </div>
@@ -232,14 +231,13 @@ export default function ShoePickerModal({
 
         {/* Error message */}
         {error && (
-          <div className="border-t border-border py-3 px-4">
+          <div className="border-t border-border py-3">
             <p className="text-sm text-destructive text-center">{error}</p>
           </div>
         )}
-
         </div>
-        {/* Footer */}
-        <div className="border-t border-border py-3 flex items-center justify-end gap-2 flex-wrap overflow-x-hidden px-4">
+        {/* Footer (fixo no fundo) */}
+        <div className="border-t border-border pt-4 pb-8 px-6 flex items-center justify-end gap-2 flex-wrap overflow-x-hidden sticky bottom-0 bg-background">
           {isEditing && (
             <button
               onClick={handleRemove}
@@ -373,7 +371,7 @@ function ShoeModalItem({
           {!isRetired && inferredType && !isDefault && (
             <button
               onClick={onSetDefault}
-              className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent/10 transition-colors whitespace-nowrap"
+              className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent/10 transition-colors"
             >
               Definir como padrão para {formatInferredType(inferredType ?? "")}
             </button>
