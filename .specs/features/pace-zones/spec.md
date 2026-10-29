@@ -105,8 +105,8 @@ O app tem a página de perfil com cards para "Zonas de FC" e "Equipamentos", mas
 
 | Requirement ID | Story | Phase | Status |
 |----------------|-------|-------|--------|
-| PZ-01 | P1: Visualizar zonas | In Tasks | Pending |
-| PZ-02 | P1: Visualizar zonas | Design | Pending |
+| PZ-01 | P1: Visualizar zonas | In Tasks | Implementing |
+| PZ-02 | P1: Visualizar zonas | In Tasks | Implementing |
 | PZ-03 | P1: Visualizar zonas | Design | Pending |
 | PZ-04 | P1: Visualizar zonas (error) | Design | Pending |
 | PZ-05 | P1: Visualizar zonas (auth) | Design | Pending |

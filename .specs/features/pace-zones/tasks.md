@@ -139,13 +139,13 @@ T8
 - Skill: NONE
 
 **Done when**:
-- [ ] Function `_migrate_vdot_zone_configs()` added
-- [ ] Creates table if not exists (raw SQL idempotent)
-- [ ] Creates index if not exists
-- [ ] Seeds one row for DEFAULT_USER_ID from `vdot_zones.json` (reads via `get_settings().vdot_zones_path`)
-- [ ] Idempotent: re-running doesn't duplicate
-- [ ] Added to `_migrate_schema()` call chain
-- [ ] `init_db()` works without errors
+- [x] Function `_migrate_vdot_zone_configs()` added
+- [x] Creates table if not exists (raw SQL idempotent)
+- [x] Creates index if not exists
+- [x] Seeds one row for DEFAULT_USER_ID from `vdot_zones.json` (reads via `get_settings().vdot_zones_path`)
+- [x] Idempotent: re-running doesn't duplicate
+- [x] Added to `_migrate_schema()` call chain
+- [x] `init_db()` works without errors
 
 **Tests**: integration
 **Gate**: full
