@@ -338,11 +338,11 @@ T8
 - Skill: NONE
 
 **Done when**:
-- [ ] Third card added in `PanelSection` with index={3}
-- [ ] Title: "Zonas de Ritmo", subtitle: "Seu VDOT e zonas de ritmo (Easy, Maratona, Limiar, Intervalado, Repetição) calculados pela calibração de Jack Daniels"
-- [ ] Icon: stopwatch/clock SVG (distinct from heart and shoe)
-- [ ] Link to `/pace-zones`
-- [ ] Build gate passes: `cd frontend && npm run build && npm run lint`
+- [x] Third card added in `PanelSection` with index={3}
+- [x] Title: "Zonas de Ritmo", subtitle: "Seu VDOT e zonas de ritmo (Easy, Maratona, Limiar, Intervalado, Repetição) calculados pela calibração de Jack Daniels"
+- [x] Icon: stopwatch/clock SVG (distinct from heart and shoe)
+- [x] Link to `/pace-zones`
+- [x] Build gate passes: `cd frontend && npm run build`
 
 **Tests**: none
 **Gate**: build

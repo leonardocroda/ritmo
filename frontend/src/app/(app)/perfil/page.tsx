@@ -116,6 +116,38 @@ export default function PerfilPage() {
               </svg>
             </Link>
           </PanelSection>
+          <PanelSection
+            index={3}
+            title="Zonas de Ritmo"
+            subtitle="Seu VDOT e zonas de ritmo (Easy, Maratona, Limiar, Intervalado, Repetição) calculados pela calibração de Jack Daniels."
+          >
+            <Link
+              href="/pace-zones"
+              className="flex items-center justify-between gap-3 rounded-card border border-border bg-card px-4 py-3 hover:border-accent/40"
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-full bg-accent/15 text-accent">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 2v4" />
+                    <path d="M12 18v4" />
+                    <path d="M4.93 4.93l2.83 2.83" />
+                    <path d="M16.24 16.24l2.83 2.83" />
+                    <path d="M2 12h4" />
+                    <path d="M18 12h4" />
+                    <path d="M4.93 19.07l2.83-2.83" />
+                    <path d="M16.24 7.76l2.83-2.83" />
+                  </svg>
+                </span>
+                <div>
+                  <p className="font-medium">Zonas de Ritmo</p>
+                  <p className="text-sm text-muted">VDOT, 5 zonas e equivalências de prova</p>
+                </div>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-muted shrink-0">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </Link>
+          </PanelSection>
         </>
       )}
     </main>
