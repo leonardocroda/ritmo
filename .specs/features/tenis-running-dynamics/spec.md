@@ -131,7 +131,7 @@ O Ritmo já guarda splits de cada corrida (distância, duração, pace, FC, cad�
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
 | TRD-01 | P1: Colunas na Split | Implementing | Verified |
-| TRD-02 | P1: Volta sem dado = NULL | Design | Pending |
+| TRD-02 | P1: Volta sem dado = NULL | Design | Verified |
 | TRD-03 | P1: Unique constraint intacto | Implementing | Verified |
 | TRD-04 | P1: Mapper extrai 4 métricas | Implementing | Verified |
 | TRD-05 | P1: Campo ausente -> None | Implementing | Verified |
@@ -150,7 +150,7 @@ O Ritmo já guarda splits de cada corrida (distância, duração, pace, FC, cad�
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 15 total, 0 mapped to tasks, 0 unmapped
+**Coverage:** 15 total, 15 mapped to tasks, 0 unmapped
 
 ---
 
