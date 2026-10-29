@@ -13,7 +13,6 @@ import Link from "next/link";
 import {
   getActivityDetail,
   getEvaluation,
-  setActivityShoe,
   ApiError,
   type ActivityDetailOut,
   type EvaluationOut,
@@ -131,9 +130,9 @@ export default function WorkoutDetail({ id }: { id: number }) {
     }
   }, [state]);
 
-  const handleShoeAssigned = async (shoe: { id: number; name: string; brand: string | null; model: string | null; status: string }) => {
+  const handleShoeAssigned = async (_shoe: { id: number; name: string; brand: string | null; model: string | null; status: string }) => {
     setShowShoeModal(false);
-    // Refetch do detail para mostrar o badge
+    // Refetch do detail para mostrar o badge (ou remover se shoe.id === 0)
     try {
       const fresh = await getActivityDetail(id);
       setState({ kind: "ready", detail: fresh });
@@ -257,7 +256,24 @@ export default function WorkoutDetail({ id }: { id: number }) {
               Avaliado
             </span>
           )}
-          {shoe !== null && (
+          {shoe !== null && isRunning && (
+            <button
+              onClick={() => setShowShoeModal(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setShowShoeModal(true);
+                }
+              }}
+              tabIndex={0}
+              role="button"
+              aria-label={`Trocar tênis: ${shoe.name}`}
+              className="rounded-full bg-accent/15 px-2 py-0.5 text-sm font-medium text-accent hover:bg-accent/25 transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
+            >
+              {shoe.name}
+            </button>
+          )}
+          {shoe !== null && !isRunning && (
             <span className="rounded-full bg-accent/15 px-2 py-0.5 text-sm font-medium text-accent">
               {shoe.name}
             </span>
@@ -414,13 +430,14 @@ export default function WorkoutDetail({ id }: { id: number }) {
         </section>
       )}
 
-      {/* Modal de seleção de tênis (T10): abre 1x por visita para corrida sem tênis */}
+      {/* Modal de seleção de tênis (T10): abre 1x por visita para corrida sem tênis, ou ao clicar no badge */}
       {showShoeModal && (
         <ShoePickerModal
           activityId={activity.id}
           inferredType={activity.inferred_type}
           onAssigned={handleShoeAssigned}
           onDismiss={handleShoeDismissed}
+          currentShoeId={shoe?.id ?? null}
         />
       )}
     </main>

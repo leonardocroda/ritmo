@@ -15,6 +15,7 @@ type ShoePickerModalProps = {
   inferredType: string | null;
   onAssigned: (shoe: ShoeSummary) => void;
   onDismiss: () => void;
+  currentShoeId?: number | null;
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -37,10 +38,14 @@ export default function ShoePickerModal({
   inferredType,
   onAssigned,
   onDismiss,
+  currentShoeId,
 }: ShoePickerModalProps) {
   const [shoes, setShoes] = useState<Shoe[]>([]);
   const [loading, setLoading] = useState(true);
   const [defaultByType, setDefaultByType] = useState<Record<string, number>>({});
+  const [error, setError] = useState<string | null>(null);
+
+  const isEditing = currentShoeId !== undefined;
 
   // Carrega preferências do localStorage
   useEffect(() => {
@@ -74,6 +79,11 @@ export default function ShoePickerModal({
 
   const sortShoes = (shoeList: Shoe[]) => {
     return [...shoeList].sort((a, b) => {
+      // Atual primeiro (quando editando)
+      const aIsCurrent = a.id === currentShoeId;
+      const bIsCurrent = b.id === currentShoeId;
+      if (aIsCurrent && !bIsCurrent) return -1;
+      if (!aIsCurrent && bIsCurrent) return 1;
       // Padrão do tipo primeiro
       const aIsDefault = a.id === defaultShoeId;
       const bIsDefault = b.id === defaultShoeId;
@@ -91,12 +101,27 @@ export default function ShoePickerModal({
 
   const handleChoose = async (shoe: Shoe) => {
     try {
+      setError(null);
       const result = await setActivityShoe(activityId, shoe.id);
       if (result.shoe) {
         onAssigned(result.shoe);
       }
     } catch (err) {
       console.error("Erro ao associar tênis:", err);
+      setError("Erro ao associar tênis. Tente novamente.");
+    }
+  };
+
+  const handleRemove = async () => {
+    try {
+      setError(null);
+      const result = await setActivityShoe(activityId, null);
+      if (result.shoe === null) {
+        onAssigned({ id: 0, name: "", brand: null, model: null, status: "ativo" } as ShoeSummary);
+      }
+    } catch (err) {
+      console.error("Erro ao remover tênis:", err);
+      setError("Erro ao remover tênis. Tente novamente.");
     }
   };
 
@@ -162,6 +187,7 @@ export default function ShoePickerModal({
                   key={shoe.id}
                   shoe={shoe}
                   isDefault={shoe.id === defaultShoeId}
+                  isCurrent={shoe.id === currentShoeId}
                   inferredType={inferredType}
                   onChoose={() => handleChoose(shoe)}
                   onSetDefault={() => handleSetDefault(shoe)}
@@ -183,6 +209,7 @@ export default function ShoePickerModal({
                   key={shoe.id}
                   shoe={shoe}
                   isDefault={false}
+                  isCurrent={shoe.id === currentShoeId}
                   inferredType={inferredType}
                   isRetired={true}
                   onChoose={() => handleChoose(shoe)}
@@ -201,13 +228,28 @@ export default function ShoePickerModal({
           </div>
         )}
 
+        {/* Error message */}
+        {error && (
+          <div className="border-t border-border px-4 py-3">
+            <p className="text-sm text-destructive text-center">{error}</p>
+          </div>
+        )}
+
         {/* Footer */}
         <div className="border-t border-border px-4 py-3 flex items-center justify-end gap-2">
+          {isEditing && (
+            <button
+              onClick={handleRemove}
+              className="rounded-full border border-destructive/30 bg-card px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              Remover tênis
+            </button>
+          )}
           <button
             onClick={handleDismiss}
             className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent/10 transition-colors"
           >
-            Agora não
+            {isEditing ? "Cancelar" : "Agora não"}
           </button>
         </div>
       </div>
@@ -218,6 +260,7 @@ export default function ShoePickerModal({
 function ShoeModalItem({
   shoe,
   isDefault,
+  isCurrent,
   inferredType,
   isRetired = false,
   onChoose,
@@ -225,6 +268,7 @@ function ShoeModalItem({
 }: {
   shoe: Shoe;
   isDefault: boolean;
+  isCurrent?: boolean;
   inferredType: string | null;
   isRetired?: boolean;
   onChoose: () => void;
@@ -235,10 +279,15 @@ function ShoeModalItem({
   return (
     <div
       className={`relative rounded-card border border-border bg-card p-3 ${
-        isDefault ? "ring-2 ring-accent" : ""
+        isCurrent ? "ring-2 ring-accent" : isDefault ? "ring-2 ring-accent" : ""
       } ${isRetired ? "opacity-60" : ""}`}
     >
-      {isDefault && (
+      {isCurrent && (
+        <span className="absolute -top-2 -right-2 rounded-full bg-accent px-1.5 py-0.5 text-xs font-medium text-accent-foreground">
+          Atual
+        </span>
+      )}
+      {isDefault && !isCurrent && (
         <span className="absolute -top-2 -right-2 rounded-full bg-accent/15 px-1.5 py-0.5 text-xs font-medium text-accent">
           Padrão
         </span>
@@ -305,13 +354,18 @@ function ShoeModalItem({
         </div>
 
         <div className="flex flex-col items-end gap-1 shrink-0">
-          {!isRetired && (
+          {!isRetired && !isCurrent && (
             <button
               onClick={onChoose}
               className="rounded-full bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent/90 transition-colors"
             >
               Escolher
             </button>
+          )}
+          {isCurrent && !isRetired && (
+            <span className="rounded-full bg-accent/15 px-3 py-1.5 text-sm font-medium text-accent">
+              Selecionado
+            </span>
           )}
           {!isRetired && inferredType && !isDefault && (
             <button
