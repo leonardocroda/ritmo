@@ -217,6 +217,11 @@ def get_activity_detail(
                 "intensity_type": split.intensity_type,
                 "zone": item.zone,
                 "km_label": _km_label(cumulative_m),
+                # Running dynamics — null quando o lapDTO nao trouxe o dado.
+                "gct_ms": split.ground_contact_time_ms,
+                "stride_cm": split.stride_length_cm,
+                "vert_osc_cm": split.vertical_oscillation_cm,
+                "vert_ratio": split.vertical_ratio,
             }
         )
 

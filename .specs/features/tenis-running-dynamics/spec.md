@@ -143,8 +143,8 @@ O Ritmo já guarda splits de cada corrida (distância, duração, pace, FC, cad�
 | TRD-11 | P2: Idempotência (re-run) | Implementing | Verified |
 | TRD-12 | P2: Atividade inexistente -> erro | Implementing | Verified |
 | TRD-13 | P2: Apenas running/trail_running | Implementing | Verified |
-| TRD-14 | P2: SplitOut expõe 4 campos | Design | Pending |
-| TRD-15 | P2: Sem dado -> null nos campos | Design | Pending |
+| TRD-14 | P2: SplitOut expõe 4 campos | Implementing | Verified |
+| TRD-15 | P2: Sem dado -> null nos campos | Implementing | Verified |
 
 **ID format:** `TRD-NN`
 

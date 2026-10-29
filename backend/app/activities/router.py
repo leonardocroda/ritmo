@@ -77,6 +77,12 @@ class SplitOut(BaseModel):
     intensity_type: str | None
     zone: str | None
     km_label: str
+    # Running dynamics (feature tenis-running-dynamics) — null quando o
+    # lapDTO do Garmin nao trouxe o dado.
+    gct_ms: int | None
+    stride_cm: float | None
+    vert_osc_cm: float | None
+    vert_ratio: float | None
 
 
 class ZoneMetaOut(BaseModel):
