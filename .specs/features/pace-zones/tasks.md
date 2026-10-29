@@ -196,12 +196,12 @@ T8
 - Skill: NONE
 
 **Done when**:
-- [ ] New function `save_calibration_to_db(user_id: int, calibration_data: dict)` added
-- [ ] Upsert logic: if row exists for user, update; else insert
-- [ ] JSON file still written (backward compatibility)
-- [ ] Transaction: DB commit + JSON write (JSON last, append-only)
-- [ ] CLI still works: `python calibrate_vdot.py` runs end-to-end
-- [ ] Gate: `pytest backend/tests/test_vdot_calibration_db.py -v` passes (new test file)
+- [x] New function `save_calibration_to_db(user_id: int, calibration_data: dict)` added
+- [x] Upsert logic: if row exists for user, update; else insert
+- [x] JSON file still written (backward compatibility)
+- [x] Transaction: DB commit + JSON write (JSON last, append-only)
+- [x] CLI still works: `python calibrate_vdot.py` runs end-to-end
+- [x] Gate: `pytest backend/tests/test_vdot_calibration_db.py -v` passes (new test file)
 
 **Tests**: integration
 **Gate**: full

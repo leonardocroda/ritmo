@@ -27,6 +27,9 @@ from datetime import date
 from pathlib import Path
 
 from app.vdot.daniels import calculate_vdot, equivalent_time, pace_for_fraction
+from app.db.engine import SessionLocal
+from app.db.models import VdotZoneConfig, DEFAULT_USER_ID
+from app.core.config import get_settings
 
 # Fix encoding for Windows terminals
 if hasattr(sys.stdout, "reconfigure"):
@@ -282,7 +285,7 @@ def entrevista_interativa() -> dict:
 
 def verificar_config_existente() -> dict | None:
     """Verifica se já existe uma configuração salva."""
-    config_path = Path(__file__).parent / "vdot_zones.json"
+    config_path = Path(get_settings().vdot_zones_path)
 
     if not config_path.exists():
         return None
@@ -296,12 +299,51 @@ def verificar_config_existente() -> dict | None:
 
 def salvar_config(config: dict) -> None:
     """Salva a configuração no arquivo JSON."""
-    config_path = Path(__file__).parent / "vdot_zones.json"
+    config_path = Path(get_settings().vdot_zones_path)
 
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
     print(f"✅ Configuração salva em: {config_path}")
+
+
+def save_calibration_to_db(config: dict, user_id: int = DEFAULT_USER_ID) -> None:
+    """Salva a calibração no banco de dados (upsert por user_id).
+
+    Transação: commit no DB + escrita no JSON (JSON por último para
+    compatibilidade com painéis legacy que ainda leem o arquivo).
+    """
+    with SessionLocal() as db:
+        # Verificar se já existe linha para o usuário
+        existing = db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).first()
+
+        if existing:
+            # Atualizar existente (upsert)
+            existing.vdot = config["vdot"]
+            existing.source = config["source"]
+            existing.test_date = date.fromisoformat(config["test_date"])
+            existing.distance_m = config["distancia_metros"]
+            existing.time_s = config["tempo_segundos"]
+            existing.zones = config["zones"]
+            existing.equivalencias = config["equivalencias"]
+            existing.valid_from = date.fromisoformat(config["test_date"])
+        else:
+            # Inserir nova
+            new_config = VdotZoneConfig(
+                user_id=user_id,
+                vdot=config["vdot"],
+                source=config["source"],
+                test_date=date.fromisoformat(config["test_date"]),
+                distance_m=config["distancia_metros"],
+                time_s=config["tempo_segundos"],
+                zones=config["zones"],
+                equivalencias=config["equivalencias"],
+                valid_from=date.fromisoformat(config["test_date"]),
+            )
+            db.add(new_config)
+
+        db.commit()
+        print(f"✅ Calibração salva no banco para user_id={user_id}")
 
 
 def mostrar_config_existente(config: dict) -> None:
@@ -360,6 +402,7 @@ def main():
     # Rodar entrevista
     config = entrevista_interativa()
     salvar_config(config)
+    save_calibration_to_db(config)
 
     print()
     print("🎉 Calibração concluída!")
