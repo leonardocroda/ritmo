@@ -113,6 +113,12 @@ class Split(Base):
     avg_temperature: Mapped[float | None] = mapped_column(Float)
     elevation_m: Mapped[float | None] = mapped_column(Float)
     intensity_type: Mapped[str | None] = mapped_column(String(30))
+    # Running dynamics (feature tenis-running-dynamics) — todas nullable:
+    # volta sem dado = NULL, nunca zero inventado.
+    ground_contact_time_ms: Mapped[int | None] = mapped_column(Integer)  # GCT (ms)
+    stride_length_cm: Mapped[float | None] = mapped_column(Float)  # comprimento de passada (cm)
+    vertical_oscillation_cm: Mapped[float | None] = mapped_column(Float)  # oscilação vertical (cm)
+    vertical_ratio: Mapped[float | None] = mapped_column(Float)  # ratio vertical
 
 
 class Sleep(Base):

@@ -101,6 +101,46 @@ def _migrate_activities_shoe_id() -> None:
         conn.execute(text("CREATE INDEX ix_activities_shoe_id ON activities (shoe_id)"))
 
 
+def _migrate_splits_running_dynamics() -> None:
+    """Migração idempotente das colunas de running dynamics em ``splits``
+    (feature tenis-running-dynamics).
+
+    Condicional POR COLUNA: cada coluna só é adicionada se ainda não
+    existir — permite re-run parcial (ex.: base que já tem 3 das 4
+    colunas) sem `DuplicateColumn`. Executa em transação própria para
+    isolar falhas.
+    """
+    with engine.begin() as conn:
+        columns = {
+            row[0]
+            for row in conn.execute(
+                text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name = 'splits'"
+                )
+            )
+        }
+        if "ground_contact_time_ms" not in columns:
+            conn.execute(
+                text("ALTER TABLE splits ADD COLUMN ground_contact_time_ms INTEGER")
+            )
+        if "stride_length_cm" not in columns:
+            conn.execute(
+                text("ALTER TABLE splits ADD COLUMN stride_length_cm DOUBLE PRECISION")
+            )
+        if "vertical_oscillation_cm" not in columns:
+            conn.execute(
+                text(
+                    "ALTER TABLE splits ADD COLUMN vertical_oscillation_cm "
+                    "DOUBLE PRECISION"
+                )
+            )
+        if "vertical_ratio" not in columns:
+            conn.execute(
+                text("ALTER TABLE splits ADD COLUMN vertical_ratio DOUBLE PRECISION")
+            )
+
+
 def _migrate_vdot_zone_configs() -> None:
     """Migração idempotente da tabela ``vdot_zone_configs`` (feature pace-zones).
 
@@ -142,6 +182,7 @@ def _migrate_schema() -> None:
     bloco independente. Ordem: users (auth) → activities (tenis) → vdot zones (pace-zones)."""
     _migrate_users_columns()
     _migrate_activities_shoe_id()
+    _migrate_splits_running_dynamics()
     _migrate_vdot_zone_configs()
 
 
