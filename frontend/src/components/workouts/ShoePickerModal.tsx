@@ -170,20 +170,20 @@ export default function ShoePickerModal({
         onClick={(e) => e.stopPropagation()}
         style={{ maxHeight: "90vh" }}
       >
-        <div className="overflow-y-auto overflow-x-hidden px-4" style={{ maxHeight: "calc(90vh - 120px)", scrollbarGutter: "stable" }}>
+        <div className="overflow-y-auto overflow-x-hidden" style={{ maxHeight: "calc(90vh - 120px)", scrollbarGutter: "stable" }}>
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-4 py-3 -mx-4">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h2 className="font-semibold">Qual tênis foi usado?</h2>
           <p className="text-sm text-muted">{typeLabel}</p>
         </div>
 
         {/* Lista de tênis ativos */}
         {sortedActive.length > 0 && (
-          <div className="py-4">
-            <h3 className="text-xs font-medium text-muted uppercase tracking-wider mb-3 px-4">
+          <div className="py-4 px-4">
+            <h3 className="text-xs font-medium text-muted uppercase tracking-wider mb-3">
               Tênis ativos
             </h3>
-            <div className="space-y-2 max-h-80 overflow-y-auto overflow-x-hidden">
+            <div className="space-y-2 max-h-80 overflow-y-auto">
               {sortedActive.map((shoe) => (
                 <ShoeModalItem
                   key={shoe.id}
@@ -201,11 +201,11 @@ export default function ShoePickerModal({
 
         {/* Lista de tênis aposentados */}
         {sortedRetired.length > 0 && (
-          <div className="border-t border-border py-4">
-            <h3 className="text-xs font-medium text-muted uppercase tracking-wider mb-3 px-4">
+          <div className="border-t border-border py-4 px-4">
+            <h3 className="text-xs font-medium text-muted uppercase tracking-wider mb-3">
               Aposentados (atribuição retroativa)
             </h3>
-            <div className="space-y-2 max-h-40 overflow-y-auto overflow-x-hidden">
+            <div className="space-y-2 max-h-40 overflow-y-auto">
               {sortedRetired.map((shoe) => (
                 <ShoeModalItem
                   key={shoe.id}
@@ -239,7 +239,7 @@ export default function ShoePickerModal({
 
         </div>
         {/* Footer */}
-        <div className="border-t border-border py-3 flex items-center justify-end gap-2 flex-wrap overflow-x-hidden -mx-4 px-4">
+        <div className="border-t border-border py-3 flex items-center justify-end gap-2 flex-wrap overflow-x-hidden px-4">
           {isEditing && (
             <button
               onClick={handleRemove}
