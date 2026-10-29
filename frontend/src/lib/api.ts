@@ -848,6 +848,39 @@ export async function getGarminConnection(): Promise<GarminConnectionOut> {
   return (await res.json()) as GarminConnectionOut;
 }
 
+// ---- Perfil: zonas de ritmo (VDOT) (feature pace-zones) ----
+
+/** Zona de ritmo (VDOT) — key + pace/pace_range + ms/ms_min/ms_max + description. */
+export type PaceZone = {
+  key: "easy" | "marathon" | "threshold" | "interval" | "repetition";
+  pace_range?: string;
+  pace?: string;
+  ms_min?: number;
+  ms_max?: number;
+  ms?: number;
+  description: string;
+};
+
+/** Espelho do `PaceZonesOut` — VDOT, fonte, teste, 5 zonas, equivalências. */
+export type PaceZonesOut = {
+  vdot: number;
+  source: string;
+  test_date: string;
+  distancia_metros: number;
+  tempo_segundos: number;
+  zones: Record<"easy" | "marathon" | "threshold" | "interval" | "repetition", PaceZone>;
+  equivalencias: Record<string, string>;
+};
+
+/** Zonas de ritmo vigentes hoje — VDOT + 5 zonas + equivalências de prova. */
+export async function getPaceZones(): Promise<PaceZonesOut> {
+  const res = await apiFetch("/api/profile/pace-zones", {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as PaceZonesOut;
+}
+
 // ---- Tênis: contratos do design tenis ----
 
 /** Resumo do tênis para listas e associação (espelho do ShoeSummaryOut). */

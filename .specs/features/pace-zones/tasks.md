@@ -254,10 +254,10 @@ T8
 - Skill: NONE
 
 **Done when**:
-- [ ] TypeScript types match backend response shape exactly
-- [ ] `getPaceZones()` function added with proper error handling
-- [ ] No TypeScript errors
-- [ ] Build gate passes: `cd frontend && npm run build`
+- [x] TypeScript types match backend response shape exactly
+- [x] `getPaceZones()` function added with proper error handling
+- [x] No TypeScript errors
+- [x] Build gate passes: `cd frontend && npm run build`
 
 **Tests**: none
 **Gate**: build
