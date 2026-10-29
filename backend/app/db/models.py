@@ -400,7 +400,7 @@ class VdotZoneConfig(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), default=DEFAULT_USER_ID, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), default=DEFAULT_USER_ID, index=True)
     vdot: Mapped[float] = mapped_column(Float)
     source: Mapped[str] = mapped_column(String(60))
     test_date: Mapped[date] = mapped_column(Date)

@@ -169,10 +169,10 @@ T8
 - Skill: NONE
 
 **Done when**:
-- [ ] Test file created
-- [ ] Tests: model instantiation, FK to user, JSON fields accept dict, index exists, valid_from date
-- [ ] All tests pass
-- [ ] Gate: `pytest backend/tests/test_vdot_zone_configs_model.py -v` passes
+- [x] Test file created
+- [x] Tests: model instantiation, FK to user, JSON fields accept dict, index exists, valid_from date
+- [x] All tests pass
+- [x] Gate: `pytest backend/tests/test_vdot_zone_configs_model.py -v` passes
 
 **Tests**: unit
 **Gate**: quick
