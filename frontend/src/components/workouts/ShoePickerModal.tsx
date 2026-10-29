@@ -166,10 +166,11 @@ export default function ShoePickerModal({
       aria-label="Selecionar tênis"
     >
       <div
-        className="w-full max-w-md mx-4 bg-background rounded-card border border-border overflow-hidden"
+        className="w-full max-w-md mx-4 bg-background rounded-card border border-border"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxHeight: "90vh", overflow: "auto" }}
+        style={{ maxHeight: "90vh" }}
       >
+        <div className="overflow-y-auto overflow-x-hidden" style={{ maxHeight: "calc(90vh - 120px)" }}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h2 className="font-semibold">Qual tênis foi usado?</h2>
@@ -236,6 +237,7 @@ export default function ShoePickerModal({
           </div>
         )}
 
+        </div>
         {/* Footer */}
         <div className="border-t border-border px-4 py-3 flex items-center justify-end gap-2 flex-wrap overflow-x-hidden">
           {isEditing && (
@@ -284,7 +286,7 @@ function ShoeModalItem({
       } ${isRetired ? "opacity-60" : ""}`}
     >
       {isCurrent && (
-        <span className="absolute -top-2 -right-2 rounded-full bg-accent px-1.5 py-0.5 text-xs font-medium text-accent-foreground">
+        <span className="absolute -top-2 -right-2 rounded-full bg-accent px-1.5 py-0.5 text-xs font-medium text-neutral-900 dark:text-neutral-100">
           Atual
         </span>
       )}
@@ -358,7 +360,7 @@ function ShoeModalItem({
           {!isRetired && !isCurrent && (
             <button
               onClick={onChoose}
-              className="rounded-full bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent/90 transition-colors"
+              className="rounded-full bg-accent px-3 py-1.5 text-sm font-medium text-neutral-900 dark:text-neutral-100 hover:bg-accent/90 transition-colors"
             >
               Escolher
             </button>
