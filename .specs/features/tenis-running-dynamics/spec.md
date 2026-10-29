@@ -133,9 +133,9 @@ O Ritmo já guarda splits de cada corrida (distância, duração, pace, FC, cad�
 | TRD-01 | P1: Colunas na Split | Implementing | Verified |
 | TRD-02 | P1: Volta sem dado = NULL | Design | Pending |
 | TRD-03 | P1: Unique constraint intacto | Implementing | Verified |
-| TRD-04 | P1: Mapper extrai 4 métricas | Design | Pending |
-| TRD-05 | P1: Campo ausente -> None | Design | Pending |
-| TRD-06 | P1: lapDTO vazio -> [] | Design | Pending |
+| TRD-04 | P1: Mapper extrai 4 métricas | Implementing | Verified |
+| TRD-05 | P1: Campo ausente -> None | Implementing | Verified |
+| TRD-06 | P1: lapDTO vazio -> [] | Implementing | Verified |
 | TRD-07 | P1: Método client typed splits | Design | Pending |
 | TRD-08 | P1: Sem splits -> vazio/sem erro | Design | Pending |
 | TRD-09 | P1: Chamada contada no orçamento | Design | Pending |

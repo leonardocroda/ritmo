@@ -104,6 +104,14 @@ def map_splits(raw: dict | list | None) -> list[dict]:
                 "avg_temperature": lap.get("averageTemperature"),
                 "elevation_m": lap.get("elevationGain"),
                 "intensity_type": lap.get("intensityType"),
+                # Running dynamics (feature tenis-running-dynamics): todos
+                # nullable — ausente no lapDTO = None, nunca zero inventado.
+                # Chaves aterrissadas contra o lapDTO real do garmin_mcp do
+                # usuário (mesma lib garminconnect==0.3.2).
+                "gct_ms": lap.get("groundContactTime"),
+                "stride_cm": lap.get("strideLength"),
+                "vert_osc_cm": lap.get("verticalOscillation"),
+                "vert_ratio": lap.get("verticalRatio"),
             }
         )
     return rows
