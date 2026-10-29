@@ -105,17 +105,17 @@ O app tem a página de perfil com cards para "Zonas de FC" e "Equipamentos", mas
 
 | Requirement ID | Story | Phase | Status |
 |----------------|-------|-------|--------|
-| PZ-01 | P1: Visualizar zonas | In Tasks | Done |
-| PZ-02 | P1: Visualizar zonas | In Tasks | Done |
-| PZ-03 | P1: Visualizar zonas | In Tasks | Done |
-| PZ-04 | P1: Visualizar zonas (error) | In Tasks | Done |
-| PZ-05 | P1: Visualizar zonas (auth) | In Tasks | Done |
-| PZ-06 | P1: Card no perfil | In Tasks | Done |
-| PZ-07 | P1: Card no perfil | In Tasks | Done |
-| PZ-08 | P1: Card no perfil | In Tasks | Done |
-| PZ-09 | P2: Botão recalibrar | In Tasks | Done |
-| PZ-10 | P2: Botão recalibrar | In Tasks | Done |
-| PZ-11 | P2: Botão recalibrar | In Tasks | Done |
+| PZ-01 | P1: Visualizar zonas | Execute | Done |
+| PZ-02 | P1: Visualizar zonas | Execute | Done |
+| PZ-03 | P1: Visualizar zonas | Execute | Done |
+| PZ-04 | P1: Visualizar zonas (error) | Execute | Done |
+| PZ-05 | P1: Visualizar zonas (auth) | Execute | Done |
+| PZ-06 | P1: Card no perfil | Execute | Done |
+| PZ-07 | P1: Card no perfil | Execute | Done |
+| PZ-08 | P1: Card no perfil | Execute | Done |
+| PZ-09 | P2: Botão recalibrar | Execute | Done |
+| PZ-10 | P2: Botão recalibrar | Execute | Done |
+| PZ-11 | P2: Botão recalibrar | Execute | Done |
 
 **ID format:** `PZ-[NUMBER]`
 
