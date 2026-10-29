@@ -185,6 +185,17 @@ class GarminGateway:
     def get_splits(self, activity_id: int) -> dict | None:
         return self._call(lambda: self._garmin.get_activity_splits(str(activity_id)))
 
+    def get_activity_splits_typed(self, activity_id: int) -> dict | None:
+        """Typed splits (lapDTOs completos, com running dynamics) de uma
+        atividade — backfill sob demanda, sem re-pull de listagens.
+
+        Conta 1 chamada no orçamento (`_call`) com backoff (2,4,8) em 429/5xx.
+        Atividade sem splits -> lista vazia/None sem erro.
+        """
+        return self._call(
+            lambda: self._garmin.get_activity_splits(str(activity_id))
+        )
+
     def get_sleep(self, day: date) -> dict | None:
         return self._call(lambda: self._garmin.get_sleep_data(day.isoformat()))
 
