@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 import PanelSection from "@/components/PanelSection";
 import Skeleton from "@/components/Skeleton";
+import RecalibrateModal from "@/components/profile/RecalibrateModal";
 import { getPaceZones, type PaceZonesOut } from "@/lib/api";
 
 type PageState =
@@ -14,6 +14,7 @@ type PageState =
 
 export default function PaceZonesPage() {
   const [state, setState] = useState<PageState>({ kind: "loading" });
+  const [showRecalibrate, setShowRecalibrate] = useState(false);
 
   useEffect(() => {
     getPaceZones()
@@ -146,9 +147,10 @@ export default function PaceZonesPage() {
             title="Recalibração"
             subtitle="Atualize seu VDOT quando fizer um novo teste máximo."
           >
-            <Link
-              href="/perfil"
-              className="flex items-center gap-3 rounded-card border border-border bg-card px-4 py-3 hover:border-accent/40"
+            <button
+              type="button"
+              onClick={() => setShowRecalibrate(true)}
+              className="flex w-full items-center gap-3 rounded-card border border-border bg-card px-4 py-3 hover:border-accent/40 text-left"
             >
               <div className="flex items-center gap-3">
                 <span className="flex size-9 items-center justify-center rounded-full bg-accent/15 text-accent">
@@ -159,17 +161,19 @@ export default function PaceZonesPage() {
                   </svg>
                 </span>
                 <div>
-                  <p className="font-medium">Zonas de FC</p>
-                  <p className="text-sm text-muted">Valores, método, zonas e histórico</p>
+                  <p className="font-medium">Recalibrar VDOT</p>
+                  <p className="text-sm text-muted">Executar entrevista interativa no terminal do servidor</p>
                 </div>
               </div>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-muted shrink-0">
                 <path d="M9 18l6-6-6-6" />
               </svg>
-            </Link>
+            </button>
           </PanelSection>
         </>
       )}
+
+      <RecalibrateModal isOpen={showRecalibrate} onClose={() => setShowRecalibrate(false)} />
     </main>
   );
 }

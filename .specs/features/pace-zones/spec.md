@@ -113,9 +113,9 @@ O app tem a página de perfil com cards para "Zonas de FC" e "Equipamentos", mas
 | PZ-06 | P1: Card no perfil | In Tasks | Done |
 | PZ-07 | P1: Card no perfil | In Tasks | Done |
 | PZ-08 | P1: Card no perfil | In Tasks | Done |
-| PZ-09 | P2: Botão recalibrar | Design | Pending |
-| PZ-10 | P2: Botão recalibrar | Design | Pending |
-| PZ-11 | P2: Botão recalibrar | Design | Pending |
+| PZ-09 | P2: Botão recalibrar | In Tasks | Done |
+| PZ-10 | P2: Botão recalibrar | In Tasks | Done |
+| PZ-11 | P2: Botão recalibrar | In Tasks | Done |
 
 **ID format:** `PZ-[NUMBER]`
 

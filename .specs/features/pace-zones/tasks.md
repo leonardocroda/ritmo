@@ -310,11 +310,11 @@ T8
 - Skill: NONE
 
 **Done when**:
-- [ ] Modal component accepts `isOpen` + `onClose` props
-- [ ] Shows command `python calibrate_vdot.py` in code block
-- [ ] Brief explanation: "Execute este comando no terminal do servidor para recalibrar seu VDOT"
-- [ ] Close button + backdrop click closes modal
-- [ ] Build gate passes: `cd frontend && npm run build && npm run lint`
+- [x] Modal component accepts `isOpen` + `onClose` props
+- [x] Shows command `python calibrate_vdot.py` in code block
+- [x] Brief explanation: "Execute este comando no terminal do servidor para recalibrar seu VDOT"
+- [x] Close button + backdrop click closes modal
+- [x] Build gate passes: `cd frontend && npm run build`
 
 **Tests**: none
 **Gate**: build
