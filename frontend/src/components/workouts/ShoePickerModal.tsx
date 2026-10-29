@@ -170,7 +170,7 @@ export default function ShoePickerModal({
         onClick={(e) => e.stopPropagation()}
         style={{ maxHeight: "90vh" }}
       >
-        <div className="overflow-y-auto overflow-x-hidden" style={{ maxHeight: "calc(90vh - 120px)" }}>
+        <div className="overflow-y-auto overflow-x-hidden" style={{ maxHeight: "calc(90vh - 120px)", scrollbarGutter: "stable" }}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h2 className="font-semibold">Qual tênis foi usado?</h2>
@@ -183,7 +183,7 @@ export default function ShoePickerModal({
             <h3 className="text-xs font-medium text-muted uppercase tracking-wider mb-3">
               Tênis ativos
             </h3>
-            <div className="space-y-2 max-h-80 overflow-y-auto overflow-x-hidden pr-4">
+            <div className="space-y-2 max-h-80 overflow-y-auto overflow-x-hidden">
               {sortedActive.map((shoe) => (
                 <ShoeModalItem
                   key={shoe.id}
@@ -205,7 +205,7 @@ export default function ShoePickerModal({
             <h3 className="text-xs font-medium text-muted uppercase tracking-wider mb-3">
               Aposentados (atribuição retroativa)
             </h3>
-            <div className="space-y-2 max-h-40 overflow-y-auto overflow-x-hidden pr-4">
+            <div className="space-y-2 max-h-40 overflow-y-auto overflow-x-hidden">
               {sortedRetired.map((shoe) => (
                 <ShoeModalItem
                   key={shoe.id}
@@ -224,7 +224,7 @@ export default function ShoePickerModal({
 
         {/* Estado vazio */}
         {sortedActive.length === 0 && sortedRetired.length === 0 && (
-          <div className="p-6 pr-4 text-center text-muted">
+          <div className="p-6 text-center text-muted">
             <p className="mb-3">Nenhum tênis cadastrado.</p>
             <p className="text-sm">Cadastre um tênis na seção Tênis da página Treinos.</p>
           </div>
@@ -232,7 +232,7 @@ export default function ShoePickerModal({
 
         {/* Error message */}
         {error && (
-          <div className="border-t border-border px-4 pr-4 py-3">
+          <div className="border-t border-border px-4 py-3">
             <p className="text-sm text-destructive text-center">{error}</p>
           </div>
         )}
