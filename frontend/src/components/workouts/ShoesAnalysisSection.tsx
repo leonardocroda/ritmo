@@ -33,6 +33,8 @@ export default function ShoesAnalysisSection() {
   const [compareB, setCompareB] = useState<number | null>(null);
   const [compareRes, setCompareRes] = useState<AnalysisCompare | null>(null);
   const [compareLoading, setCompareLoading] = useState(false);
+  const [degradation, setDegradation] = useState<DegradationOut | null>(null);
+  const [degradationLoading, setDegradationLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +61,17 @@ export default function ShoesAnalysisSection() {
     load();
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    let cancelled = false;
+    setDegradationLoading(true);
+    getDegradation(selectedId)
+      .then(d => { if (!cancelled) setDegradation(d); })
+      .catch(() => { if (!cancelled) setDegradation(null); })
+      .finally(() => { if (!cancelled) setDegradationLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectedId]);
 
   if (state.kind === "loading") {
     return (
@@ -177,6 +190,34 @@ export default function ShoesAnalysisSection() {
                   {compareRes.pairs.length === 0 && <p className="text-muted">Sem pares válidos.</p>}
                 </div>
               </div>
+            )}
+          </div>
+
+          <div className="rounded-card border border-border bg-card p-4">
+            <h3 className="font-semibold mb-2">Alerta de degradação</h3>
+            {degradationLoading ? (
+              <Skeleton className="h-10 w-full rounded" />
+            ) : degradation ? (
+              degradation.insufficient ? (
+                <p className="text-sm text-muted">Dados insuficientes (mínimo ~150 km).</p>
+              ) : (
+                <div className="text-sm space-y-2">
+                  <p className="text-muted">Total {formatKm(degradation.total_km * 1000)} · {degradation.n_runs ?? 0} corridas · sinais: {degradation.n_signals}</p>
+                  {degradation.signals.length > 0 ? (
+                    <div className="space-y-1">
+                      {degradation.signals.map((s, i) => (
+                        <div key={i} className="rounded border border-border p-2 text-xs">
+                          <span className="font-medium">{s.label}</span> — inicial {s.inicial} {s.unidade} / final {s.final} {s.unidade} · Δ {s.delta} · {s.direcao ?? "-"}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted">Sem sinais detectados.</p>
+                  )}
+                </div>
+              )
+            ) : (
+              <p className="text-sm text-muted">Sem dados de degradação.</p>
             )}
           </div>
         </div>
