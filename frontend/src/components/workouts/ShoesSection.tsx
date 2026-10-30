@@ -35,10 +35,10 @@ function ShoeCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
             <h3 className="font-medium truncate">{shoe.name}</h3>
-            {shoe.brand && (
+            {shoe.brand && shoe.brand !== "undefined" && shoe.brand !== "null" && (
               <span className="text-sm text-muted">{shoe.brand}</span>
             )}
-            {shoe.model && (
+            {shoe.model && shoe.model !== "undefined" && shoe.model !== "null" && (
               <span className="text-sm text-muted">{shoe.model}</span>
             )}
             <span
@@ -128,8 +128,8 @@ function ShoeForm({
 }) {
   const isEditing = shoe !== null;
   const [name, setName] = useState(shoe?.name ?? "");
-  const [brand, setBrand] = useState(shoe?.brand ?? "");
-  const [model, setModel] = useState(shoe?.model ?? "");
+  const [brand, setBrand] = useState(shoe?.brand && shoe.brand !== "undefined" && shoe.brand !== "null" ? shoe.brand : "");
+  const [model, setModel] = useState(shoe?.model && shoe.model !== "undefined" && shoe.model !== "null" ? shoe.model : "");
   const [acquired_date, setAcquiredDate] = useState(
     shoe?.acquired_date?.split("T")[0] ?? "",
   );
