@@ -985,3 +985,102 @@ export async function setActivityShoe(
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as { shoe: ShoeSummary | null };
 }
+
+// ---- Tênis análise comparativa e degradação ----
+
+/** Grupo tipo × banda do perfil de tênis. */
+export type AnalysisGroup = {
+  tipo: string;
+  banda: string;
+  pace_medio_s: number | null;
+  fc_media: number | null;
+  cadencia_media: number | null;
+  n_corridas: number;
+  km_totais: number;
+};
+
+/** Perfil de tênis da análise comparativa. */
+export type AnalysisShoeProfile = {
+  shoe_id: number;
+  total_runs: number;
+  total_km: number;
+  groups: AnalysisGroup[];
+  running_dynamics_adjusted?: Record<string, number[]> | null;
+  ef?: number[] | null;
+  hr_drift?: (number | null)[] | null;
+  fresh_vs_fatigue?: { pace_delta_s: number | null; fc_delta: number | null }[] | null;
+};
+
+/** Par pareado na comparação entre dois tênis. */
+export type AnalysisPair = {
+  shoe_a_id: number;
+  shoe_b_id: number;
+  distance_m: number;
+  pace_a_s: number;
+  pace_b_s: number;
+  delta_pace_s: number;
+  fc_a: number | null;
+  fc_b: number | null;
+  delta_fc: number | null;
+};
+
+/** Resultado da comparação pareada. */
+export type AnalysisCompare = {
+  n_pairs: number;
+  confidence: "baixo" | "medio" | "alto";
+  pairs: AnalysisPair[];
+};
+
+/** Sinal de degradação. */
+export type DegradationSignal = {
+  sinal: string;
+  label: string;
+  inicial: number;
+  final: number;
+  delta: number;
+  unidade: string;
+  direcao?: string;
+  confianca?: string;
+};
+
+/** Resultado de alerta de degradação. */
+export type DegradationOut = {
+  shoe_id: number;
+  total_km: number;
+  n_runs?: number;
+  initial_runs?: number;
+  final_runs?: number;
+  groups?: Record<string, number>;
+  signals: DegradationSignal[];
+  n_signals: number;
+  verdict: null;
+  insufficient?: boolean;
+};
+
+/** Lista perfis de análise de todos os tênis do usuário. */
+export async function getAnalysisShoes(): Promise<AnalysisShoeProfile[]> {
+  const res = await apiFetch("/api/tenis/analysis/shoes", { cache: "no-store" });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as AnalysisShoeProfile[];
+}
+
+/** Detalhe de análise de um tênis específico. */
+export async function getAnalysisShoeDetail(shoeId: number): Promise<AnalysisShoeProfile> {
+  const res = await apiFetch(`/api/tenis/analysis/shoes/${shoeId}`, { cache: "no-store" });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as AnalysisShoeProfile;
+}
+
+/** Compara dois tênis. */
+export async function getAnalysisCompare(shoeA: number, shoeB: number): Promise<AnalysisCompare> {
+  const res = await apiFetch(`/api/tenis/analysis/compare?shoe_a=${shoeA}&shoe_b=${shoeB}`, { cache: "no-store" });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as AnalysisCompare;
+}
+
+/** Alerta de degradação de um tênis. */
+export async function getDegradation(shoeId: number): Promise<DegradationOut> {
+  const res = await apiFetch(`/api/tenis/degradation/${shoeId}`, { cache: "no-store" });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as DegradationOut;
+}
