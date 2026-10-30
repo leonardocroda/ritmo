@@ -107,6 +107,16 @@ def calculate_attribution_30d_pct(db: Session, user_id: int) -> float | None:
     return round((runs_with_shoe / total_runs) * 100, 1)
 
 
+def _normalize_optional_str(v: str | None) -> str | None:
+    """Converte string vazia, 'undefined', 'null' → None."""
+    if v is None:
+        return None
+    s = v.strip()
+    if s == "" or s.lower() in ("undefined", "null"):
+        return None
+    return s
+
+
 def create_shoe(db: Session, user_id: int, data: dict) -> dict:
     """Cria tênis com validações: name não vazio, initial_km >= 0,
     status in {ativo, aposentado}. user_id explícito (nunca default)."""
@@ -125,8 +135,8 @@ def create_shoe(db: Session, user_id: int, data: dict) -> dict:
     shoe = Shoe(
         user_id=user_id,
         name=name,
-        brand=data.get("brand"),
-        model=data.get("model"),
+        brand=_normalize_optional_str(data.get("brand")),
+        model=_normalize_optional_str(data.get("model")),
         acquired_date=data.get("acquired_date"),
         initial_km=initial_km,
         max_km=data.get("max_km"),
@@ -169,10 +179,10 @@ def update_shoe(db: Session, user_id: int, shoe_id: int, patch: dict) -> dict | 
         shoe.name = name
 
     if "brand" in patch:
-        shoe.brand = patch["brand"]
+        shoe.brand = _normalize_optional_str(patch["brand"])
 
     if "model" in patch:
-        shoe.model = patch["model"]
+        shoe.model = _normalize_optional_str(patch["model"])
 
     if "acquired_date" in patch:
         shoe.acquired_date = patch["acquired_date"]
