@@ -27,6 +27,7 @@ from app.home.router import router as home_router
 from app.potential.router import router as potential_router
 from app.profile.router import router as profile_router
 from app.shoes.router import router as shoes_router
+from app.tenis_analysis.router import router as tenis_analysis_router
 
 settings = get_settings()
 
@@ -70,6 +71,7 @@ app.include_router(health_router, dependencies=[Depends(require_session)])
 app.include_router(home_router, dependencies=[Depends(require_session)])
 app.include_router(profile_router, dependencies=[Depends(require_session)])
 app.include_router(shoes_router, dependencies=[Depends(require_session)])
+app.include_router(tenis_analysis_router, dependencies=[Depends(require_session)])
 
 
 @app.get("/api/health")
