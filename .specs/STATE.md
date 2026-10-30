@@ -36,5 +36,6 @@ arquitetura do projeto vive em `docs-site/docs/arquitetura/decisoes.md`
 - **tenis-running-dynamics** (B): **COMPLETA** — 6 commits (b9fef78 → 43ded93), 25 testes, 15/15 TRDs Verified, 0 regressão no tenis. Colunas Split + mapper + client typed splits + backfill CLI + SplitOut.
 - **tenis-analise-comparativa** (A): **COMPLETA** — 6 commits (d86ef38 → dfe9c13), 32 testes (6 profile + 6 comparison + 10 metrics + 7 api), 17/17 TRD Verified, 0 regressão nos domínios existentes. Domínio profile/comparison/metrics + router /api/tenis/analysis.
 - **tenis-alerta-degradacao** (C): **COMPLETA** — 2 commits (3cf7b04 → 9adcf92), 14 testes (9 domínio + 5 api), 15/15 TDE Verified, 0 regressão nos domínios existentes. Router /api/tenis/degradation/{id}.
+- **tenis-ui-analysis** (UI): **COMPLETA** — 5 commits (253cc7d → c3cb9b6), API client + ShoesAnalysisSection + integração em Equipamentos. 13/13 TUI Verified.
 
 Ordem de execução acordada com o usuário: **B → A → C**. D (sync contínuo Strava) não entra. E (badge vida útil na Home) espera.
