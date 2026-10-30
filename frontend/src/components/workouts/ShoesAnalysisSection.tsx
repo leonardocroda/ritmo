@@ -6,8 +6,12 @@ import PanelSection from "@/components/PanelSection";
 import Skeleton from "@/components/Skeleton";
 import {
   getAnalysisShoes,
+  getAnalysisCompare,
+  getDegradation,
   getShoes,
   type AnalysisShoeProfile,
+  type AnalysisCompare,
+  type DegradationOut,
   type Shoe,
   type ShoesOut,
 } from "@/lib/api";
@@ -25,6 +29,10 @@ function groupLabel(tipo: string, banda: string) {
 export default function ShoesAnalysisSection() {
   const [state, setState] = useState<PanelState>({ kind: "loading" });
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [compareA, setCompareA] = useState<number | null>(null);
+  const [compareB, setCompareB] = useState<number | null>(null);
+  const [compareRes, setCompareRes] = useState<AnalysisCompare | null>(null);
+  const [compareLoading, setCompareLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,6 +93,19 @@ export default function ShoesAnalysisSection() {
   const selectedShoe = shoes.find(s => s.id === selectedId) ?? shoes[0];
   const profile = selectedShoe ? profiles.get(selectedShoe.id) : undefined;
 
+  async function runCompare() {
+    if (!compareA || !compareB || compareA === compareB) return;
+    setCompareLoading(true);
+    try {
+      const res = await getAnalysisCompare(compareA, compareB);
+      setCompareRes(res);
+    } catch {
+      setCompareRes(null);
+    } finally {
+      setCompareLoading(false);
+    }
+  }
+
   return (
     <PanelSection title="Análise de tênis">
       <div className="grid gap-4 md:grid-cols-3">
@@ -102,30 +123,62 @@ export default function ShoesAnalysisSection() {
             </button>
           ))}
         </div>
-        <div className="md:col-span-2 rounded-card border border-border bg-card p-4">
-          {profile ? (
-            <div>
-              <h3 className="font-semibold">Perfil — {selectedShoe.name}</h3>
-              <p className="text-sm text-muted">{profile.total_runs} corridas · {formatKm(profile.total_km * 1000)}</p>
-              <div className="mt-3 space-y-2">
-                {profile.groups.map((g, i) => (
-                  <div key={i} className="rounded border border-border p-3 text-sm">
-                    <div className="font-medium">{groupLabel(g.tipo, g.banda)}</div>
-                    <div className="text-muted">
-                      {g.n_corridas} corridas · {formatKm(g.km_totais * 1000)} · 
-                      {g.pace_medio_s ? ` ${formatPace(g.pace_medio_s)}/km` : ` ${formatDuration(0)}`} ·
-                      {g.fc_media ? ` ${g.fc_media.toFixed(0)} bpm` : ""}
+        <div className="md:col-span-2 space-y-4">
+          <div className="rounded-card border border-border bg-card p-4">
+            {profile ? (
+              <div>
+                <h3 className="font-semibold">Perfil — {selectedShoe.name}</h3>
+                <p className="text-sm text-muted">{profile.total_runs} corridas · {formatKm(profile.total_km * 1000)}</p>
+                <div className="mt-3 space-y-2">
+                  {profile.groups.map((g, i) => (
+                    <div key={i} className="rounded border border-border p-3 text-sm">
+                      <div className="font-medium">{groupLabel(g.tipo, g.banda)}</div>
+                      <div className="text-muted">
+                        {g.n_corridas} corridas · {formatKm(g.km_totais * 1000)} · 
+                        {g.pace_medio_s ? ` ${formatPace(g.pace_medio_s)}/km` : ` ${formatDuration(0)}`} ·
+                        {g.fc_media ? ` ${g.fc_media.toFixed(0)} bpm` : ""}
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {profile.groups.length === 0 && (
-                  <p className="text-sm text-muted">Sem dados suficientes para perfil.</p>
-                )}
+                  ))}
+                  {profile.groups.length === 0 && (
+                    <p className="text-sm text-muted">Sem dados suficientes para perfil.</p>
+                  )}
+                </div>
               </div>
+            ) : (
+              <p className="text-sm text-muted">Sem dados de análise para este tênis.</p>
+            )}
+          </div>
+
+          <div className="rounded-card border border-border bg-card p-4">
+            <h3 className="font-semibold mb-2">Comparação pareada</h3>
+            <div className="flex gap-2 items-end">
+              <select className="rounded border border-border bg-card px-3 py-2 text-sm" value={compareA ?? ""} onChange={e => setCompareA(Number(e.target.value) || null)}>
+                <option value="">Tênis A</option>
+                {shoes.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              <select className="rounded border border-border bg-card px-3 py-2 text-sm" value={compareB ?? ""} onChange={e => setCompareB(Number(e.target.value) || null)}>
+                <option value="">Tênis B</option>
+                {shoes.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              <button onClick={runCompare} disabled={!compareA || !compareB || compareLoading} className="rounded px-3 py-2 text-sm bg-accent/15 text-accent">
+                {compareLoading ? "Comparando..." : "Comparar"}
+              </button>
             </div>
-          ) : (
-            <p className="text-sm text-muted">Sem dados de análise para este tênis.</p>
-          )}
+            {compareRes && (
+              <div className="mt-3 text-sm">
+                <p className="text-muted">Pares: {compareRes.n_pairs} · Confiança: {compareRes.confidence}</p>
+                <div className="mt-2 max-h-60 overflow-auto space-y-1">
+                  {compareRes.pairs.map((p, i) => (
+                    <div key={i} className="rounded border border-border p-2 text-xs">
+                      {formatKm(p.distance_m)} · A {formatPace(p.pace_a_s)}/km / B {formatPace(p.pace_b_s)}/km · Δ {p.delta_pace_s}s · FC Δ {p.delta_fc ?? "-"}
+                    </div>
+                  ))}
+                  {compareRes.pairs.length === 0 && <p className="text-muted">Sem pares válidos.</p>}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </PanelSection>
