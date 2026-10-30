@@ -78,10 +78,10 @@ def backfill_activity(
         m = by_idx.get(split.idx)
         if m is None:
             continue
-        split.ground_contact_time_ms = m.get("gct_ms")
-        split.stride_length_cm = m.get("stride_cm")
-        split.vertical_oscillation_cm = m.get("vert_osc_cm")
-        split.vertical_ratio = m.get("vert_ratio")
+        split.ground_contact_time_ms = m.get("ground_contact_time_ms")
+        split.stride_length_cm = m.get("stride_length_cm")
+        split.vertical_oscillation_cm = m.get("vertical_oscillation_cm")
+        split.vertical_ratio = m.get("vertical_ratio")
         updated += 1
 
     db.commit()

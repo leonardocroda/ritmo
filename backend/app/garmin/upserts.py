@@ -40,6 +40,11 @@ _SPLIT_FIELDS = (
     "avg_temperature",
     "elevation_m",
     "intensity_type",
+    # Running dynamics (feature tenis-running-dynamics)
+    "ground_contact_time_ms",
+    "stride_length_cm",
+    "vertical_oscillation_cm",
+    "vertical_ratio",
 )
 
 

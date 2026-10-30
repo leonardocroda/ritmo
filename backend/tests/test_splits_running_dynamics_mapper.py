@@ -1,8 +1,8 @@
 """Mapper de splits com running dynamics — funções puras (T2).
 
-Unit, sem DB: `map_splits` extrai groundContactTime→gct_ms,
-strideLength→stride_cm, verticalOscillation→vert_osc_cm,
-verticalRatio→vert_ratio de cada lapDTO. Ausente = None, nunca zero.
+Unit, sem DB: `map_splits` extrai groundContactTime→ground_contact_time_ms,
+strideLength→stride_length_cm, verticalOscillation→vertical_oscillation_cm,
+verticalRatio→vertical_ratio de cada lapDTO. Ausente = None, nunca zero.
 lapDTO None/vazio → [].
 """
 
@@ -33,24 +33,24 @@ def _lap(with_dynamics: bool = True) -> dict:
 
 
 def test_map_splits_with_running_dynamics() -> None:
-    """Done-when T2: lapDTO com as 4 métricas → chaves gct_ms, stride_cm,
-    vert_osc_cm, vert_ratio com os valores."""
+    """Done-when T2: lapDTO com as 4 métricas → chaves ground_contact_time_ms, stride_length_cm,
+    vertical_oscillation_cm, vertical_ratio com os valores."""
     rows = map_splits({"lapDTOs": [_lap(True)]})
     assert len(rows) == 1
-    assert rows[0]["gct_ms"] == 250
-    assert rows[0]["stride_cm"] == 145.5
-    assert rows[0]["vert_osc_cm"] == 8.2
-    assert rows[0]["vert_ratio"] == 5.8
+    assert rows[0]["ground_contact_time_ms"] == 250
+    assert rows[0]["stride_length_cm"] == 145.5
+    assert rows[0]["vertical_oscillation_cm"] == 8.2
+    assert rows[0]["vertical_ratio"] == 5.8
 
 
 def test_map_splits_missing_dynamics_none() -> None:
     """Done-when T2: campo ausente no lapDTO → None (não zero, não falha)."""
     rows = map_splits({"lapDTOs": [_lap(False)]})
     assert len(rows) == 1
-    assert rows[0]["gct_ms"] is None
-    assert rows[0]["stride_cm"] is None
-    assert rows[0]["vert_osc_cm"] is None
-    assert rows[0]["vert_ratio"] is None
+    assert rows[0]["ground_contact_time_ms"] is None
+    assert rows[0]["stride_length_cm"] is None
+    assert rows[0]["vertical_oscillation_cm"] is None
+    assert rows[0]["vertical_ratio"] is None
 
 
 def test_map_splits_partial_dynamics() -> None:
@@ -60,10 +60,10 @@ def test_map_splits_partial_dynamics() -> None:
     lap["groundContactTime"] = 260
     lap["verticalOscillation"] = 7.9
     rows = map_splits({"lapDTOs": [lap]})
-    assert rows[0]["gct_ms"] == 260
-    assert rows[0]["stride_cm"] is None
-    assert rows[0]["vert_osc_cm"] == 7.9
-    assert rows[0]["vert_ratio"] is None
+    assert rows[0]["ground_contact_time_ms"] == 260
+    assert rows[0]["stride_length_cm"] is None
+    assert rows[0]["vertical_oscillation_cm"] == 7.9
+    assert rows[0]["vertical_ratio"] is None
 
 
 def test_map_splits_empty_lapdto() -> None:
@@ -79,8 +79,8 @@ def test_map_splits_direct_list_shape() -> None:
     running dynamics."""
     rows = map_splits([_lap(True)])
     assert len(rows) == 1
-    assert rows[0]["gct_ms"] == 250
-    assert rows[0]["stride_cm"] == 145.5
+    assert rows[0]["ground_contact_time_ms"] == 250
+    assert rows[0]["stride_length_cm"] == 145.5
 
 
 def test_map_splits_preserves_existing_fields() -> None:

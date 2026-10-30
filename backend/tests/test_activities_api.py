@@ -464,6 +464,11 @@ def test_detail_easy_run_full_payload(session_client) -> None:
         "intensity_type": "ACTIVE",
         "zone": "easy",
         "km_label": "1,0",
+        # Running dynamics (feature tenis-running-dynamics) — null quando ausente
+        "gct_ms": None,
+        "stride_cm": None,
+        "vert_osc_cm": None,
+        "vert_ratio": None,
     }
     assert detail["splits"][4]["zone"] == "easy"  # pace 290 ainda é easy (cut 4:41)
     assert detail["splits"][7]["km_label"] == "8,0"

@@ -106,7 +106,7 @@ def test_map_splits_normalizes_wrapper_and_direct_list() -> None:
     """Design: dict com lista interna (lapDTOs) e lista direta → mesmas linhas.
 
     Payload sem cadência/temperatura por volta → None (T1: campos novos
-    de split, NULL quando ausentes).
+    de split, NULL quando ausentes). Running dynamics também NULL quando ausentes.
     """
     expected = [
         {
@@ -119,6 +119,10 @@ def test_map_splits_normalizes_wrapper_and_direct_list() -> None:
             "avg_temperature": None,
             "elevation_m": 25.5,
             "intensity_type": "ACTIVE",
+            "ground_contact_time_ms": None,
+            "stride_length_cm": None,
+            "vertical_oscillation_cm": None,
+            "vertical_ratio": None,
         },
         {
             "idx": 2,
@@ -130,6 +134,10 @@ def test_map_splits_normalizes_wrapper_and_direct_list() -> None:
             "avg_temperature": None,
             "elevation_m": 15.0,
             "intensity_type": "INTERVAL",
+            "ground_contact_time_ms": None,
+            "stride_length_cm": None,
+            "vertical_oscillation_cm": None,
+            "vertical_ratio": None,
         },
     ]
     assert map_splits(SPLITS_LAPDTOS_PAYLOAD) == expected

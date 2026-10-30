@@ -108,10 +108,11 @@ def map_splits(raw: dict | list | None) -> list[dict]:
                 # nullable — ausente no lapDTO = None, nunca zero inventado.
                 # Chaves aterrissadas contra o lapDTO real do garmin_mcp do
                 # usuário (mesma lib garminconnect==0.3.2).
-                "gct_ms": lap.get("groundContactTime"),
-                "stride_cm": lap.get("strideLength"),
-                "vert_osc_cm": lap.get("verticalOscillation"),
-                "vert_ratio": lap.get("verticalRatio"),
+                # Nomes das colunas do modelo Split (ground_contact_time_ms, etc.)
+                "ground_contact_time_ms": lap.get("groundContactTime"),
+                "stride_length_cm": lap.get("strideLength"),
+                "vertical_oscillation_cm": lap.get("verticalOscillation"),
+                "vertical_ratio": lap.get("verticalRatio"),
             }
         )
     return rows
