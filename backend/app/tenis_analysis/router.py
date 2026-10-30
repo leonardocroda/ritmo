@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
-from app.activities.service import _pace_s
+from app.activities.service import _inferred_type, _pace_s, load_zone_config
 from app.auth.deps import require_session
 from app.core.config import get_settings
 from app.db.engine import get_db
@@ -18,6 +18,16 @@ from app.tenis_analysis.metrics import ef_factor, fresh_vs_fatigue, hr_drift, ru
 from app.tenis_analysis.profile import build_shoe_profile
 
 router = APIRouter(prefix="/api/tenis/analysis")
+
+
+class _SplitDict:
+    """Adapter simples para _classify_splits aceitar dicts."""
+    __slots__ = ("pace_s", "dist_m", "duration_s", "intensity_type")
+    def __init__(self, d: dict):
+        self.pace_s = d.get("pace_s")
+        self.dist_m = d.get("dist_m")
+        self.duration_s = d.get("duration_s")
+        self.intensity_type = d.get("intensity_type")
 
 
 def _fetch_runs_for_shoe(db: Session, user_id: int, shoe_id: int) -> list[dict]:
@@ -58,10 +68,16 @@ def _fetch_runs_for_shoe(db: Session, user_id: int, shoe_id: int) -> list[dict]:
                     "stride_cm": s.stride_length_cm,
                     "vert_osc_cm": s.vertical_oscillation_cm,
                     "vert_ratio": s.vertical_ratio,
+                    "intensity_type": s.intensity_type,
                 }
             )
+    # Carrega zona config para inferir tipo de treino
+    zone_config = load_zone_config(get_settings().vdot_zones_path)
     out = []
     for r in runs:
+        splits = splits_map.get(r.id, [])
+        # Converte dicts para _SplitDict para _classify_splits
+        split_objects = [_SplitDict(s) for s in splits]
         out.append(
             {
                 "id": r.id,
@@ -70,10 +86,10 @@ def _fetch_runs_for_shoe(db: Session, user_id: int, shoe_id: int) -> list[dict]:
                 "pace_s": _pace_s(r.distance_m, r.duration_s),
                 "avg_hr": r.avg_hr,
                 "avg_cadence": r.avg_cadence,
-                "inferred_type": r.activity_type,
+                "inferred_type": _inferred_type(r, split_objects, zone_config),
                 "start_time": r.start_time,
                 "shoe_id": r.shoe_id,
-                "splits": splits_map.get(r.id, []),
+                "splits": splits,
             }
         )
     return out
