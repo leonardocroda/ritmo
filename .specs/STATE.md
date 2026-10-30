@@ -27,14 +27,14 @@ arquitetura do projeto vive em `docs-site/docs/arquitetura/decisoes.md`
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: main
-- **Total**: 17 commits (11 tenis + 6 running-dynamics), 143 testes backend (tenis) + 25 running-dynamics, frontend build OK, docs build OK
+- **Total**: 23 commits (11 tenis + 6 running-dynamics + 6 analise-comparativa + ... mais degradação), 143 testes backend (tenis) + 25 running-dynamics + 32 analise-comparativa + 14 degradacao, frontend build OK, docs build OK
 
 ---
 
 ## Novas features em spec (aguardam Design → Tasks → Execute)
 
 - **tenis-running-dynamics** (B): **COMPLETA** — 6 commits (b9fef78 → 43ded93), 25 testes, 15/15 TRDs Verified, 0 regressão no tenis. Colunas Split + mapper + client typed splits + backfill CLI + SplitOut.
-- **tenis-analise-comparativa** (A): **PRÓXIMA** — spec.md + context.md criados e validados (0 erros). Decisões travadas: par válido = distância ±5% e pace ±5% (data livre); confiança sempre exibida (baixo <3 / médio 3–5 / alto >5). Dependência: B (concluída).
-- **tenis-alerta-degradacao** (C): spec.md + context.md criados e validados (0 erros). Decisões travadas: baseline ~100 km vs ~50 km, ritmo-pareado, gate de mix de tipos; sinais ΔGCT/Δoscilação/Δcadência/ΔEF/ΔHR drift/Δ feel-RPE ("sinais, não veredito"). Dependência: A + B.
+- **tenis-analise-comparativa** (A): **COMPLETA** — 6 commits (d86ef38 → dfe9c13), 32 testes (6 profile + 6 comparison + 10 metrics + 7 api), 17/17 TRD Verified, 0 regressão nos domínios existentes. Domínio profile/comparison/metrics + router /api/tenis/analysis.
+- **tenis-alerta-degradacao** (C): **COMPLETA** — 2 commits (3cf7b04 → 9adcf92), 14 testes (9 domínio + 5 api), 15/15 TDE Verified, 0 regressão nos domínios existentes. Router /api/tenis/degradation/{id}.
 
 Ordem de execução acordada com o usuário: **B → A → C**. D (sync contínuo Strava) não entra. E (badge vida útil na Home) espera.
