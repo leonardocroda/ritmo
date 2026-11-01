@@ -15,12 +15,11 @@ from sqlalchemy.orm import Session
 
 from app.activities import service
 from app.auth.deps import require_session
-from app.core.config import get_settings
 from app.db.engine import get_db
 from app.db.models import User
 from app.evaluation.schemas import EvaluationOut
 from app.shoes import service as shoes_service
-from app.vdot.zones import ZoneConfig, ZoneConfigError, load_zone_config
+from app.vdot.zones import ZoneConfig, ZoneConfigError, load_zone_config_from_db
 
 router = APIRouter(prefix="/api/activities")
 
@@ -142,10 +141,13 @@ def assign_shoe(
         raise HTTPException(status_code=400, detail=exc.code) from exc
 
 
-def get_zone_config() -> ZoneConfig:
-    """Zonas por request, sem cache (design); arquivo falhou -> 500 (spec)."""
+def get_zone_config(
+    user: User = Depends(require_session),
+    db: Session = Depends(get_db),
+) -> ZoneConfig:
+    """Zonas por request, sem cache (design); banco sem config -> 500 (spec)."""
     try:
-        return load_zone_config(get_settings().vdot_zones_path)
+        return load_zone_config_from_db(db, user.id)
     except ZoneConfigError as exc:
         raise HTTPException(
             status_code=500, detail="zonas VDOT não configuradas"
@@ -159,14 +161,10 @@ def list_activities(
     limit: int = Query(default=30, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
+    zone_config: ZoneConfig = Depends(get_zone_config),
 ) -> ActivityListOut:
     """TRN-04/05/06: corridas por padrão; validação 422 antes da query."""
-    try:
-        return service.list_activities(db, user.id, activity_type, limit, offset)
-    except ZoneConfigError as exc:
-        raise HTTPException(
-            status_code=500, detail="zonas VDOT não configuradas"
-        ) from exc
+    return service.list_activities(db, user.id, activity_type, limit, offset, zone_config)
 
 
 @router.get("/{activity_id}")

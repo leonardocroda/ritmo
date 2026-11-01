@@ -1,9 +1,8 @@
 """Zonas VDOT — a única fonte de verdade de zona (design workouts-list).
 
-Carrega o JSON calibrado (``VDOT_ZONES_PATH``, default
-``data/vdot_zones.json``) e classifica a velocidade de cada volta em
-uma das 5 zonas de Daniels. As fronteiras entre zonas são cut points
-de midpoint entre os limites adjacentes — determinísticos e
+Banco de dados (VdotZoneConfig) como fonte única. Classifica a velocidade
+de cada volta em uma das 5 zonas de Daniels. As fronteiras entre zonas
+são cut points de midpoint entre os limites adjacentes — determinísticos e
 recalculáveis quando as zonas forem recalibradas (premissa do spec):
 abaixo do primeiro cut → easy, acima do último → repetition, borda
 exata pertence à zona mais rápida.
@@ -14,9 +13,7 @@ roxo=repetition. A linha de FC usa a cor reservada ``HR_LINE_COLOR``,
 distinta de todas as zonas (TRN-17).
 """
 
-import json
 from dataclasses import dataclass
-from pathlib import Path
 
 
 class ZoneConfigError(Exception):
@@ -108,14 +105,22 @@ class ZoneConfig:
         ]
 
 
-def load_zone_config(path: str | Path) -> ZoneConfig:
-    """Parse do JSON calibrado; arquivo ausente/inválido -> ZoneConfigError (spec)."""
-    try:
-        with open(path, encoding="utf-8") as file:
-            data = json.load(file)
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ZoneConfigError(f"não foi possível carregar {path}: {exc}") from exc
-    try:
-        return ZoneConfig(data["zones"])
-    except (KeyError, TypeError, ValueError) as exc:
-        raise ZoneConfigError(f"JSON de zonas inválido ({path}): {exc}") from exc
+def load_zone_config_from_db(db, user_id: int) -> ZoneConfig:
+    """Carrega a configuração de zonas do banco de dados (VdotZoneConfig).
+
+    Levanta ZoneConfigError se não houver configuração para o usuário
+    (mesmo comportamento do loader baseado em arquivo).
+    """
+    # Import local para evitar dependência circular
+    from app.db.models import VdotZoneConfig
+
+    config = (
+        db.query(VdotZoneConfig)
+        .filter(VdotZoneConfig.user_id == user_id)
+        .order_by(VdotZoneConfig.valid_from.desc(), VdotZoneConfig.id.desc())
+        .first()
+    )
+    if not config:
+        raise ZoneConfigError("zonas VDOT não configuradas")
+
+    return ZoneConfig(config.zones)

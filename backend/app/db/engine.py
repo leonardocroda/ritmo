@@ -6,7 +6,6 @@ específico de dialeto. Config 100% via DATABASE_URL (requisito travado).
 
 from collections.abc import Iterator
 from datetime import date
-import json
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
@@ -242,35 +241,9 @@ def init_db() -> None:
             )
             db.commit()
 
-        # PZ-02: seed VDOT zones from vdot_zones.json for user 1 — idempotent guard
-        # (padrão AD-019): re-executar não duplica.
-        if (
-            db.query(VdotZoneConfig)
-            .filter(VdotZoneConfig.user_id == DEFAULT_USER_ID)
-            .first()
-            is None
-        ):
-            zones_path = settings.vdot_zones_path
-            try:
-                with open(zones_path, encoding="utf-8") as file:
-                    data = json.load(file)
-            except (OSError, json.JSONDecodeError):
-                pass  # arquivo ausente/inválido → seed não feito; endpoint virará 500
-            else:
-                db.add(
-                    VdotZoneConfig(
-                        user_id=DEFAULT_USER_ID,
-                        vdot=float(data["vdot"]),
-                        source=data["source"],
-                        test_date=date.fromisoformat(data["test_date"]),
-                        distance_m=float(data["distancia_metros"]),
-                        time_s=float(data["tempo_segundos"]),
-                        zones=data["zones"],
-                        equivalencias=data["equivalencias"],
-                        valid_from=date.fromisoformat(data["test_date"]),
-                    )
-                )
-                db.commit()
+        # PZ-02: seed VDOT zones — no JSON file anymore (vdot-db-only).
+        # User must recalibrate via POST /api/profile/pace-zones/recalibrate
+        # or the legacy calibrate_vdot.py script.
 
         # AUTH-27: o seed com id explícito não avança a sequência — sem o
         # setval, o primeiro INSERT sem id (register/CLI) colide com a

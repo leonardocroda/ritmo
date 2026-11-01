@@ -138,3 +138,184 @@ def test_get_pace_zones_isolated_between_users(session_client) -> None:
     response = client.get("/api/profile/pace-zones")
     assert response.status_code == 500
     assert response.json()["detail"] == "zonas VDOT não configuradas"
+
+
+# =============================================================================
+# POST /api/profile/pace-zones/recalibrate
+# =============================================================================
+
+
+def test_recalibrate_pace_zones_creates_new_config(session_client) -> None:
+    """POST com distância e tempo válidos cria nova config e retorna shape completo."""
+    client, user_id = session_client
+
+    # Limpar config existente
+    with SessionLocal() as db:
+        db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).delete()
+        db.commit()
+
+    # 10K em 40:12 → VDOT ~52.0
+    response = client.post(
+        "/api/profile/pace-zones/recalibrate",
+        json={"distance_km": 10.0, "time_str": "00:40:12"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+
+    # Campos raiz
+    assert body["vdot"] == 52.0  # arredondado para 1 casa
+    assert "10.0km" in body["source"]
+    assert "40:12" in body["source"]
+    assert body["distancia_metros"] == 10000.0
+    assert body["tempo_segundos"] == 2412.0
+
+    # 5 zonas presentes
+    zones = body["zones"]
+    assert set(zones.keys()) == {"easy", "marathon", "threshold", "interval", "repetition"}
+
+    # Easy tem pace_range
+    assert "pace_range" in zones["easy"]
+    assert zones["easy"]["key"] == "easy"
+
+    # Marathon tem pace (single)
+    assert "pace" in zones["marathon"]
+    assert zones["marathon"]["key"] == "marathon"
+
+    # Equivalências
+    equiv = body["equivalencias"]
+    assert set(equiv.keys()) == {"5K", "10K", "Meia Maratona", "Maratona"}
+
+    # Verificar que salvou no banco
+    with SessionLocal() as db:
+        config = db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).first()
+        assert config is not None
+        assert config.vdot == 52.0
+        assert config.distance_m == 10000.0
+        assert config.time_s == 2412.0
+
+
+def test_recalibrate_pace_zones_updates_existing_config(session_client) -> None:
+    """POST em usuário com config existente faz upsert (atualiza)."""
+    client, user_id = session_client
+
+    # Primeiro POST
+    response1 = client.post(
+        "/api/profile/pace-zones/recalibrate",
+        json={"distance_km": 10.0, "time_str": "00:40:12"},
+    )
+    assert response1.status_code == 200
+    assert response1.json()["vdot"] == 52.0
+
+    # Segundo POST com tempo diferente
+    response2 = client.post(
+        "/api/profile/pace-zones/recalibrate",
+        json={"distance_km": 10.0, "time_str": "00:42:00"},
+    )
+    assert response2.status_code == 200
+    # 10K em 42:00 → VDOT ~49.8
+    assert response2.json()["vdot"] == 49.8
+
+    # Só deve ter 1 linha no banco
+    with SessionLocal() as db:
+        count = db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).count()
+        assert count == 1
+        config = db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).first()
+        assert config.vdot == 49.8
+
+
+def test_recalibrate_pace_zones_422_invalid_distance(session_client) -> None:
+    """distance_km <= 0 → 422."""
+    client, user_id = session_client
+
+    response = client.post(
+        "/api/profile/pace-zones/recalibrate",
+        json={"distance_km": 0, "time_str": "00:40:12"},
+    )
+    assert response.status_code == 422
+    assert "distance_km" in response.json()["detail"]
+
+
+def test_recalibrate_pace_zones_422_invalid_time_format(session_client) -> None:
+    """time_str formato inválido → 422."""
+    client, user_id = session_client
+
+    response = client.post(
+        "/api/profile/pace-zones/recalibrate",
+        json={"distance_km": 10.0, "time_str": "invalid"},
+    )
+    assert response.status_code == 422
+    assert "time_str" in response.json()["detail"]
+
+
+def test_recalibrate_pace_zones_422_zero_time(session_client) -> None:
+    """time_str = 00:00:00 → 422."""
+    client, user_id = session_client
+
+    response = client.post(
+        "/api/profile/pace-zones/recalibrate",
+        json={"distance_km": 10.0, "time_str": "00:00:00"},
+    )
+    assert response.status_code == 422
+    assert "time_str" in response.json()["detail"]
+
+
+def test_recalibrate_pace_zones_422_future_test_date(session_client) -> None:
+    """test_date no futuro → 422."""
+    client, user_id = session_client
+    from datetime import date, timedelta
+    future = (date.today() + timedelta(days=1)).isoformat()
+
+    response = client.post(
+        "/api/profile/pace-zones/recalibrate",
+        json={"distance_km": 10.0, "time_str": "00:40:12", "test_date": future},
+    )
+    assert response.status_code == 422
+    assert "test_date" in response.json()["detail"]
+
+
+def test_recalibrate_pace_zones_422_invalid_test_date_format(session_client) -> None:
+    """test_date formato inválido → 422."""
+    client, user_id = session_client
+
+    response = client.post(
+        "/api/profile/pace-zones/recalibrate",
+        json={"distance_km": 10.0, "time_str": "00:40:12", "test_date": "invalid"},
+    )
+    assert response.status_code == 422
+    assert "test_date" in response.json()["detail"]
+
+
+def test_recalibrate_pace_zones_mm_ss_format(session_client) -> None:
+    """time_str no formato MM:SS funciona (ex: 40:12)."""
+    client, user_id = session_client
+
+    with SessionLocal() as db:
+        db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).delete()
+        db.commit()
+
+    response = client.post(
+        "/api/profile/pace-zones/recalibrate",
+        json={"distance_km": 10.0, "time_str": "40:12"},
+    )
+    assert response.status_code == 200
+    assert response.json()["vdot"] == 52.0
+
+
+def test_recalibrate_pace_zones_5k_distance(session_client) -> None:
+    """Teste com 5K (distância padrão)."""
+    client, user_id = session_client
+
+    with SessionLocal() as db:
+        db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).delete()
+        db.commit()
+
+    # 5K em 19:30 → VDOT ~50.0
+    response = client.post(
+        "/api/profile/pace-zones/recalibrate",
+        json={"distance_km": 5.0, "time_str": "19:30"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["vdot"] == 50.0
+    assert body["distancia_metros"] == 5000.0
+    assert body["tempo_segundos"] == 1170.0

@@ -19,13 +19,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.activities.service import RUNNING_TYPES
-from app.core.config import get_settings
 from app.db.models import Activity, DailyLoad, Race
 from app.garmin.pmc import aggregate_daily_loads
 from app.health.service import get_health
 from app.home import calc
 from app.potential.service import get_predictions
-from app.vdot.calibration import load_calibration
+from app.vdot.calibration import load_calibration_from_db
 from app.vdot.zones import ZoneConfigError
 
 logger = getLogger(__name__)
@@ -155,11 +154,11 @@ def get_home(db: Session, user_id: int, tz: ZoneInfo) -> dict:
     # P2 (T13): digest de previsões — a MESMA montagem do painel
     # Performance (get_predictions extraído) com a MESMA calibração
     # (uma fonte de verdade); evento sem predição é omitido (HOME-39).
-    # Arquivo de calibração ausente/inválido degrada o bloco para None:
+    # Banco sem config degrada o bloco para None:
     # a Home NUNCA 500 por causa de um bloco P2 (design §Erros).
     predictions = None
     try:
-        calibration = load_calibration(get_settings().vdot_zones_path)
+        calibration = load_calibration_from_db(db, user_id)
     except ZoneConfigError as exc:
         logger.warning("digest de previsões omitido na Home: %s", exc)
     else:

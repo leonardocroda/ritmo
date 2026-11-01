@@ -1,16 +1,11 @@
-"""Calibração vigente — os campos raiz do `vdot_zones.json` (design).
+"""Calibração vigente — banco de dados (VdotZoneConfig) como fonte única.
 
-O painel Performance (ex-Potencial) lê o VDOT corrente do mesmo arquivo que o
-workouts-list usa para as zonas (fonte única): `load_calibration`
-expõe os campos raiz do teste que gerou o VDOT. Arquivo ausente ou
-inválido -> `ZoneConfigError` — a mesma exceção de `zones.py`, que se
-transforma no mesmo HTTP 500 do workouts (POT-16).
+O painel Performance (ex-Potencial) lê o VDOT corrente do banco via
+`load_calibration_from_db`. Ausente/inválido -> `ZoneConfigError`.
 """
 
-import json
 from dataclasses import dataclass
 from datetime import date
-from pathlib import Path
 
 from app.vdot.zones import ZoneConfigError
 
@@ -26,20 +21,28 @@ class Calibration:
     time_s: float
 
 
-def load_calibration(path: str | Path) -> Calibration:
-    """Parse dos campos raiz do JSON calibrado; ausente/inválido -> ZoneConfigError."""
-    try:
-        with open(path, encoding="utf-8") as file:
-            data = json.load(file)
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ZoneConfigError(f"não foi possível carregar {path}: {exc}") from exc
-    try:
-        return Calibration(
-            vdot=float(data["vdot"]),
-            source=data["source"],
-            test_date=date.fromisoformat(data["test_date"]),
-            distance_m=float(data["distancia_metros"]),
-            time_s=float(data["tempo_segundos"]),
-        )
-    except (KeyError, TypeError, ValueError) as exc:
-        raise ZoneConfigError(f"JSON de calibração inválido ({path}): {exc}") from exc
+def load_calibration_from_db(db, user_id: int) -> Calibration:
+    """Carrega a calibração vigente do banco de dados (VdotZoneConfig).
+
+    Levanta ZoneConfigError se não houver configuração para o usuário
+    (mesmo comportamento do loader baseado em arquivo).
+    """
+    # Import local para evitar dependência circular
+    from app.db.models import VdotZoneConfig
+
+    config = (
+        db.query(VdotZoneConfig)
+        .filter(VdotZoneConfig.user_id == user_id)
+        .order_by(VdotZoneConfig.valid_from.desc(), VdotZoneConfig.id.desc())
+        .first()
+    )
+    if not config:
+        raise ZoneConfigError("zonas VDOT não configuradas")
+
+    return Calibration(
+        vdot=config.vdot,
+        source=config.source,
+        test_date=config.test_date,
+        distance_m=config.distance_m,
+        time_s=config.time_s,
+    )

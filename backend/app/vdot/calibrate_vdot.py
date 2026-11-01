@@ -18,10 +18,9 @@ Uso:
     python calibrate_vdot.py --force      # Força nova entrevita mesmo se já existir
 
 Saída:
-    Salva as zonas calculadas em vdot_zones.json na mesma pasta.
+    Salva a calibração no banco de dados (VdotZoneConfig).
 """
 
-import json
 import sys
 from datetime import date
 from pathlib import Path
@@ -29,7 +28,6 @@ from pathlib import Path
 from app.vdot.daniels import calculate_vdot, equivalent_time, pace_for_fraction
 from app.db.engine import SessionLocal
 from app.db.models import VdotZoneConfig, DEFAULT_USER_ID
-from app.core.config import get_settings
 
 # Fix encoding for Windows terminals
 if hasattr(sys.stdout, "reconfigure"):
@@ -280,31 +278,36 @@ def entrevista_interativa() -> dict:
 
 
 # =============================================================================
-# Gerenciamento de configuração
+# Gerenciamento de configuração (banco de dados)
 # =============================================================================
 
-def verificar_config_existente() -> dict | None:
-    """Verifica se já existe uma configuração salva."""
-    config_path = Path(get_settings().vdot_zones_path)
+def verificar_config_existente(user_id: int = DEFAULT_USER_ID) -> dict | None:
+    """Verifica se já existe uma configuração salva no banco."""
+    with SessionLocal() as db:
+        config = (
+            db.query(VdotZoneConfig)
+            .filter(VdotZoneConfig.user_id == user_id)
+            .order_by(VdotZoneConfig.valid_from.desc(), VdotZoneConfig.id.desc())
+            .first()
+        )
+        if not config:
+            return None
 
-    if not config_path.exists():
-        return None
+        return {
+            "vdot": config.vdot,
+            "source": config.source,
+            "test_date": config.test_date.isoformat(),
+            "distancia_metros": config.distance_m,
+            "tempo_segundos": config.time_s,
+            "zones": config.zones,
+            "equivalencias": config.equivalencias,
+        }
 
-    try:
-        with open(config_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (json.JSONDecodeError, IOError):
-        return None
 
-
-def salvar_config(config: dict) -> None:
-    """Salva a configuração no arquivo JSON."""
-    config_path = Path(get_settings().vdot_zones_path)
-
-    with open(config_path, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
-
-    print(f"✅ Configuração salva em: {config_path}")
+def salvar_config(config: dict, user_id: int = DEFAULT_USER_ID) -> None:
+    """Salva a configuração no banco de dados (upsert por user_id)."""
+    save_calibration_to_db(config, user_id)
+    print(f"✅ Configuração salva no banco para user_id={user_id}")
 
 
 def save_calibration_to_db(config: dict, user_id: int = DEFAULT_USER_ID) -> None:
@@ -402,7 +405,6 @@ def main():
     # Rodar entrevista
     config = entrevista_interativa()
     salvar_config(config)
-    save_calibration_to_db(config)
 
     print()
     print("🎉 Calibração concluída!")

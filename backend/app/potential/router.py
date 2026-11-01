@@ -15,11 +15,10 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.auth.deps import require_session
-from app.core.config import get_settings
 from app.db.engine import get_db
 from app.db.models import User
 from app.potential import service
-from app.vdot.calibration import load_calibration
+from app.vdot.calibration import load_calibration_from_db
 from app.vdot.zones import ZoneConfigError
 
 router = APIRouter(prefix="/api/potential")
@@ -117,12 +116,12 @@ def get_potential(
 
     Query param não declarado (`?days=90` do cliente antigo) é ignorado:
     200 sem efeito no payload (CLR-04). O carregamento da calibração
-    acontece no corpo do handler — um arquivo ausente/inválido -> 500
+    acontece no corpo do handler — banco sem config -> 500
     "zonas VDOT não configuradas" (spec: sem VDOT corrente não há painel).
     Toda leitura filtra pelo usuário da sessão (user-scope).
     """
     try:
-        calibration = load_calibration(get_settings().vdot_zones_path)
+        calibration = load_calibration_from_db(db, user.id)
     except ZoneConfigError as exc:
         raise HTTPException(
             status_code=500, detail="zonas VDOT não configuradas"

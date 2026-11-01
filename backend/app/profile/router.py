@@ -16,13 +16,14 @@ from datetime import date, datetime
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.auth.deps import require_session
 from app.db.engine import get_db
 from app.db.models import HrZoneConfig, User, UserHrMetric, VdotZoneConfig
 from app.profile import calc, service
+from app.vdot.daniels import calculate_vdot, equivalent_time, pace_for_fraction
 
 router = APIRouter(prefix="/api/profile")
 
@@ -128,6 +129,238 @@ class PaceZonesOut(BaseModel):
     tempo_segundos: float
     zones: dict[str, PaceZoneOut]
     equivalencias: dict[str, str]
+
+
+# =============================================================================
+# VDOT Recalibration — POST /api/profile/pace-zones/recalibrate
+# =============================================================================
+
+# Distâncias de teste padrão (em km) — espelha calibrate_vdot.py
+STANDARD_TEST_DISTANCES_KM = {
+    "1500m": 1.5,
+    "3K": 3.0,
+    "5K": 5.0,
+    "10K": 10.0,
+    "Meia Maratona": 21.0975,
+    "Maratona": 42.195,
+}
+
+# Distâncias de prova para equivalências (em km) — espelha calibrate_vdot.py
+RACE_DISTANCES_KM = {
+    "5K": 5.0,
+    "10K": 10.0,
+    "Meia Maratona": 21.0975,
+    "Maratona": 42.195,
+}
+
+
+def format_pace(seconds_per_km: float) -> str:
+    """Converte segundos por km para formato min:sec/km."""
+    seconds = max(0, int(round(seconds_per_km)))
+    minutes, secs = divmod(seconds, 60)
+    return f"{minutes}:{secs:02d}/km"
+
+
+def min_km_to_ms(seconds_per_km: float) -> float:
+    """Converte segundos por km para m/s."""
+    return round(1000 / seconds_per_km, 3)
+
+
+def gerar_zonas(vdot: float) -> dict:
+    """
+    Gera as 5 zonas de ritmo a partir do VDOT.
+    Espelha a função gerar_zonas de calibrate_vdot.py.
+    """
+    zonas = {}
+
+    # Easy: 59-74% do VDOT
+    e_slow = pace_for_fraction(vdot, 0.59)
+    e_fast = pace_for_fraction(vdot, 0.74)
+    zonas["easy"] = {
+        "pace_range": f"{format_pace(e_slow)}-{format_pace(e_fast)}",
+        "ms_min": min_km_to_ms(e_slow),
+        "ms_max": min_km_to_ms(e_fast),
+        "description": "Recuperação, base aeróbica, aquecimento/desaquecimento",
+    }
+
+    # Marathon: derivado do ritmo equivalente de maratona
+    marathon_seconds = equivalent_time(vdot, RACE_DISTANCES_KM["Maratona"])
+    m_pace = marathon_seconds / RACE_DISTANCES_KM["Maratona"]
+    zonas["marathon"] = {
+        "pace": format_pace(m_pace),
+        "ms": min_km_to_ms(m_pace),
+        "description": "Ritmo de maratona, longões",
+    }
+
+    # Threshold: 83-88% do VDOT
+    t_fast = pace_for_fraction(vdot, 0.88)
+    t_slow = pace_for_fraction(vdot, 0.83)
+    zonas["threshold"] = {
+        "pace_range": f"{format_pace(t_fast)}-{format_pace(t_slow)}",
+        "ms_min": min_km_to_ms(t_slow),
+        "ms_max": min_km_to_ms(t_fast),
+        "description": "Limiar de lactato, tempo runs",
+    }
+
+    # Interval: 95-100% do VDOT
+    i_fast = pace_for_fraction(vdot, 1.00)
+    i_slow = pace_for_fraction(vdot, 0.95)
+    zonas["interval"] = {
+        "pace_range": f"{format_pace(i_slow)}-{format_pace(i_fast)}",
+        "ms_min": min_km_to_ms(i_slow),
+        "ms_max": min_km_to_ms(i_fast),
+        "description": "VO2max, esforços de 2-4 min",
+    }
+
+    # Repetition: ~105% do VDOT
+    r_pace = pace_for_fraction(vdot, 1.05)
+    zonas["repetition"] = {
+        "pace": format_pace(r_pace),
+        "ms": min_km_to_ms(r_pace),
+        "description": "Repetições curtas, 800m-1km",
+    }
+
+    return zonas
+
+
+class RecalibrateIn(BaseModel):
+    """Entrada para recalibração de VDOT via API."""
+    distance_km: float = Field(..., gt=0, description="Distância do teste em km")
+    time_str: str = Field(..., description="Tempo total no formato HH:MM:SS ou MM:SS")
+    test_date: str | None = Field(None, description="Data do teste (AAAA-MM-DD), default hoje")
+
+
+def parse_time_str(time_str: str) -> int:
+    """Converte HH:MM:SS ou MM:SS para segundos totais. Levanta ValueError se inválido."""
+    partes = time_str.strip().split(":")
+    if len(partes) == 3:
+        try:
+            horas = int(partes[0])
+            minutos = int(partes[1])
+            segundos = int(partes[2])
+            if horas < 0 or minutos < 0 or minutos >= 60 or segundos < 0 or segundos >= 60:
+                raise ValueError
+            return horas * 3600 + minutos * 60 + segundos
+        except ValueError:
+            raise ValueError("formato inválido, use HH:MM:SS")
+    elif len(partes) == 2:
+        try:
+            minutos = int(partes[0])
+            segundos = int(partes[1])
+            if minutos < 0 or segundos < 0 or segundos >= 60:
+                raise ValueError
+            return minutos * 60 + segundos
+        except ValueError:
+            raise ValueError("formato inválido, use MM:SS")
+    else:
+        raise ValueError("formato inválido, use HH:MM:SS ou MM:SS")
+
+
+def calculate_equivalencias(vdot: float) -> dict:
+    """Calcula tempos equivalentes para distâncias de prova padrão."""
+    equivalencias = {}
+    for label, dist_km in RACE_DISTANCES_KM.items():
+        pred_seconds = equivalent_time(vdot, dist_km)
+        equivalencias[label] = format_pace(pred_seconds / dist_km)
+    return equivalencias
+
+
+@router.post("/pace-zones/recalibrate")
+def recalibrate_pace_zones(
+    payload: RecalibrateIn,
+    user: User = Depends(require_session),
+    db: Session = Depends(get_db),
+) -> PaceZonesOut:
+    """Recalibra zonas de ritmo (VDOT) a partir de distância e tempo de teste.
+
+    Body: { distance_km, time_str (HH:MM:SS), test_date? }
+    Retorna PaceZonesOut atualizado. 422 se entrada inválida.
+    """
+    # Validar e converter tempo
+    try:
+        total_seconds = parse_time_str(payload.time_str)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=f"time_str: {exc}") from exc
+
+    if total_seconds <= 0:
+        raise HTTPException(status_code=422, detail="time_str: tempo deve ser maior que zero")
+
+    # Validar distância
+    if payload.distance_km <= 0:
+        raise HTTPException(status_code=422, detail="distance_km: deve ser maior que 0")
+
+    # Data do teste
+    if payload.test_date:
+        try:
+            test_date = date.fromisoformat(payload.test_date)
+            if test_date > date.today():
+                raise HTTPException(status_code=422, detail="test_date: não pode ser no futuro")
+        except ValueError:
+            raise HTTPException(status_code=422, detail="test_date: formato inválido, use AAAA-MM-DD")
+    else:
+        test_date = date.today()
+
+    # Calcular VDOT
+    distancia_metros = payload.distance_km * 1000
+    vdot = round(calculate_vdot(distancia_metros, total_seconds), 1)
+
+    # Gerar zonas
+    zonas = gerar_zonas(vdot)
+
+    # Calcular equivalências
+    equivalencias = calculate_equivalencias(vdot)
+
+    # Fonte legível
+    source = f"{payload.distance_km:.3f}km em {payload.time_str}"
+
+    # Salvar no banco (upsert)
+    existing = (
+        db.query(VdotZoneConfig)
+        .filter(VdotZoneConfig.user_id == user.id)
+        .first()
+    )
+
+    # Adicionar key a cada zona para o response
+    zones_with_key = {}
+    for key, zone in zonas.items():
+        zone_copy = dict(zone)
+        zone_copy["key"] = key
+        zones_with_key[key] = zone_copy
+
+    if existing:
+        existing.vdot = vdot
+        existing.source = source
+        existing.test_date = test_date
+        existing.distance_m = distancia_metros
+        existing.time_s = total_seconds
+        existing.zones = zonas
+        existing.equivalencias = equivalencias
+        existing.valid_from = test_date
+    else:
+        new_config = VdotZoneConfig(
+            user_id=user.id,
+            vdot=vdot,
+            source=source,
+            test_date=test_date,
+            distance_m=distancia_metros,
+            time_s=total_seconds,
+            zones=zonas,
+            equivalencias=equivalencias,
+            valid_from=test_date,
+        )
+        db.add(new_config)
+
+    db.commit()
+
+    return PaceZonesOut(
+        vdot=vdot,
+        source=source,
+        test_date=test_date,
+        distancia_metros=distancia_metros,
+        tempo_segundos=total_seconds,
+        zones=zones_with_key,
+        equivalencias=equivalencias,
+    )
 
 
 def _hr_zones_payload(db: Session, user_id: int) -> HrZonesOut:

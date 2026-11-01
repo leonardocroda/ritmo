@@ -95,7 +95,7 @@ def create_evaluation(
         db, activity.id, activity.user_id, zone_config
     )
     payload = build_evaluation_payload(
-        db, activity, user_id, detail, intent_type, intent_text, settings
+        db, activity, user_id, detail, intent_type, intent_text
     )
 
     evaluation = Evaluation(

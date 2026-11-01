@@ -15,9 +15,8 @@ from sqlalchemy.orm import Session
 
 from app.activities.infer import ClassifiedSplit, derive_structure, infer_type
 from app.activities.metrics import consistency_metrics
-from app.core.config import get_settings
 from app.db.models import Activity, Hrv, Rhr, Sleep, Split
-from app.vdot.zones import HR_LINE_COLOR, ZoneConfig, load_zone_config
+from app.vdot.zones import HR_LINE_COLOR, ZoneConfig
 
 # Vocabulário de corrida do domínio (mesmo conjunto do sync — AD-001/002
 # mantêm os domínios desacoplados: aqui é leitura, lá é escrita)
@@ -76,7 +75,7 @@ def _inferred_type(
 
 
 def list_activities(
-    db: Session, user_id: int, activity_type: str, limit: int, offset: int
+    db: Session, user_id: int, activity_type: str, limit: int, offset: int, zone_config: ZoneConfig
 ) -> dict:
     """Lista paginada {items, total, limit, offset} — corridas por padrão (spec).
 
@@ -84,7 +83,6 @@ def list_activities(
     spec — mesma ordem entre páginas). Filtra exclusivamente por
     ``user_id`` do usuário autenticado (never ``DEFAULT_USER_ID``).
     """
-    zone_config = load_zone_config(get_settings().vdot_zones_path)
     filters = [Activity.user_id == user_id]
     if activity_type != "all":
         filters.append(Activity.activity_type.in_(RUNNING_TYPES))

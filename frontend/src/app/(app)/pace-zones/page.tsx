@@ -16,14 +16,22 @@ export default function PaceZonesPage() {
   const [state, setState] = useState<PageState>({ kind: "loading" });
   const [showRecalibrate, setShowRecalibrate] = useState(false);
 
-  useEffect(() => {
+  const loadPaceZones = () => {
     getPaceZones()
       .then((data) => setState({ kind: "ready", data }))
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : "Erro inesperado";
         setState({ kind: "error", message });
       });
+  };
+
+  useEffect(() => {
+    loadPaceZones();
   }, []);
+
+  const handleRecalibrateSuccess = () => {
+    loadPaceZones();
+  };
 
   function formatPaceRange(zone: PaceZonesOut["zones"]["easy"]): string {
     if (zone.pace_range) {
@@ -162,7 +170,7 @@ export default function PaceZonesPage() {
                 </span>
                 <div>
                   <p className="font-medium">Recalibrar VDOT</p>
-                  <p className="text-sm text-muted">Executar entrevista interativa no terminal do servidor</p>
+                  <p className="text-sm text-muted">Inserir distância e tempo do teste para recalcular zonas</p>
                 </div>
               </div>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-muted shrink-0">
@@ -173,7 +181,7 @@ export default function PaceZonesPage() {
         </>
       )}
 
-      <RecalibrateModal isOpen={showRecalibrate} onClose={() => setShowRecalibrate(false)} />
+      <RecalibrateModal isOpen={showRecalibrate} onClose={() => setShowRecalibrate(false)} onSuccess={handleRecalibrateSuccess} />
     </main>
   );
 }

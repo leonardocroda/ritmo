@@ -8,14 +8,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
-from app.activities.service import _inferred_type, _pace_s, load_zone_config
+from app.activities.service import _inferred_type, _pace_s
 from app.auth.deps import require_session
-from app.core.config import get_settings
 from app.db.engine import get_db
 from app.db.models import Activity, Split, User
 from app.tenis_analysis.comparison import build_comparison_result
 from app.tenis_analysis.metrics import ef_factor, fresh_vs_fatigue, hr_drift, running_dynamics_adjusted
 from app.tenis_analysis.profile import build_shoe_profile
+from app.vdot.zones import ZoneConfig, load_zone_config_from_db
 
 router = APIRouter(prefix="/api/tenis/analysis")
 
@@ -72,7 +72,7 @@ def _fetch_runs_for_shoe(db: Session, user_id: int, shoe_id: int) -> list[dict]:
                 }
             )
     # Carrega zona config para inferir tipo de treino
-    zone_config = load_zone_config(get_settings().vdot_zones_path)
+    zone_config = load_zone_config_from_db(db, user_id)
     out = []
     for r in runs:
         splits = splits_map.get(r.id, [])

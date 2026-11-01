@@ -3,21 +3,19 @@
 O LLM nunca calcula: este módulo monta todos os números a partir do
 `get_activity_detail` (voltas já classificadas por zona, consistência,
 contexto do dia) + blocos próprios da avaliação (zona alvo por intenção,
-PMC do dia, VDOT do arquivo calibrado, PRs datados, padrões ativos).
+PMC do dia, VDOT do banco (VdotZoneConfig), PRs datados, padrões ativos).
 
 Cada bloco presente só com o que existir no banco (spec) — bloco vazio
 é omitido, nunca preenchido com número inventado.
 """
 
-import json
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.config import Settings
 from app.db.models import Activity, DailyLoad, Pattern, PersonalRecord
 from app.profile.calc import classify
 from app.profile.service import metric_on, zones_on
+from app.vdot.calibration import Calibration, load_calibration_from_db
 
 # Zonas alvo por intenção (assumption do spec): facil→easy;
 # tempo/limiar→threshold; intervalado→interval; repetição→repetition;
@@ -200,16 +198,15 @@ def _zonas_meta(detail: dict) -> list[dict]:
     ]
 
 
-def _vdot_block(settings: Settings) -> dict:
-    """VDOT corrente do arquivo calibrado — mesma fonte de verdade do
-    painel Performance (ex-Potencial) (o arquivo já foi validado pela dependency de zonas)."""
-    with open(settings.vdot_zones_path, encoding="utf-8") as file:
-        data = json.load(file)
+def _vdot_block(db: Session, user_id: int) -> dict:
+    """VDOT corrente do banco (VdotZoneConfig) — mesma fonte de verdade do
+    painel Performance (ex-Potencial)."""
+    calibration: Calibration = load_calibration_from_db(db, user_id)
     return _keep(
         {
-            "valor": data.get("vdot"),
-            "fonte": data.get("source"),
-            "data_teste": data.get("test_date"),
+            "valor": calibration.vdot,
+            "fonte": calibration.source,
+            "data_teste": calibration.test_date.isoformat(),
         }
     )
 
@@ -244,13 +241,15 @@ def _padroes(db: Session, user_id: int) -> list[dict] | None:
     ]
 
 
-def _lthr_bpm(db: Session, activity: Activity, user_id: int, settings: Settings) -> int:
+def _lthr_bpm(db: Session, activity: Activity, user_id: int) -> int:
     """HRZ-17: LTHR da métrica `fclthr` do usuário vigente na data do
     treino; sem métrica, fallback do env (`LTHR_BPM`)."""
+    from app.core.config import get_settings
+
     row = metric_on(db, user_id, "fclthr", activity.start_time.date())
     if row is not None:
         return row.value_bpm
-    return settings.lthr_bpm
+    return get_settings().lthr_bpm
 
 
 def _zonas_fc(db: Session, activity: Activity, user_id: int, detail: dict) -> dict | None:
@@ -296,7 +295,6 @@ def build_evaluation_payload(
     detail: dict,
     intent_type: str,
     intent_text: str | None,
-    settings: Settings,
 ) -> dict:
     """Payload completo da avaliação (EVAL-02): intenção + números
     determinísticos. Chaves ausentes = bloco sem dado no banco. Toda
@@ -313,8 +311,8 @@ def build_evaluation_payload(
         "contexto": _contexto(detail),
         "carga_do_dia": _carga_do_dia(db, activity, user_id),
         "zonas": _zonas_meta(detail),
-        "vdot": _vdot_block(settings),
-        "lthr_bpm": _lthr_bpm(db, activity, user_id, settings),
+        "vdot": _vdot_block(db, user_id),
+        "lthr_bpm": _lthr_bpm(db, activity, user_id),
         "zonas_fc": _zonas_fc(db, activity, user_id, detail),
         "prs": _prs(db, user_id),
         "padroes": _padroes(db, user_id),
