@@ -1,7 +1,6 @@
 "use client";
 
 import ShoesSection from "@/components/workouts/ShoesSection";
-import ShoesAnalysisSection from "@/components/workouts/ShoesAnalysisSection";
 
 // /equipamentos — gestão de tênis (MVP: só tênis; extensível para outros gear).
 // Página client no padrão do /perfil: carrega a seção de tênis que já
@@ -12,9 +11,6 @@ export default function EquipamentosPage() {
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6 pb-20">
       <h1 className="text-2xl font-semibold tracking-tight">Equipamentos</h1>
       <ShoesSection />
-      <div className="mt-8">
-        <ShoesAnalysisSection />
-      </div>
     </main>
   );
 }

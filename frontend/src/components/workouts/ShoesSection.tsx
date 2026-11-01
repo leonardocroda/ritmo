@@ -5,6 +5,7 @@
 // Padrão PanelState (loading/error/empty/ready) igual a HomePanel.
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import { getShoes, createShoe, updateShoe, type Shoe, type ShoeCreate, type ShoeUpdate, type ShoesOut } from "@/lib/api";
 import PanelSection from "@/components/PanelSection";
@@ -19,18 +20,17 @@ type PanelState =
 
 function ShoeCard({
   shoe,
-  onEdit,
-  onRetire,
 }: {
   shoe: Shoe;
-  onEdit: (shoe: Shoe) => void;
-  onRetire: (shoe: Shoe) => void;
 }) {
   const lifePct = shoe.life_pct ?? 0;
   const isRetired = shoe.status === "aposentado";
 
   return (
-    <div className="rounded-card border border-border bg-card p-4">
+    <Link
+      href={`/equipamentos/${shoe.id}`}
+      className="block rounded-card border border-border bg-card p-4 hover:border-accent/50 hover:bg-accent/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
@@ -96,24 +96,21 @@ function ShoeCard({
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          {!isRetired && (
-            <button
-              onClick={() => onRetire(shoe)}
-              className="rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors"
-            >
-              Aposentar
-            </button>
-          )}
-          <button
-            onClick={() => onEdit(shoe)}
-            className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-accent/10 transition-colors"
-          >
-            Editar
-          </button>
-        </div>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-muted shrink-0"
+        >
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -439,8 +436,6 @@ export default function ShoesSection() {
           <ShoeCard
             key={shoe.id}
             shoe={shoe}
-            onEdit={handleEdit}
-            onRetire={handleRetire}
           />
         ))}
       </div>
