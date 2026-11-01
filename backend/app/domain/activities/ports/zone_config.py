@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from app.domain.activities.domain.value_objects import ZoneConfigVO
 
 
+@runtime_checkable
 class ZoneConfigProvider(Protocol):
     """Provedor de configuração de zonas VDOT/FC para um usuário."""
 

@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from app.domain.activities.domain.entities import Activity, Split
 from app.domain.activities.domain.value_objects import ActivityFilter
 
 
+@runtime_checkable
 class ActivityRepository(Protocol):
     """Port para persistência de atividades."""
 
@@ -19,6 +20,7 @@ class ActivityRepository(Protocol):
     def delete(self, id: int, user_id: int) -> bool: ...
 
 
+@runtime_checkable
 class SplitRepository(Protocol):
     """Port para persistência de voltas/splits."""
 
