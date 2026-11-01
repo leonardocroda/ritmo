@@ -33,6 +33,13 @@ def get_consistency() -> ConsistencyCalculator:
     return ConsistencyCalculator()
 
 
+def get_zone_config(
+    db: Session = Depends(get_db),
+) -> ZoneConfigProvider:
+    """Compatibilidade com router de evaluation antigo."""
+    return DBZoneConfigProvider(db)
+
+
 def get_activity_service(
     repo: ActivityRepository = Depends(get_activity_repo),
     split_repo: SplitRepository = Depends(get_split_repo),

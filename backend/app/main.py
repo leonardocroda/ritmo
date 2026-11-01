@@ -17,6 +17,14 @@ from app.auth.deps import require_session
 from app.auth.router import router as auth_router
 from app.core.config import get_settings
 from app.db.engine import init_db
+from app.domain.activities.router import router as domain_activities_router
+from app.domain.evaluation.router import router as domain_evaluation_router
+from app.domain.garmin.router import router as domain_garmin_router
+from app.domain.health.router import router as domain_health_router
+from app.domain.performance.router import router as domain_performance_router
+from app.domain.profile.router import router as domain_profile_router
+from app.domain.shoes.router import router as domain_shoes_router
+from app.domain.training_load.router import router as domain_training_load_router
 from app.evaluation.router import router as evaluation_router
 from app.evaluation.service import recover_stale_evaluations
 from app.garmin.router import router as sync_router
@@ -74,6 +82,16 @@ app.include_router(profile_router, dependencies=[Depends(require_session)])
 app.include_router(shoes_router, dependencies=[Depends(require_session)])
 app.include_router(tenis_analysis_router, dependencies=[Depends(require_session)])
 app.include_router(tenis_degradation_router, dependencies=[Depends(require_session)])
+
+# Domain API (v1) — organizado por domínio, não por tela
+app.include_router(domain_activities_router, dependencies=[Depends(require_session)])
+app.include_router(domain_health_router, dependencies=[Depends(require_session)])
+app.include_router(domain_performance_router, dependencies=[Depends(require_session)])
+app.include_router(domain_shoes_router, dependencies=[Depends(require_session)])
+app.include_router(domain_profile_router, dependencies=[Depends(require_session)])
+app.include_router(domain_training_load_router, dependencies=[Depends(require_session)])
+app.include_router(domain_garmin_router, dependencies=[Depends(require_session)])
+app.include_router(domain_evaluation_router, dependencies=[Depends(require_session)])
 
 
 @app.get("/api/health")
