@@ -57,7 +57,13 @@ def settings() -> Settings:
 
 @pytest.fixture()
 def zone_config(settings: Settings):
-    return load_zone_config(settings.vdot_zones_path)
+    import json
+    import os
+    zones_path = os.path.join(os.path.dirname(__file__), "..", "data", "vdot_zones.json")
+    with open(zones_path, 'r', encoding='utf-8') as f:
+        zone_data = json.load(f)
+    from app.vdot.zones import ZoneConfig
+    return ZoneConfig(zone_data["zones"])
 
 
 def _seed_run(db, *, activity_type: str = "running", laps: int = 5) -> Activity:
@@ -66,6 +72,29 @@ def _seed_run(db, *, activity_type: str = "running", laps: int = 5) -> Activity:
     user = User(display_name="Corredora")
     db.add(user)
     db.flush()
+    
+    # Create VDOT zone config for the user (needed for calibration)
+    import json
+    import os
+    zones_path = os.path.join(os.path.dirname(__file__), "..", "data", "vdot_zones.json")
+    with open(zones_path, 'r', encoding='utf-8') as f:
+        zone_data = json.load(f)
+    from app.db.models import VdotZoneConfig
+    from datetime import date
+    vdot_config = VdotZoneConfig(
+        user_id=user.id,
+        vdot=zone_data["vdot"],
+        source=zone_data["source"],
+        test_date=date.fromisoformat(zone_data["test_date"]),
+        distance_m=zone_data["distance_m"],
+        time_s=zone_data["time_s"],
+        zones=zone_data["zones"],
+        equivalencias=zone_data["equivalencias"],
+        valid_from=date.fromisoformat(zone_data["valid_from"]),
+    )
+    db.add(vdot_config)
+    db.flush()
+    
     activity = Activity(
         user_id=user.id,
         garmin_id=f"svc-{activity_type}-{laps}-{datetime.now().timestamp()}",

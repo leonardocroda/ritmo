@@ -3,7 +3,7 @@
 import pytest
 from datetime import datetime
 
-from app.domain.activities.domain.value_objects import (
+from app.domain.activity.domain.value_objects import (
     Pace,
     HeartRate,
     Cadence,
@@ -11,7 +11,7 @@ from app.domain.activities.domain.value_objects import (
     ZoneConfigVO,
     ActivityFilter,
 )
-from app.domain.activities.domain.entities import (
+from app.domain.activity.domain.entities import (
     RunningDynamics,
     Split,
     Activity,

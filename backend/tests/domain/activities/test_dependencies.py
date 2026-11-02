@@ -4,17 +4,17 @@ import pytest
 from unittest.mock import Mock, MagicMock
 from sqlalchemy.orm import Session
 
-from app.domain.activities.dependencies import (
+from app.domain.activity.dependencies import (
     get_activity_repo,
     get_split_repo,
     get_zone_provider,
     get_consistency,
     get_activity_service,
 )
-from app.domain.activities.ports.repositories import ActivityRepository, SplitRepository
-from app.domain.activities.ports.zone_config import ZoneConfigProvider
-from app.domain.activities.domain.services import ConsistencyCalculator
-from app.domain.activities.service import ActivityService
+from app.domain.activity.ports.repositories import ActivityRepository, SplitRepository
+from app.domain.activity.ports.zone_config import ZoneConfigProvider
+from app.domain.activity.domain.services import ConsistencyCalculator
+from app.domain.activity.service import ActivityService
 
 
 class TestDIProviders:

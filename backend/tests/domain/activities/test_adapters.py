@@ -9,11 +9,11 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.db.base import Base
 from app.db.models import User, Activity as ActivityModel, Split as SplitModel
-from app.domain.activities.adapters.sqlalchemy_repo import SQLAlchemyActivityRepository, SQLAlchemySplitRepository
-from app.domain.activities.adapters.db_zone_config import DBZoneConfigProvider
-from app.domain.activities.domain.value_objects import ActivityFilter
-from app.domain.activities.domain.entities import Activity, Split
-from app.domain.activities.domain.value_objects import HeartRate, Cadence, Pace, ZoneKey
+from app.domain.activity.adapters.sqlalchemy_repo import SQLAlchemyActivityRepository, SQLAlchemySplitRepository
+from app.domain.activity.adapters.db_zone_config import DBZoneConfigProvider
+from app.domain.activity.domain.value_objects import ActivityFilter
+from app.domain.activity.domain.entities import Activity, Split
+from app.domain.activity.domain.value_objects import HeartRate, Cadence, Pace, ZoneKey
 
 
 # Configuração de banco de teste

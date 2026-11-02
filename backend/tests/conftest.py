@@ -29,8 +29,11 @@ from app.auth.security import hash_password  # noqa: E402
 from app.auth.service import create_session, login  # noqa: E402
 from app.db.base import Base  # noqa: E402
 from app.db.engine import SessionLocal, engine  # noqa: E402
-from app.db.models import User  # noqa: E402
+from app.db.models import User, VdotZoneConfig  # noqa: E402
 from app.main import app  # noqa: E402
+from datetime import date  # noqa: E402
+import json  # noqa: E402
+import os  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -81,6 +84,32 @@ def session_client():
             db.commit()
         client.cookies.set("ritmo_session", token)
         yield client, user.id
+
+
+@pytest.fixture()
+def session_client_with_zones(session_client):
+    """TestClient com sessão real e zonas VDOT configuradas para o usuário."""
+    client, user_id = session_client
+    with SessionLocal() as db:
+        # Load zone data from JSON file
+        zones_path = os.path.join(os.path.dirname(__file__), "..", "data", "vdot_zones.json")
+        with open(zones_path, 'r', encoding='utf-8') as f:
+            zone_data = json.load(f)
+        
+        config = VdotZoneConfig(
+            user_id=user_id,
+            vdot=zone_data["vdot"],
+            source=zone_data["source"],
+            test_date=date.fromisoformat(zone_data["test_date"]),
+            distance_m=zone_data["distance_m"],
+            time_s=zone_data["time_s"],
+            zones=zone_data["zones"],
+            equivalencias=zone_data["equivalencias"],
+            valid_from=date.fromisoformat(zone_data["valid_from"]),
+        )
+        db.add(config)
+        db.commit()
+    yield client, user_id
 
 
 @pytest.fixture()

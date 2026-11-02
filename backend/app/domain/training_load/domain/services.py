@@ -1,4 +1,4 @@
-"""Serviços puros do domínio Training-Load — PMC, Volume."""
+"""Serviços puros do domínio Training-Load — PMC, Volume, ACWR."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Optional
 
-from app.domain.activities.domain.entities import Activity
+from app.domain.activity.domain.entities import Activity
 from app.domain.training_load.domain.entities import PMCDay, PMCCurve, VolumeWeek
 
 
@@ -18,11 +18,14 @@ ACWR_WINDOW_DAYS = 28
 
 @dataclass(frozen=True, slots=True)
 class PMCCalculator:
+    """Calculadora pura de PMC (CTL/ATL/TSB/ACWR)."""
+
     def compute(self, activities: Sequence[Activity], end_date: Optional[date] = None) -> PMCCurve:
         if not activities:
             return PMCCurve(days=0, points=(), current=PMCDay(end_date or date.today(), None, None, None, None))
 
         sorted_activities = sorted(activities, key=lambda a: a.start_time.date())
+
         daily_load = {}
         for a in sorted_activities:
             day = a.start_time.date()
@@ -39,6 +42,7 @@ class PMCCalculator:
         current = start
         while current <= end:
             load = daily_load.get(current, 0.0)
+
             atl = atl + (load - atl) / ATL_CONSTANT
             ctl = ctl + (load - ctl) / CTL_CONSTANT
             tsb = ctl - atl
@@ -58,9 +62,12 @@ class PMCCalculator:
 
 
 class VolumeCalculator:
+    """Calculadora de volume semanal."""
+
     def compute_weekly(self, activities: Sequence[Activity], weeks: int = 10) -> Sequence[VolumeWeek]:
         if not activities:
             return []
+
         weekly_km = {}
         for a in activities:
             if a.is_running:
@@ -70,10 +77,12 @@ class VolumeCalculator:
         today = date.today()
         current_week = today - timedelta(days=today.weekday())
         weeks_list = []
+
         for i in range(weeks):
             week = current_week - timedelta(weeks=i)
             km = weekly_km.get(week, 0.0)
             weeks_list.append(VolumeWeek(week_start=week, km=km))
+
         return list(reversed(weeks_list))
 
     def get_current_week_volume(self, activities: Sequence[Activity]) -> tuple[float, float, Optional[float]]:
@@ -83,6 +92,7 @@ class VolumeCalculator:
         current = weekly[-1].km
         prev_4 = [w.km for w in weekly[-5:-1]]
         avg4 = sum(prev_4) / len(prev_4) if prev_4 else 0.0
+
         delta = None
         if avg4 > 0:
             delta = round((current - avg4) / avg4 * 100, 1)

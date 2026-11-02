@@ -13,6 +13,7 @@ roxo=repetition. A linha de FC usa a cor reservada ``HR_LINE_COLOR``,
 distinta de todas as zonas (TRN-17).
 """
 
+import json
 from dataclasses import dataclass
 
 
@@ -124,3 +125,23 @@ def load_zone_config_from_db(db, user_id: int) -> ZoneConfig:
         raise ZoneConfigError("zonas VDOT não configuradas")
 
     return ZoneConfig(config.zones)
+
+
+def load_zone_config(filepath: str) -> ZoneConfig:
+    """Carrega configuração de zonas a partir de arquivo JSON (compatibilidade com testes).
+    
+    Esta função mantém compatibilidade com testes que carregam zonas de arquivo JSON.
+    """
+    import json
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except FileNotFoundError as e:
+        raise ZoneConfigError(f"Arquivo não encontrado: {filepath}") from e
+    except json.JSONDecodeError as e:
+        raise ZoneConfigError(f"JSON inválido: {e}") from e
+    
+    if "zones" not in data:
+        raise ZoneConfigError("JSON não contém a chave 'zones'")
+    
+    return ZoneConfig(data["zones"])

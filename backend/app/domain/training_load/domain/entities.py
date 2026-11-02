@@ -1,12 +1,10 @@
-"""Entidades do domínio Training-Load — PMC, ATL/CTL/TSB, ACWR."""
+"""Entidades do domínio Training-Load — PMC, Volume, ACWR."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
 from typing import Optional, Sequence
-
-from app.domain.activities.domain.entities import Activity
 
 
 @dataclass(frozen=True, slots=True)

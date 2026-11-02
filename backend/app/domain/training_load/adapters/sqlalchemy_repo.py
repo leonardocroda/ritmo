@@ -8,9 +8,10 @@ from datetime import date
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db.models import Activity as ActivityModel, DailyLoad
-from app.domain.activities.domain.entities import Activity
-from app.domain.training_load.domain.entities import PMCCurve, PMCDay
+from app.db.models import Activity as ActivityModel, VdotZoneConfig, VdotTest, RacePrediction
+from app.domain.activity.domain.entities import Activity
+from app.domain.vdot.domain.entities import VDOTProfile, TimelinePoint, Prediction, VO2maxPoint
+from app.domain.training_load.domain.entities import PMCCurve, PMCDay, VolumeWeek
 from app.domain.training_load.ports.repositories import TrainingLoadRepository
 
 
@@ -29,6 +30,7 @@ class SQLAlchemyTrainingLoadRepository(TrainingLoadRepository):
         return [self._to_activity(m) for m in models]
 
     def get_latest_load(self, user_id: int) -> PMCCurve | None:
+        from app.db.models import DailyLoad
         model = self.session.execute(
             select(DailyLoad).where(DailyLoad.user_id == user_id)
             .order_by(DailyLoad.date.desc())

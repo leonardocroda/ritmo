@@ -6,7 +6,8 @@ from collections.abc import Sequence
 from datetime import date
 from typing import Protocol, runtime_checkable
 
-from app.domain.activities.domain.entities import Activity
+from app.domain.activity.domain.entities import Activity
+from app.domain.vdot.domain.entities import VDOTProfile, TimelinePoint, Prediction, VO2maxPoint
 
 
 @runtime_checkable

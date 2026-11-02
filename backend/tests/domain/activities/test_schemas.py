@@ -1,9 +1,9 @@
-"""Testes dos schemas Pydantic do domínio Activities."""
+"""Testes dos schemas Pydantic do domínio Activity."""
 
 import pytest
 from datetime import datetime
 
-from app.domain.activities.schemas import (
+from app.domain.activity.schemas import (
     SplitOut,
     ZoneMetaOut,
     ConsistencyOut,

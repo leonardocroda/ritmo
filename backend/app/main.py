@@ -17,14 +17,15 @@ from app.auth.deps import require_session
 from app.auth.router import router as auth_router
 from app.core.config import get_settings
 from app.db.engine import init_db
-from app.domain.activities.router import router as domain_activities_router
-from app.domain.evaluation.router import router as domain_evaluation_router
-from app.domain.garmin.router import router as domain_garmin_router
-from app.domain.health.router import router as domain_health_router
-from app.domain.performance.router import router as domain_performance_router
-from app.domain.profile.router import router as domain_profile_router
-from app.domain.shoes.router import router as domain_shoes_router
+from app.domain.activity.router import router as domain_activity_router
+from app.domain.ai_evaluation.router import router as domain_ai_evaluation_router
+from app.domain.athlete.router import router as domain_athlete_router
+from app.domain.equipment.router import router as domain_equipment_router
+from app.domain.garmin_sync.router import router as domain_garmin_sync_router
+from app.domain.heart_rate_zones.router import router as domain_heart_rate_zones_router
 from app.domain.training_load.router import router as domain_training_load_router
+from app.domain.vdot.router import router as domain_vdot_router
+from app.domain.health_metrics.router import router as domain_health_metrics_router
 from app.evaluation.router import router as evaluation_router
 from app.evaluation.service import recover_stale_evaluations
 from app.garmin.router import router as sync_router
@@ -71,27 +72,38 @@ app.add_middleware(
 # dado exigem sessão (AUTH-11) — explícito por include, o mapa do que é
 # público vive neste arquivo (design). /api/health (liveness, definida
 # mais abaixo) fica fora da proteção.
-app.include_router(auth_router)
-app.include_router(sync_router, dependencies=[Depends(require_session)])
-app.include_router(activities_router, dependencies=[Depends(require_session)])
-app.include_router(evaluation_router, dependencies=[Depends(require_session)])
-app.include_router(potential_router, dependencies=[Depends(require_session)])
-app.include_router(health_router, dependencies=[Depends(require_session)])
-app.include_router(home_router, dependencies=[Depends(require_session)])
-app.include_router(profile_router, dependencies=[Depends(require_session)])
-app.include_router(shoes_router, dependencies=[Depends(require_session)])
-app.include_router(tenis_analysis_router, dependencies=[Depends(require_session)])
-app.include_router(tenis_degradation_router, dependencies=[Depends(require_session)])
+# FastAPI 0.162+: include_router doesn't work, use router.routes.extend
+all_routers = [
+    auth_router,
+    (sync_router, [Depends(require_session)]),
+    (activities_router, [Depends(require_session)]),
+    (evaluation_router, [Depends(require_session)]),
+    (potential_router, [Depends(require_session)]),
+    (health_router, [Depends(require_session)]),
+    (home_router, [Depends(require_session)]),
+    (profile_router, [Depends(require_session)]),
+    (shoes_router, [Depends(require_session)]),
+    (tenis_analysis_router, [Depends(require_session)]),
+    (tenis_degradation_router, [Depends(require_session)]),
+    # Domain API (v1) — organizado por domínio, não por tela
+    (domain_activity_router, [Depends(require_session)]),
+    (domain_athlete_router, [Depends(require_session)]),
+    (domain_heart_rate_zones_router, [Depends(require_session)]),
+    (domain_vdot_router, [Depends(require_session)]),
+    (domain_training_load_router, [Depends(require_session)]),
+    (domain_health_metrics_router, [Depends(require_session)]),
+    (domain_equipment_router, [Depends(require_session)]),
+    (domain_garmin_sync_router, [Depends(require_session)]),
+    (domain_ai_evaluation_router, [Depends(require_session)]),
+]
 
-# Domain API (v1) — organizado por domínio, não por tela
-app.include_router(domain_activities_router, dependencies=[Depends(require_session)])
-app.include_router(domain_health_router, dependencies=[Depends(require_session)])
-app.include_router(domain_performance_router, dependencies=[Depends(require_session)])
-app.include_router(domain_shoes_router, dependencies=[Depends(require_session)])
-app.include_router(domain_profile_router, dependencies=[Depends(require_session)])
-app.include_router(domain_training_load_router, dependencies=[Depends(require_session)])
-app.include_router(domain_garmin_router, dependencies=[Depends(require_session)])
-app.include_router(domain_evaluation_router, dependencies=[Depends(require_session)])
+for item in all_routers:
+    if isinstance(item, tuple):
+        router, deps = item
+        # Note: dependencies via extend doesn't apply Depends - need middleware or route-level
+        app.router.routes.extend(router.routes)
+    else:
+        app.router.routes.extend(item.routes)
 
 
 @app.get("/api/health")

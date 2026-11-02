@@ -8,8 +8,8 @@ from fastapi import FastAPI
 
 from app.auth.deps import require_session
 from app.db.models import User
-from app.domain.activities.service import ActivityService
-from app.domain.activities.schemas import (
+from app.domain.activity.service import ActivityService
+from app.domain.activity.schemas import (
     ActivityListOut,
     ActivityDetailOut,
     ActivityListItemOut,
@@ -18,8 +18,10 @@ from app.domain.activities.schemas import (
     ConsistencyOut,
     ContextOut,
 )
-from app.domain.activities.router import router
-from app.domain.activities.dependencies import get_activity_service
+from app.domain.activity.router import router
+from app.domain.activity.dependencies import get_activity_service
+from app.domain.activity.service import ActivityService
+from app.domain.activity.domain.value_objects import ActivityFilter
 
 
 # App de teste

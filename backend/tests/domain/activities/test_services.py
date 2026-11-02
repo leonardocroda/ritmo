@@ -1,20 +1,20 @@
-"""Testes dos serviços puros do domínio Activities."""
+"""Testes dos serviços puros do domínio Activity."""
 
 import pytest
 
-from app.domain.activities.domain.value_objects import (
+from app.domain.activity.domain.value_objects import (
     Pace,
     HeartRate,
     Cadence,
     ZoneKey,
     ZoneConfigVO,
 )
-from app.domain.activities.domain.entities import (
+from app.domain.activity.domain.entities import (
     Activity,
     Split,
     RunningDynamics,
 )
-from app.domain.activities.domain.services import (
+from app.domain.activity.domain.services import (
     ConsistencyCalculator,
     ConsistencyMetrics,
     split_halves,

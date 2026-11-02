@@ -1,0 +1,47 @@
+{
+  "vdot": 50.2,
+  "source": "10K em 41:15",
+  "test_date": "2026-10-03",
+  "distance_m": 10000.0,
+  "time_s": 2475.0,
+  "zones": {
+    "easy": {
+      "ms": 3.13,
+      "ms_min": 2.85,
+      "ms_max": 3.43,
+      "pace_range": "5:51-4:53/km",
+      "description": "Easy"
+    },
+    "marathon": {
+      "ms": 3.7,
+      "ms_min": 3.7,
+      "ms_max": 3.7,
+      "pace": "4:30/km",
+      "description": "Marathon"
+    },
+    "threshold": {
+      "ms": 3.85,
+      "ms_min": 3.75,
+      "ms_max": 3.94,
+      "pace_range": "4:14-4:27/km",
+      "description": "Threshold"
+    },
+    "interval": {
+      "ms": 4.27,
+      "ms_min": 4.174,
+      "ms_max": 4.358,
+      "pace_range": "3:59-3:49/km",
+      "description": "Interval"
+    },
+    "repetition": {
+      "ms": 4.55,
+      "ms_min": 4.55,
+      "ms_max": 4.55,
+      "pace": "3:40/km",
+      "description": "Repetition"
+    }
+  },
+  "equivalencias": {},
+  "valid_from": "2026-10-03",
+  "created_at": "2026-10-03T00:00:00"
+}

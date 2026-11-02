@@ -9,6 +9,10 @@
 // proxy otimista o vê em qualquer um. CORS deixou de ser requisito.
 export const API_BASE = "";
 
+// Novo domínio API v1 (backend refactor) — BFF em /api/v1/bff será adicionado
+// em fase posterior; por enquanto usa-se o domínio direto em /api/v1/
+const DOMAIN_API_BASE = "/api/v1";
+
 /** Contadores de progresso — schema exato do stats_json (SYNC-05/06). */
 export type SyncStats = {
   step: string;
@@ -74,14 +78,14 @@ export class ApiError extends Error {
 
 /** Cria um job de sync (SYNC-01). 409 = já existe job ativo (SYNC-02). */
 export async function startSync(): Promise<JobCreated> {
-  const res = await apiFetch("/api/sync", { method: "POST" });
+  const res = await apiFetch(`${DOMAIN_API_BASE}/garmin-sync/sync`, { method: "POST" });
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as JobCreated;
 }
 
 /** Último job do usuário — o que a UI poleia a cada 2s (SYNC-05). */
 export async function getLatestJob(): Promise<LatestJob> {
-  const res = await apiFetch("/api/sync/jobs/latest", {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/garmin-sync/sync/jobs/latest`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -263,7 +267,7 @@ export async function getActivities(
   if (options.limit !== undefined) params.set("limit", String(options.limit));
   if (options.offset !== undefined) params.set("offset", String(options.offset));
   const query = params.toString();
-  const res = await apiFetch(`/api/activities${query ? `?${query}` : ""}`, {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/activities${query ? `?${query}` : ""}`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -272,7 +276,7 @@ export async function getActivities(
 
 /** Detalhe do treino (TRN-13). 404 = id inexistente (ApiError.status). */
 export async function getActivityDetail(id: number): Promise<ActivityDetailOut> {
-  const res = await apiFetch(`/api/activities/${id}`, {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/activities/${id}`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -287,7 +291,7 @@ export async function evaluateActivity(
   id: number,
   body: EvaluateRequest,
 ): Promise<EvaluationOut> {
-  const res = await apiFetch(`/api/activities/${id}/evaluate`, {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/activities/${id}/evaluate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -304,7 +308,7 @@ export async function getEvaluation(
   evaluationId: number,
 ): Promise<EvaluationOut> {
   const res = await apiFetch(
-    `/api/activities/${activityId}/evaluate/${evaluationId}`,
+    `${DOMAIN_API_BASE}/activities/${activityId}/evaluate/${evaluationId}`,
     { cache: "no-store" },
   );
   if (!res.ok) throw await parseError(res);
@@ -370,7 +374,7 @@ export type PotentialOut = {
  * o `days` segue morto (CLR-04: um `?days=` qualquer é ignorado pelo
  * backend) e o `pmc` voltou com janela fixa de 60d (AD-017). */
 export async function getPotential(): Promise<PotentialOut> {
-  const res = await apiFetch("/api/potential", {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/athlete`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -508,7 +512,7 @@ export type HealthSummaryOut = {
  * painel (7/30/42/60/90d — feature health-window, default 60); o backend
  * valida `days` em [7, 365]. */
 export async function getHealthSummary(days = 60): Promise<HealthSummaryOut> {
-  const res = await apiFetch(`/api/health/summary?days=${days}`, {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/health-metrics/summary?days=${days}`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -599,6 +603,7 @@ export type HomeToday = {
 /** O dia em 1 round-trip (HOME-01): veredito, sinais, strip, roteamento,
  * recomendações e os digests P2 abaixo da dobra. */
 export async function getHomeToday(): Promise<HomeToday> {
+  // Old endpoint still works (strangler fig pattern)
   const res = await apiFetch("/api/home/today", { cache: "no-store" });
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as HomeToday;
@@ -800,7 +805,7 @@ export type HrZonesHistory = {
 /** Zonas vigentes hoje (HRZ-01/10/11) — métricas, config, zonas em
  * bpm e defaults para prefill. */
 export async function getHrZones(): Promise<HrZonesOut> {
-  const res = await apiFetch("/api/profile/hr-zones", {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/heart-rate-zones`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -811,7 +816,7 @@ export async function getHrZones(): Promise<HrZonesOut> {
  * bounds, resposta no shape do GET — a UI re-renderiza da resposta.
  * 422 aponta campo ou zona com motivo PT-BR (HRZ-14). */
 export async function updateHrZones(payload: HrZonesUpdate): Promise<HrZonesOut> {
-  const res = await apiFetch("/api/profile/hr-zones", {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/heart-rate-zones`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -823,7 +828,7 @@ export async function updateHrZones(payload: HrZonesUpdate): Promise<HrZonesOut>
 
 /** Histórico de métricas e configs (HRZ-15), mais recente primeiro. */
 export async function getHrZonesHistory(): Promise<HrZonesHistory> {
-  const res = await apiFetch("/api/profile/hr-zones/history", {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/heart-rate-zones/history`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -843,7 +848,7 @@ export type GarminConnectionOut = {
  * Reautenticação necessária ou Não conectado — só exibição, o re-login
  * é CLI do operador. */
 export async function getGarminConnection(): Promise<GarminConnectionOut> {
-  const res = await apiFetch("/api/profile/garmin-connection", {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/garmin-sync/status`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -876,7 +881,7 @@ export type PaceZonesOut = {
 
 /** Zonas de ritmo vigentes hoje — VDOT + 5 zonas + equivalências de prova. */
 export async function getPaceZones(): Promise<PaceZonesOut> {
-  const res = await apiFetch("/api/profile/pace-zones", {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/vdot`, {
     cache: "no-store",
   });
   if (!res.ok) throw await parseError(res);
@@ -940,16 +945,16 @@ export type ShoesOut = {
   attribution_30d_pct: number | null;
 };
 
-/** Lista os tênis do usuário (GET /api/shoes). */
+/** Lista os tênis do usuário (GET /api/v1/equipment). */
 export async function getShoes(): Promise<ShoesOut> {
-  const res = await apiFetch("/api/shoes", { cache: "no-store" });
+  const res = await apiFetch(`${DOMAIN_API_BASE}/equipment`, { cache: "no-store" });
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as ShoesOut;
 }
 
-/** Cria um tênis (POST /api/shoes). */
+/** Cria um tênis (POST /api/v1/equipment). */
 export async function createShoe(body: ShoeCreate): Promise<Shoe> {
-  const res = await apiFetch("/api/shoes", {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/equipment`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -959,9 +964,9 @@ export async function createShoe(body: ShoeCreate): Promise<Shoe> {
   return (await res.json()) as Shoe;
 }
 
-/** Edita um tênis (PATCH /api/shoes/{id}). */
+/** Edita um tênis (PATCH /api/v1/equipment/{id}). */
 export async function updateShoe(id: number, body: ShoeUpdate): Promise<Shoe> {
-  const res = await apiFetch(`/api/shoes/${id}`, {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/equipment/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -971,12 +976,12 @@ export async function updateShoe(id: number, body: ShoeUpdate): Promise<Shoe> {
   return (await res.json()) as Shoe;
 }
 
-/** Associa/desassocia tênis a uma atividade (PATCH /api/activities/{id}/shoe). */
+/** Associa/desassocia tênis a uma atividade (PATCH /api/v1/activities/{id}/shoe). */
 export async function setActivityShoe(
   activityId: number,
   shoeId: number | null,
 ): Promise<{ shoe: ShoeSummary | null }> {
-  const res = await apiFetch(`/api/activities/${activityId}/shoe`, {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/activities/${activityId}/shoe`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ shoe_id: shoeId }),
@@ -1059,28 +1064,28 @@ export type DegradationOut = {
 
 /** Lista perfis de análise de todos os tênis do usuário. */
 export async function getAnalysisShoes(): Promise<AnalysisShoeProfile[]> {
-  const res = await apiFetch("/api/tenis/analysis/shoes", { cache: "no-store" });
+  const res = await apiFetch(`${DOMAIN_API_BASE}/tenis/analysis/shoes`, { cache: "no-store" });
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as AnalysisShoeProfile[];
 }
 
 /** Detalhe de análise de um tênis específico. */
 export async function getAnalysisShoeDetail(shoeId: number): Promise<AnalysisShoeProfile> {
-  const res = await apiFetch(`/api/tenis/analysis/shoes/${shoeId}`, { cache: "no-store" });
+  const res = await apiFetch(`${DOMAIN_API_BASE}/tenis/analysis/shoes/${shoeId}`, { cache: "no-store" });
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as AnalysisShoeProfile;
 }
 
 /** Compara dois tênis. */
 export async function getAnalysisCompare(shoeA: number, shoeB: number): Promise<AnalysisCompare> {
-  const res = await apiFetch(`/api/tenis/analysis/compare?shoe_a=${shoeA}&shoe_b=${shoeB}`, { cache: "no-store" });
+  const res = await apiFetch(`${DOMAIN_API_BASE}/tenis/analysis/compare?shoe_a=${shoeA}&shoe_b=${shoeB}`, { cache: "no-store" });
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as AnalysisCompare;
 }
 
 /** Alerta de degradação de um tênis. */
 export async function getDegradation(shoeId: number): Promise<DegradationOut> {
-  const res = await apiFetch(`/api/tenis/degradation/${shoeId}`, { cache: "no-store" });
+  const res = await apiFetch(`${DOMAIN_API_BASE}/tenis/degradation/${shoeId}`, { cache: "no-store" });
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as DegradationOut;
 }

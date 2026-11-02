@@ -1,12 +1,12 @@
-"""Testes do Application Service Activities."""
+"""Testes do Application Service Activity."""
 
 import pytest
 from unittest.mock import Mock, MagicMock
 from datetime import datetime, timezone
 from collections.abc import Sequence
 
-from app.domain.activities.domain.entities import Activity, Split
-from app.domain.activities.domain.value_objects import (
+from app.domain.activity.domain.entities import Activity, Split
+from app.domain.activity.domain.value_objects import (
     ActivityFilter,
     ZoneConfigVO,
     ZoneKey,
@@ -14,14 +14,14 @@ from app.domain.activities.domain.value_objects import (
     Cadence,
     Pace,
 )
-from app.domain.activities.domain.services import (
+from app.domain.activity.domain.services import (
     ConsistencyCalculator,
     ConsistencyMetrics,
 )
-from app.domain.activities.ports.repositories import ActivityRepository, SplitRepository
-from app.domain.activities.ports.zone_config import ZoneConfigProvider
-from app.domain.activities.service import ActivityService
-from app.domain.activities.schemas import ActivityDetailOut, ActivityListOut, ActivityListItemOut
+from app.domain.activity.ports.repositories import ActivityRepository, SplitRepository
+from app.domain.activity.ports.zone_config import ZoneConfigProvider
+from app.domain.activity.service import ActivityService
+from app.domain.activity.schemas import ActivityDetailOut, ActivityListOut, ActivityListItemOut
 
 
 def create_mock_activity(

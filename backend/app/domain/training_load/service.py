@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import Sequence
+from typing import Optional
 
-from app.domain.training_load.domain.entities import PMCCurve, VolumeWeek
+from app.domain.training_load.domain.entities import PMCCurve, PMCDay, VolumeWeek
 from app.domain.training_load.domain.services import PMCCalculator, VolumeCalculator
 from app.domain.training_load.ports.repositories import TrainingLoadRepository
 from app.domain.training_load.schemas import (
