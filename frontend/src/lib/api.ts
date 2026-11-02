@@ -608,6 +608,116 @@ export async function getHomeToday(): Promise<HomeToday> {
   return (await res.json()) as HomeToday;
 }
 
+// ---- BFF Health: painel Saúde ----
+
+/** Painel Saúde inteiro em 1 payload via BFF. */
+export async function getHealthSummaryBFF(days = 60): Promise<HealthSummaryOut> {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/bff/health/summary?days=${days}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as HealthSummaryOut;
+}
+
+// ---- BFF Performance: painel Performance ----
+
+/** Painel Performance inteiro em 1 payload via BFF. */
+export async function getPerformanceBFF(): Promise<PotentialOut> {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/bff/performance`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as PotentialOut;
+}
+
+// ---- BFF Activities: painel Treinos ----
+
+/** Lista paginada de atividades via BFF. */
+export async function getActivitiesBFF(
+  options: { activityType?: ActivityTypeFilter; limit?: number; offset?: number } = {},
+): Promise<ActivityListOut> {
+  const params = new URLSearchParams();
+  if (options.activityType) params.set("activity_type", options.activityType);
+  if (options.limit !== undefined) params.set("limit", String(options.limit));
+  if (options.offset !== undefined) params.set("offset", String(options.offset));
+  const query = params.toString();
+  const res = await apiFetch(`${DOMAIN_API_BASE}/bff/activities${query ? `?${query}` : ""}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as ActivityListOut;
+}
+
+/** Detalhe do treino via BFF. */
+export async function getActivityDetailBFF(id: number): Promise<ActivityDetailOut> {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/bff/activities/${id}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as ActivityDetailOut;
+}
+
+// ---- BFF Profile: zonas combinadas (HR + Pace) ----
+
+/** Composição: Zonas FC + Zonas Ritmo em 1 payload via BFF. */
+export async function getProfileZones(): Promise<{
+  hr_zones: HrZonesOut;
+  pace_zones: PaceZonesOut;
+}> {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/bff/profile/zones`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as { hr_zones: HrZonesOut; pace_zones: PaceZonesOut };
+}
+
+// ---- BFF Shoes: equipamentos ----
+
+/** Lista os tênis via BFF. */
+export async function getShoesBFF(): Promise<ShoesOut> {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/bff/shoes`, { cache: "no-store" });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as ShoesOut;
+}
+
+/** Cria um tênis via BFF. */
+export async function createShoeBFF(body: ShoeCreate): Promise<Shoe> {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/bff/shoes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as Shoe;
+}
+
+/** Edita um tênis via BFF. */
+export async function updateShoeBFF(id: number, body: ShoeUpdate): Promise<Shoe> {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/bff/shoes/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as Shoe;
+}
+
+/** Detalhe de um tênis via BFF. */
+export async function getShoeBFF(id: number): Promise<Shoe> {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/bff/shoes/${id}`, { cache: "no-store" });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as Shoe;
+}
+
+/** Alerta de degradação via BFF. */
+export async function getDegradationBFF(shoeId: number): Promise<DegradationOut> {
+  const res = await apiFetch(`${DOMAIN_API_BASE}/bff/shoes/${shoeId}/degradation`, { cache: "no-store" });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as DegradationOut;
+}
+
 // ---- Auth: contratos do design auth (feature auth) ----
 
 /** Espelho do `MeOut` (backend/app/auth/schemas.py) — corpo de

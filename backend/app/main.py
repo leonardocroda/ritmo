@@ -39,6 +39,11 @@ from app.shoes.router import router as shoes_router
 from app.tenis_analysis.router import router as tenis_analysis_router
 from app.tenis_degradation.router import router as tenis_degradation_router
 from app.bff.home.router import router as bff_home_router
+from app.bff.health.router import router as bff_health_router
+from app.bff.performance.router import router as bff_performance_router
+from app.bff.activities.router import router as bff_activities_router
+from app.bff.profile.router import router as bff_profile_router
+from app.bff.shoes.router import router as bff_shoes_router
 
 settings = get_settings()
 
@@ -98,6 +103,11 @@ all_routers = [
     (domain_ai_evaluation_router, [Depends(require_session)]),
     # BFF Composition Layer (v1) — composições de tela
     (bff_home_router, [Depends(require_session)]),
+    (bff_health_router, [Depends(require_session)]),
+    (bff_performance_router, [Depends(require_session)]),
+    (bff_activities_router, [Depends(require_session)]),
+    (bff_profile_router, [Depends(require_session)]),
+    (bff_shoes_router, [Depends(require_session)]),
 ]
 
 for item in all_routers:

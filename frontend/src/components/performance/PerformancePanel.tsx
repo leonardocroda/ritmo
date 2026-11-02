@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from "react";
 
-import { getPotential, type PotentialOut, type VdotBlock } from "@/lib/api";
+import { getPerformanceBFF, type PotentialOut, type VdotBlock } from "@/lib/api";
 import { formatVdot } from "@/lib/format";
 import PanelSection from "@/components/PanelSection";
 import Skeleton from "@/components/Skeleton";
@@ -63,7 +63,7 @@ export default function PerformancePanel() {
 
   useEffect(() => {
     let cancelled = false;
-    getPotential()
+    getPerformanceBFF()
       .then((panel) => {
         if (!cancelled) setState({ kind: "ready", panel });
       })

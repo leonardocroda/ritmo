@@ -16,7 +16,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { getHealthSummary, type HealthSummaryOut } from "@/lib/api";
+import { getHealthSummaryBFF, type HealthSummaryOut } from "@/lib/api";
 import PanelSection from "@/components/PanelSection";
 import Skeleton from "@/components/Skeleton";
 import DoseResponse from "@/components/health/DoseResponse";
@@ -102,7 +102,7 @@ export default function HealthPanel() {
   // filtro (HWF-06); erro na primeira carga segue o fluxo existente.
   useEffect(() => {
     const seq = ++requestSeq.current;
-    getHealthSummary(days)
+    getHealthSummaryBFF(days)
       .then((panel) => {
         if (seq !== requestSeq.current) return;
         setState({

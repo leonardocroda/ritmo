@@ -11,7 +11,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 
 import {
-  getActivityDetail,
+  getActivityDetailBFF,
   getEvaluation,
   ApiError,
   type ActivityDetailOut,
@@ -134,7 +134,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
     setShowShoeModal(false);
     // Refetch do detail para mostrar o badge (ou remover se shoe.id === 0)
     try {
-      const fresh = await getActivityDetail(id);
+      const fresh = await getActivityDetailBFF(id);
       setState({ kind: "ready", detail: fresh });
     } catch {
       // erro silencioso - o estado atual permanece
@@ -147,7 +147,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
 
   useEffect(() => {
     let cancelled = false;
-    getActivityDetail(id)
+    getActivityDetailBFF(id)
       .then((detail) => {
         if (!cancelled) setState({ kind: "ready", detail });
       })
