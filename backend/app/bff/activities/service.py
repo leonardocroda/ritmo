@@ -22,7 +22,7 @@ class ActivitiesBFFService:
     ) -> DomainActivityListOut:
         from app.domain.activity.domain.value_objects import ActivityFilter
 
-        filter = ActivityFilter(type=activity_type)
+        filter = ActivityFilter(activity_type=activity_type, limit=limit, offset=offset)
         return self.activity_service.list(user_id, filter, limit, offset)
 
     def get_detail(

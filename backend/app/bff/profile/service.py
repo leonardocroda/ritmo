@@ -33,10 +33,10 @@ class ProfileBFFService:
 
     def get_zones(self, user_id: int) -> dict:
         """Retorna zonas FC + zonas ritmo para o usuário."""
-        hr_zones = self.hr_zones_service.get_zones(user_id)
+        hr_zones = self.hr_zones_service.get_hr_zones(user_id)
         pace_zones = self._get_pace_zones(user_id)
         return {
-            "hr_zones": hr_zones,
+            "hr_zones": hr_zones.model_dump(),
             "pace_zones": pace_zones,
         }
 
