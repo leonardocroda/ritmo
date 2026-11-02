@@ -6,7 +6,9 @@ from sqlalchemy.orm import Session
 from app.bff.profile.service import ProfileBFFService
 from app.db.engine import get_db
 from app.domain.heart_rate_zones.dependencies import get_hr_zones_service
+from app.domain.heart_rate_zones.service import HeartRateZonesService
 from app.domain.vdot.dependencies import get_vdot_service
+from app.domain.vdot.service import VDOTService
 
 
 def get_profile_bff_service(
