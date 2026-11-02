@@ -1,19 +1,19 @@
-"""Router do BFF Shoes — /api/v1/bff/shoes"""
+"""Router do BFF Shoes — /api/v1/bff/shoes.
+
+Contrato 1:1 com a tela Equipamentos (mesmo payload do /api/shoes legado,
+incl. current_km/vida útil e o payload de degradação do tenis_degradation).
+Códigos de erro do legado: 422 validação (ValueError), 404 inexistente/
+alheio.
+"""
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 from app.auth.deps import require_session
 from app.bff.shoes.dependencies import get_shoes_bff_service
-from app.bff.shoes.schemas import (
-    DegradationOut,
-    ShoeCreateIn,
-    ShoeOut,
-    ShoeSummaryOut,
-    ShoeUpdateIn,
-    ShoesListOut,
-)
 from app.bff.shoes.service import ShoesBFFService
 from app.db.models import User
+from app.shoes.router import ShoeCreateIn, ShoeOut, ShoesListOut, ShoeUpdateIn
 
 router = APIRouter(prefix="/api/v1/bff/shoes", tags=["bff:shoes"])
 
@@ -34,7 +34,10 @@ def create_shoe(
     service: ShoesBFFService = Depends(get_shoes_bff_service),
 ) -> ShoeOut:
     """Cria um tênis."""
-    return service.create_shoe(user.id, data)
+    try:
+        return service.create_shoe(user.id, data)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get("/{shoe_id}")
@@ -58,7 +61,10 @@ def update_shoe(
     service: ShoesBFFService = Depends(get_shoes_bff_service),
 ) -> ShoeOut:
     """Edita um tênis."""
-    shoe = service.update_shoe(shoe_id, user.id, data)
+    try:
+        shoe = service.update_shoe(shoe_id, user.id, data)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     if not shoe:
         raise HTTPException(404, "tênis não encontrado")
     return shoe
@@ -69,9 +75,6 @@ def get_degradation(
     shoe_id: int,
     user: User = Depends(require_session),
     service: ShoesBFFService = Depends(get_shoes_bff_service),
-) -> DegradationOut:
+) -> dict:
     """Alerta de degradação de um tênis."""
-    degradation = service.get_degradation(shoe_id, user.id)
-    if not degradation:
-        raise HTTPException(404, "tênis não encontrado")
-    return degradation
+    return service.get_degradation(shoe_id, user.id)

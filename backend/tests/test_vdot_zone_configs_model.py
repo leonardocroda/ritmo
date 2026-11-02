@@ -23,13 +23,19 @@ def db():
 
 
 def _new_user(db) -> User:
-    """Usuário de teste próprio (id via sequência — não interfere no seed)."""
+    """Usuário de teste próprio (id via sequência — não interfere no seed).
+
+    Testes de MODEL assumem a tabela com só o que inserirem: remove a
+    VdotZoneConfig que o conftest semeia automaticamente para cada User.
+    """
     user = User(
         display_name="Corredora",
         email="corredora@example.com",
         password_hash=hash_password("senha-segura-123"),
     )
     db.add(user)
+    db.flush()
+    db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user.id).delete()
     db.flush()
     return user
 

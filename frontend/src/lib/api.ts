@@ -370,16 +370,9 @@ export type PotentialOut = {
   pmc: PmcBlock | null;
 };
 
-/** Painel Performance inteiro em 1 payload (POT-11) — sem query params:
- * o `days` segue morto (CLR-04: um `?days=` qualquer é ignorado pelo
- * backend) e o `pmc` voltou com janela fixa de 60d (AD-017). */
-export async function getPotential(): Promise<PotentialOut> {
-  const res = await apiFetch(`${DOMAIN_API_BASE}/athlete`, {
-    cache: "no-store",
-  });
-  if (!res.ok) throw await parseError(res);
-  return (await res.json()) as PotentialOut;
-}
+/** Painel Performance inteiro em 1 payload — movido para a seção BFF
+ * abaixo (ERR-05 do audit-erros.md: a antiga getPotential apontava para
+ * /api/v1/athlete, que retorna AthleteOut — função removida). */
 
 // ---- Painel Saúde: contratos do design health-panel + panel-clarity ----
 

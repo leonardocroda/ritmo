@@ -1,16 +1,21 @@
-"""Router da API de domínio Equipment — /api/v1/equipment"""
+"""Router da API de domínio Equipment — /api/v1/equipment.
+
+FASE DE TRANSIÇÃO: o service delega ao legado (ver service.py). O router
+mantém os códigos de erro do legado: 422 para validação (ValueError),
+404 para inexistente/alheio.
+"""
 
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 
 from app.auth.deps import require_session
+from app.db.engine import get_db
 from app.db.models import User
 from app.domain.equipment.dependencies import get_shoes_service
 from app.domain.equipment.service import ShoesService
-from app.domain.equipment.schemas import (
-    ShoesListOut, ShoeOut, ShoeSummaryOut, ShoeCreateIn, ShoeUpdateIn, DegradationOut
-)
+from app.shoes.router import ShoeCreateIn, ShoeOut, ShoesListOut, ShoeUpdateIn
 
 router = APIRouter(prefix="/api/v1/equipment", tags=["equipment"])
 
@@ -42,7 +47,10 @@ def create_shoe(
     user: User = Depends(require_session),
     service: ShoesService = Depends(get_shoes_service),
 ) -> ShoeOut:
-    return service.create(user.id, data)
+    try:
+        return service.create(user.id, data)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.patch("/{shoe_id}")
@@ -52,7 +60,10 @@ def update_shoe(
     user: User = Depends(require_session),
     service: ShoesService = Depends(get_shoes_service),
 ) -> ShoeOut:
-    shoe = service.update(shoe_id, user.id, data)
+    try:
+        shoe = service.update(shoe_id, user.id, data)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     if not shoe:
         raise HTTPException(404, "tênis não encontrado")
     return shoe
@@ -73,8 +84,5 @@ def get_degradation(
     shoe_id: int,
     user: User = Depends(require_session),
     service: ShoesService = Depends(get_shoes_service),
-) -> DegradationOut:
-    result = service.get_degradation(shoe_id, user.id)
-    if not result:
-        raise HTTPException(404, "tênis não encontrado")
-    return result
+) -> dict:
+    return service.get_degradation(shoe_id, user.id)

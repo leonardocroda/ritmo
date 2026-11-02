@@ -44,6 +44,10 @@ from app.bff.performance.router import router as bff_performance_router
 from app.bff.activities.router import router as bff_activities_router
 from app.bff.profile.router import router as bff_profile_router
 from app.bff.shoes.router import router as bff_shoes_router
+from app.domain.equipment.bridge_tenis import (
+    tenis_analysis_bridge_router,
+    tenis_degradation_bridge_router,
+)
 
 settings = get_settings()
 
@@ -78,45 +82,45 @@ app.add_middleware(
 # dado exigem sessão (AUTH-11) — explícito por include, o mapa do que é
 # público vive neste arquivo (design). /api/health (liveness, definida
 # mais abaixo) fica fora da proteção.
-# FastAPI 0.162+: include_router doesn't work, use router.routes.extend
-all_routers = [
-    auth_router,
-    (sync_router, [Depends(require_session)]),
-    (activities_router, [Depends(require_session)]),
-    (evaluation_router, [Depends(require_session)]),
-    (potential_router, [Depends(require_session)]),
-    (health_router, [Depends(require_session)]),
-    (home_router, [Depends(require_session)]),
-    (profile_router, [Depends(require_session)]),
-    (shoes_router, [Depends(require_session)]),
-    (tenis_analysis_router, [Depends(require_session)]),
-    (tenis_degradation_router, [Depends(require_session)]),
-    # Domain API (v1) — organizado por domínio, não por tela
-    (domain_activity_router, [Depends(require_session)]),
-    (domain_athlete_router, [Depends(require_session)]),
-    (domain_heart_rate_zones_router, [Depends(require_session)]),
-    (domain_vdot_router, [Depends(require_session)]),
-    (domain_training_load_router, [Depends(require_session)]),
-    (domain_health_metrics_router, [Depends(require_session)]),
-    (domain_equipment_router, [Depends(require_session)]),
-    (domain_garmin_sync_router, [Depends(require_session)]),
-    (domain_ai_evaluation_router, [Depends(require_session)]),
-    # BFF Composition Layer (v1) — composições de tela
-    (bff_home_router, [Depends(require_session)]),
-    (bff_health_router, [Depends(require_session)]),
-    (bff_performance_router, [Depends(require_session)]),
-    (bff_activities_router, [Depends(require_session)]),
-    (bff_profile_router, [Depends(require_session)]),
-    (bff_shoes_router, [Depends(require_session)]),
-]
-
-for item in all_routers:
-    if isinstance(item, tuple):
-        router, deps = item
-        # Note: dependencies via extend doesn't apply Depends - need middleware or route-level
-        app.router.routes.extend(router.routes)
-    else:
-        app.router.routes.extend(item.routes)
+#
+# ERR-14 (audit-erros.md): o include com `dependencies=` é o único mecanismo
+# que aplica o require_session no nível do router — o `routes.extend` usado
+# na primeira tentativa do refactor DESCARTAVA essas dependências (o que
+# só não abriu buraco porque os endpoints antigos repetem a dependência
+# inline). Nunca trocar include_router por extend aqui.
+app.include_router(auth_router)
+app.include_router(sync_router, dependencies=[Depends(require_session)])
+app.include_router(activities_router, dependencies=[Depends(require_session)])
+app.include_router(evaluation_router, dependencies=[Depends(require_session)])
+app.include_router(potential_router, dependencies=[Depends(require_session)])
+app.include_router(health_router, dependencies=[Depends(require_session)])
+app.include_router(home_router, dependencies=[Depends(require_session)])
+app.include_router(profile_router, dependencies=[Depends(require_session)])
+app.include_router(shoes_router, dependencies=[Depends(require_session)])
+app.include_router(tenis_analysis_router, dependencies=[Depends(require_session)])
+app.include_router(tenis_degradation_router, dependencies=[Depends(require_session)])
+# Domain API (v1) — organizado por domínio, não por tela
+app.include_router(domain_activity_router, dependencies=[Depends(require_session)])
+app.include_router(domain_athlete_router, dependencies=[Depends(require_session)])
+app.include_router(domain_heart_rate_zones_router, dependencies=[Depends(require_session)])
+app.include_router(domain_vdot_router, dependencies=[Depends(require_session)])
+app.include_router(domain_training_load_router, dependencies=[Depends(require_session)])
+app.include_router(domain_health_metrics_router, dependencies=[Depends(require_session)])
+app.include_router(domain_equipment_router, dependencies=[Depends(require_session)])
+app.include_router(domain_garmin_sync_router, dependencies=[Depends(require_session)])
+app.include_router(domain_ai_evaluation_router, dependencies=[Depends(require_session)])
+# Ponte transitória strangler: rotas /api/v1/tenis/{analysis,degradation}
+# delegam aos handlers legados até o domínio equipment implementar a
+# análise nativamente (Fase 2 do audit-erros.md). Remover junto.
+app.include_router(tenis_analysis_bridge_router, dependencies=[Depends(require_session)])
+app.include_router(tenis_degradation_bridge_router, dependencies=[Depends(require_session)])
+# BFF Composition Layer (v1) — composições de tela
+app.include_router(bff_home_router, dependencies=[Depends(require_session)])
+app.include_router(bff_health_router, dependencies=[Depends(require_session)])
+app.include_router(bff_performance_router, dependencies=[Depends(require_session)])
+app.include_router(bff_activities_router, dependencies=[Depends(require_session)])
+app.include_router(bff_profile_router, dependencies=[Depends(require_session)])
+app.include_router(bff_shoes_router, dependencies=[Depends(require_session)])
 
 
 @app.get("/api/health")

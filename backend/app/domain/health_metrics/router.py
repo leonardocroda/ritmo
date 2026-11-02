@@ -1,32 +1,17 @@
-"""Router da API de domínio Health Metrics — /api/v1/health-metrics"""
+"""Router da API de domínio Health Metrics — /api/v1/health-metrics.
 
-from __future__ import annotations
+FASE DE TRANSIÇÃO (strangler fig — decisão F1 do audit-erros.md):
+/summary re-registra o handler do BFF health (que delega ao service
+legado `app.health.service` — implementação completa e testada). A
+primeira versão usava uma re-implementação nova sem testes. O endpoint
+/signals foi removido: não tinha implementação provada nem consumidor
+(a Home compõe sinais no BFF home).
+"""
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter
 
-from app.auth.deps import require_session
-from app.db.models import User
-from app.domain.health_metrics.dependencies import get_health_metrics_service
-from app.domain.health_metrics.service import HealthMetricsService
-from app.domain.health_metrics.schemas import HealthSummaryOut, HealthSignalsOut
+from app.bff.health.router import get_health_summary as legacy_bff_health_summary
 
 router = APIRouter(prefix="/api/v1/health-metrics", tags=["health-metrics"])
 
-
-@router.get("/summary")
-def get_health_summary(
-    days: int = 60,
-    user: User = Depends(require_session),
-    service: HealthMetricsService = Depends(get_health_metrics_service),
-) -> HealthSummaryOut:
-    """Painel Saúde completo — janela configurável (default 60d)."""
-    return service.get_summary(user.id, days)
-
-
-@router.get("/signals")
-def get_health_signals(
-    user: User = Depends(require_session),
-    service: HealthMetricsService = Depends(get_health_metrics_service),
-) -> HealthSignalsOut:
-    """Sinais para painel Home — HRV, Sono, Forma."""
-    return service.get_signals(user.id)
+router.get("/summary")(legacy_bff_health_summary)

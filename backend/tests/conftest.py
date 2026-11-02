@@ -22,6 +22,7 @@ os.environ["TOKEN_ENCRYPTION_KEY"] = TEST_TOKEN_ENCRYPTION_KEY
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import event, insert  # noqa: E402
 
 from app.auth.deps import require_session  # noqa: E402
 from app.auth.rate_limit import RateLimiter  # noqa: E402
@@ -34,6 +35,42 @@ from app.main import app  # noqa: E402
 from datetime import date  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
+
+# Zonas VDOT de referência (vdot-db-only desde a3e89a5: a fonte é o banco,
+# por usuário). Todo usuário de teste nasce com config — é a pré-condição
+# que a suíte assumia na era do arquivo. Testes do caminho "sem zonas"
+# usam o fixture `no_vdot_zones`.
+_ZONES_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "vdot_zones.json")
+with open(_ZONES_PATH, "r", encoding="utf-8") as _zf:
+    _ZONE_DATA = json.load(_zf)
+
+
+@pytest.fixture(autouse=True)
+def _seed_vdot_zones_for_new_users():
+    """Cada User inserido ganha uma VdotZoneConfig na mesma transação.
+
+    Cobre usuários criados por fixture (_make_user) e por HTTP (register)
+    sem tocar em código de produção.
+    """
+
+    def _seed(mapper, connection, target):
+        connection.execute(
+            insert(VdotZoneConfig.__table__).values(
+                user_id=target.id,
+                vdot=_ZONE_DATA["vdot"],
+                source=_ZONE_DATA["source"],
+                test_date=date.fromisoformat(_ZONE_DATA["test_date"]),
+                distance_m=_ZONE_DATA["distance_m"],
+                time_s=_ZONE_DATA["time_s"],
+                zones=_ZONE_DATA["zones"],
+                equivalencias=_ZONE_DATA["equivalencias"],
+                valid_from=date.fromisoformat(_ZONE_DATA["valid_from"]),
+            )
+        )
+
+    event.listen(User, "after_insert", _seed)
+    yield
+    event.remove(User, "after_insert", _seed)
 
 
 @pytest.fixture(autouse=True)
@@ -88,26 +125,20 @@ def session_client():
 
 @pytest.fixture()
 def session_client_with_zones(session_client):
-    """TestClient com sessão real e zonas VDOT configuradas para o usuário."""
+    """Compat: com o seed automático por usuário (event listener no
+    conftest), todo session_client JÁ tem zonas. Mantido para não quebrar
+    testes existentes — equivalente ao session_client."""
+    client, user_id = session_client
+    yield client, user_id
+
+
+@pytest.fixture()
+def no_vdot_zones(session_client):
+    """TestClient com sessão real e SEM config VDOT — para os testes do
+    caminho 'zonas não configuradas' (500 no legado)."""
     client, user_id = session_client
     with SessionLocal() as db:
-        # Load zone data from JSON file
-        zones_path = os.path.join(os.path.dirname(__file__), "..", "data", "vdot_zones.json")
-        with open(zones_path, 'r', encoding='utf-8') as f:
-            zone_data = json.load(f)
-        
-        config = VdotZoneConfig(
-            user_id=user_id,
-            vdot=zone_data["vdot"],
-            source=zone_data["source"],
-            test_date=date.fromisoformat(zone_data["test_date"]),
-            distance_m=zone_data["distance_m"],
-            time_s=zone_data["time_s"],
-            zones=zone_data["zones"],
-            equivalencias=zone_data["equivalencias"],
-            valid_from=date.fromisoformat(zone_data["valid_from"]),
-        )
-        db.add(config)
+        db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).delete()
         db.commit()
     yield client, user_id
 

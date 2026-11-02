@@ -412,7 +412,10 @@ def test_500_zonas_nao_configuradas(session_client, monkeypatch) -> None:
     def raise_missing(db, user_id):
         raise ZoneConfigError("zonas VDOT não configuradas")
 
-    monkeypatch.setattr("app.vdot.zones.load_zone_config_from_db", raise_missing)
+    # vdot-db-only: o router legado resolve o loader pelo próprio namespace
+    # (import no module-level) — patchear app.vdot.zones não afeta a
+    # referência já vinculada
+    monkeypatch.setattr("app.activities.router.load_zone_config_from_db", raise_missing)
     # Create an activity first so we test zones error, not 404
     with SessionLocal() as db:
         activity = _seed_run(db, user_id=user_id)

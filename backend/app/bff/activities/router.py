@@ -1,12 +1,20 @@
-"""Router do BFF Activities — /api/v1/bff/activities"""
+"""Router do BFF Activities — /api/v1/bff/activities.
+
+Contrato 1:1 com a tela Treinos (mesmo payload do /api/activities legado —
+a diferença é só a URL). `load_zone_config_from_db` sem config -> 500
+"zonas VDOT não configuradas", igual ao legado.
+"""
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
 
+from app.activities.router import ActivityDetailOut, ActivityListOut
 from app.auth.deps import require_session
 from app.bff.activities.dependencies import get_activities_bff_service
-from app.bff.activities.schemas import ActivityDetailOut, ActivityListOut
 from app.bff.activities.service import ActivitiesBFFService
+from app.db.engine import get_db
 from app.db.models import User
+
 
 router = APIRouter(prefix="/api/v1/bff/activities", tags=["bff:activities"])
 
@@ -31,7 +39,8 @@ def get_activity(
 ) -> ActivityDetailOut:
     """Detalhe do treino (TRN-13). 404 = id inexistente."""
     detail = service.get_detail(activity_id, user.id)
-    if not detail:
+    if detail is None:
         from fastapi import HTTPException
+
         raise HTTPException(404, "atividade não encontrada")
     return detail

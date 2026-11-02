@@ -6,39 +6,32 @@
   "time_s": 2475.0,
   "zones": {
     "easy": {
-      "ms": 3.13,
-      "ms_min": 2.85,
-      "ms_max": 3.43,
-      "pace_range": "5:51-4:53/km",
-      "description": "Easy"
+      "pace_range": "5:51/km-4:53/km",
+      "ms_min": 2.851,
+      "ms_max": 3.418,
+      "description": "Recuperação, base aeróbica, aquecimento/desaquecimento"
     },
     "marathon": {
-      "ms": 3.7,
-      "ms_min": 3.7,
-      "ms_max": 3.7,
       "pace": "4:30/km",
-      "description": "Marathon"
+      "ms": 3.701,
+      "description": "Ritmo de maratona, longões"
     },
     "threshold": {
-      "ms": 3.85,
-      "ms_min": 3.75,
-      "ms_max": 3.94,
-      "pace_range": "4:14-4:27/km",
-      "description": "Threshold"
+      "pace_range": "4:14/km-4:27/km",
+      "ms_min": 3.749,
+      "ms_max": 3.931,
+      "description": "Limiar de lactato, tempo runs"
     },
     "interval": {
-      "ms": 4.27,
-      "ms_min": 4.174,
-      "ms_max": 4.358,
-      "pace_range": "3:59-3:49/km",
-      "description": "Interval"
+      "pace_range": "3:59/km-3:49/km",
+      "ms_min": 4.183,
+      "ms_max": 4.36,
+      "description": "VO2max, esforços de 2-4 min"
     },
     "repetition": {
-      "ms": 4.55,
-      "ms_min": 4.55,
-      "ms_max": 4.55,
       "pace": "3:40/km",
-      "description": "Repetition"
+      "ms": 4.536,
+      "description": "Repetições curtas, 800m-1km"
     }
   },
   "equivalencias": {},

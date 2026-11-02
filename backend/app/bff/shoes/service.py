@@ -1,44 +1,54 @@
-"""BFF Service do Shoes — composição de tela Equipamentos via services de domínio."""
+"""BFF Service do Shoes — composição da tela Equipamentos.
 
-from datetime import date
-from typing import Optional
+FASE DE TRANSIÇÃO (strangler fig — decisão F1 do audit-erros.md): delega
+ao service legado `app.shoes.service` (current_km/run_count/last_use/
+life_pct reais) e ao service de degradação `app.tenis_degradation.service`.
+A primeira versão devolvia zeros hardcoded e degradação stub (ERR-12).
+"""
+
+from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from app.domain.equipment.dependencies import get_shoes_service
-from app.domain.equipment.schemas import (
-    DegradationOut as DomainDegradationOut,
-    ShoeCreateIn,
-    ShoeOut,
-    ShoeSummaryOut,
-    ShoeUpdateIn,
-    ShoesListOut,
-)
-from app.domain.equipment.service import ShoesService
+from app.shoes import service as shoes_service
+from app.shoes.router import ShoeCreateIn, ShoeOut, ShoesListOut, ShoeUpdateIn
+from app.tenis_degradation.service import degradation_payload
 
 
 class ShoesBFFService:
-    """Composição da tela Equipamentos via services de domínio."""
+    """Composição da tela Equipamentos via services legados."""
 
-    def __init__(self, equipment_service: ShoesService):
-        self.equipment_service = equipment_service
+    def __init__(self, db: Session):
+        self.db = db
 
     def list_shoes(self, user_id: int) -> ShoesListOut:
-        return self.equipment_service.list(user_id)
+        items = shoes_service.list_shoes(self.db, user_id)
+        attribution = shoes_service.calculate_attribution_30d_pct(self.db, user_id)
+        return ShoesListOut(
+            items=[ShoeOut(**s) for s in items],
+            attribution_30d_pct=attribution,
+        )
 
     def create_shoe(self, user_id: int, data: ShoeCreateIn) -> ShoeOut:
-        return self.equipment_service.create(user_id, data)
+        shoe = shoes_service.create_shoe(self.db, user_id, data.model_dump())
+        self.db.commit()
+        return ShoeOut(**shoe)
 
-    def get_shoe(self, shoe_id: int, user_id: int) -> Optional[ShoeOut]:
-        return self.equipment_service.get(shoe_id, user_id)
+    def get_shoe(self, shoe_id: int, user_id: int) -> ShoeOut | None:
+        for shoe in shoes_service.list_shoes(self.db, user_id):
+            if shoe["id"] == shoe_id:
+                return ShoeOut(**shoe)
+        return None
 
-    def update_shoe(self, shoe_id: int, user_id: int, data: ShoeUpdateIn) -> Optional[ShoeOut]:
-        return self.equipment_service.update(shoe_id, user_id, data)
+    def update_shoe(self, shoe_id: int, user_id: int, data: ShoeUpdateIn) -> ShoeOut | None:
+        shoe = shoes_service.update_shoe(
+            self.db, user_id, shoe_id, data.model_dump(exclude_unset=True)
+        )
+        if shoe is None:
+            return None
+        self.db.commit()
+        return ShoeOut(**shoe)
 
-    def set_activity_shoe(
-        self, activity_id: int, user_id: int, shoe_id: Optional[int]
-    ) -> Optional[ShoeSummaryOut]:
-        return self.equipment_service.set_activity_shoe(activity_id, user_id, shoe_id)
-
-    def get_degradation(self, shoe_id: int, user_id: int) -> Optional[DomainDegradationOut]:
-        return self.equipment_service.get_degradation(shoe_id, user_id)
+    def get_degradation(self, shoe_id: int, user_id: int) -> dict:
+        """Mesma implementação do router legado (404 quando sem corridas)."""
+        return degradation_payload(self.db, user_id, shoe_id)

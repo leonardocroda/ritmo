@@ -28,7 +28,6 @@ from app.db.models import (
     Stress,
     SyncJob,
 )
-from app.domain.garmin_sync.ports.client import GarminClient, TokenStore
 from app.domain.garmin_sync.schemas import SyncJobOut, SyncCreatedOut, LatestJobOut
 from app.garmin.client import (
     GarminAuthExpiredError,
@@ -371,10 +370,15 @@ def _persist_tokens(db, job, stats, gateway) -> None:
 
 @dataclass
 class SyncService:
-    client: GarminClient
-    token_store: TokenStore
+    """Orquestra o sync completo.
 
-    async def start_sync(self, user_id: int, window_days: int = 3) -> SyncCreatedOut:
+    Usa o gateway legado (`app.garmin.GarminGateway.from_user`) — a única
+    implementação real de leitura Garmin. Os campos client/token_store da
+    primeira versão recebiam stubs que jamais eram usados (ERR-15) e foram
+    removidos.
+    """
+
+    async def start_sync(self, user_id: int) -> SyncCreatedOut:
         with SessionLocal() as db:
             job = create_job(db, user_id)
             return SyncCreatedOut(id=job.id, status=job.status)

@@ -1,42 +1,36 @@
-"""Router da API de domínio Activity — /api/v1/activities"""
+"""Router da API de domínio Activity — /api/v1/activities.
 
-from __future__ import annotations
+FASE DE TRANSIÇÃO (strangler fig — decisão F1 do audit-erros.md): este
+router DELEGA aos handlers legados de `app.activities` e `app.evaluation`,
+que são a implementação completa e provada. O domínio novo
+(`app/domain/activity/`) assume este router quando passar nos parity
+tests (Fase 2/4 do plano) — até lá, nenhuma tela depende dele.
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+Trocar a delegação por `Depends(get_activity_service)` ANTES de o
+domínio ter paridade com o legado foi exatamente o erro que gerou
+os ERR-06..10 do audit.
+"""
 
-from app.auth.deps import require_session
-from app.db.engine import get_db
-from app.db.models import User
-from app.domain.activity.dependencies import get_activity_service
-from app.domain.activity.service import ActivityService
-from app.domain.activity.schemas import ActivityListOut, ActivityDetailOut
-from app.domain.activity.domain.value_objects import ActivityFilter
+from fastapi import APIRouter, Depends  # noqa: F401 (Depends documenta o contrato)
+
+from app.activities.router import (
+    get_activity as legacy_get_activity,
+    list_activities as legacy_list_activities,
+)
+from app.evaluation.router import (
+    evaluate_activity as legacy_evaluate_activity,
+    get_evaluation_status as legacy_get_evaluation_status,
+)
+from app.auth.deps import require_session  # noqa: F401 (documenta o contrato)
 
 router = APIRouter(prefix="/api/v1/activities", tags=["activity"])
 
+# Lista + detalhe: mesma implementação do /api/activities legado.
+router.get("")(legacy_list_activities)
+router.get("/{activity_id}")(legacy_get_activity)
 
-@router.get("")
-def list_activities(
-    activity_type: str = Query("running", pattern="^(running|all)$"),
-    limit: int = Query(30, ge=1, le=100),
-    offset: int = Query(0, ge=0),
-    user: User = Depends(require_session),
-    service: ActivityService = Depends(get_activity_service),
-) -> ActivityListOut:
-    """Lista atividades paginada — corridas por padrão."""
-    filter = ActivityFilter(activity_type=activity_type, limit=limit, offset=offset)
-    return service.list(user.id, filter, limit, offset)
-
-
-@router.get("/{activity_id}")
-def get_activity(
-    activity_id: int,
-    user: User = Depends(require_session),
-    service: ActivityService = Depends(get_activity_service),
-) -> ActivityDetailOut:
-    """Detalhe completo de uma atividade."""
-    detail = service.get_detail(activity_id, user.id)
-    if detail is None:
-        raise HTTPException(status_code=404, detail="atividade não encontrada")
-    return detail
+# Avaliar com IA (ERR-01): mesmos handlers do router legado
+# (/api/activities/{id}/evaluate), agora também em /api/v1 — a URL que
+# o frontend já chama. 201 pending + polling no GET.
+router.post("/{activity_id}/evaluate", status_code=201)(legacy_evaluate_activity)
+router.get("/{activity_id}/evaluate/{evaluation_id}")(legacy_get_evaluation_status)

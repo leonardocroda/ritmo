@@ -1,13 +1,14 @@
-"""DI do BFF Shoes — FastAPI Depends."""
+"""DI do BFF Shoes — FastAPI Depends.
+
+FASE DE TRANSIÇÃO: service db-based delegando ao legado (ver service.py).
+"""
 
 from fastapi import Depends
+from sqlalchemy.orm import Session
 
 from app.bff.shoes.service import ShoesBFFService
-from app.domain.equipment.dependencies import get_shoes_service
-from app.domain.equipment.service import ShoesService
+from app.db.engine import get_db
 
 
-def get_shoes_bff_service(
-    equipment_service: ShoesService = Depends(get_shoes_service),
-) -> ShoesBFFService:
-    return ShoesBFFService(equipment_service)
+def get_shoes_bff_service(db: Session = Depends(get_db)) -> ShoesBFFService:
+    return ShoesBFFService(db)

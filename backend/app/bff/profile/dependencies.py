@@ -1,19 +1,16 @@
-"""DI do BFF Profile — FastAPI Depends."""
+"""DI do BFF Profile — FastAPI Depends.
+
+FASE DE TRANSIÇÃO: service db-based delegando aos builders legados
+(ver service.py). O dependencies.py antigo injetava os services de
+domínio stub (ERR-11).
+"""
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from app.bff.profile.service import ProfileBFFService
 from app.db.engine import get_db
-from app.domain.heart_rate_zones.dependencies import get_hr_zones_service
-from app.domain.heart_rate_zones.service import HeartRateZonesService
-from app.domain.vdot.dependencies import get_vdot_service
-from app.domain.vdot.service import VDOTService
 
 
-def get_profile_bff_service(
-    hr_zones_service: HeartRateZonesService = Depends(get_hr_zones_service),
-    vdot_service: VDOTService = Depends(get_vdot_service),
-    db: Session = Depends(get_db),
-) -> ProfileBFFService:
-    return ProfileBFFService(hr_zones_service, vdot_service, db)
+def get_profile_bff_service(db: Session = Depends(get_db)) -> ProfileBFFService:
+    return ProfileBFFService(db)

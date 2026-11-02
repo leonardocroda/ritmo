@@ -132,7 +132,6 @@ def load_zone_config(filepath: str) -> ZoneConfig:
     
     Esta função mantém compatibilidade com testes que carregam zonas de arquivo JSON.
     """
-    import json
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)

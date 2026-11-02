@@ -1,24 +1,16 @@
-"""Router da API de domínio VDOT — /api/v1/vdot"""
+"""Router da API de domínio VDOT — /api/v1/vdot.
 
-from __future__ import annotations
+FASE DE TRANSIÇÃO (strangler fig — decisão F1 do audit-erros.md): re-expõe
+o handler legado `GET /api/profile/pace-zones` (shape PaceZonesOut — o
+contrato da tela Zonas de Ritmo). A primeira versão deste router devolvia
+o payload do painel Performance (ERR-04: shape errado derrubava a página).
+O payload de Performance vive no BFF: /api/v1/bff/performance.
+"""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter
 
-from app.auth.deps import require_session
-from app.db.models import User
-from app.domain.vdot.dependencies import get_vdot_service
-from app.domain.vdot.service import VDOTService
-from app.domain.vdot.schemas import VDOTOut
+from app.profile.router import get_pace_zones as legacy_get_pace_zones
 
 router = APIRouter(prefix="/api/v1/vdot", tags=["vdot"])
 
-
-@router.get("")
-def get_vdot(
-    user: User = Depends(require_session),
-    service: VDOTService = Depends(get_vdot_service),
-) -> VDOTOut:
-    try:
-        return service.get_vdot(user.id)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+router.get("")(legacy_get_pace_zones)

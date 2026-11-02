@@ -1,40 +1,23 @@
-"""Router da API de domínio Heart Rate Zones — /api/v1/heart-rate-zones"""
+"""Router da API de domínio Heart Rate Zones — /api/v1/heart-rate-zones.
 
-from __future__ import annotations
+FASE DE TRANSIÇÃO (strangler fig — decisão F1 do audit-erros.md): as três
+rotas re-registram os handlers legados de `app.profile.router` (que
+implementam HRZ-01..22 via `app.profile.service`/`calc`). O domínio novo
+(`app/domain/heart_rate_zones/`) tinha update/zonas derivadas como stub
+(ERR-11: PUT respondia 200 sem persistir) — assume o router só depois de
+passar nos parity tests (Fase 2 do plano).
+"""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter
 
-from app.auth.deps import require_session
-from app.db.models import User
-from app.domain.heart_rate_zones.dependencies import get_hr_zones_service
-from app.domain.heart_rate_zones.service import HeartRateZonesService
-from app.domain.heart_rate_zones.schemas import HRZonesOut, HRZonesUpdate, HRZonesHistoryOut
+from app.profile.router import (
+    get_hr_zones as legacy_get_hr_zones,
+    get_hr_zones_history as legacy_get_hr_zones_history,
+    put_hr_zones as legacy_put_hr_zones,
+)
 
 router = APIRouter(prefix="/api/v1/heart-rate-zones", tags=["heart-rate-zones"])
 
-
-@router.get("")
-def get_hr_zones(
-    user: User = Depends(require_session),
-    service: HeartRateZonesService = Depends(get_hr_zones_service),
-) -> HRZonesOut:
-    return service.get_hr_zones(user.id)
-
-
-@router.get("/history")
-def get_hr_zones_history(
-    user: User = Depends(require_session),
-    service: HeartRateZonesService = Depends(get_hr_zones_service),
-) -> HRZonesHistoryOut:
-    """HRZ-15: mudanças de métricas e configs, mais recente primeiro —
-    DESC por (valid_from, id), com data e fonte."""
-    return service.get_hr_zones_history(user.id)
-
-
-@router.put("")
-def update_hr_zones(
-    data: HRZonesUpdate,
-    user: User = Depends(require_session),
-    service: HeartRateZonesService = Depends(get_hr_zones_service),
-) -> HRZonesOut:
-    return service.update_hr_zones(user.id, data)
+router.get("")(legacy_get_hr_zones)
+router.put("")(legacy_put_hr_zones)
+router.get("/history")(legacy_get_hr_zones_history)

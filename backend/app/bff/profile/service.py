@@ -1,68 +1,28 @@
 """BFF Service do Profile — composição de tela Perfil via services de domínio.
 
-Reutiliza a lógica do módulo profile antigo para zonas de ritmo (VDOT).
+FASE DE TRANSIÇÃO (strangler fig — decisão F1 do audit-erros.md): delega
+aos builders de payload do router legado `app.profile` (HRZ-01..22 +
+PaceZonesOut), que são a implementação completa. A versão anterior
+montava zonas FC com o service de domínio stub (zonas derivadas sempre
+null — ERR-11 no contexto do BFF).
 """
 
-from datetime import date
-from typing import Optional
+from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from app.domain.heart_rate_zones.dependencies import get_hr_zones_service
-from app.domain.heart_rate_zones.schemas import HRZonesOut as DomainHRZonesOut
-from app.domain.heart_rate_zones.service import HeartRateZonesService
-from app.domain.vdot.dependencies import get_vdot_service
-from app.domain.vdot.schemas import VDOTOut
-from app.domain.vdot.service import VDOTService
-from app.profile import calc, service as profile_service
-from app.db.models import VdotZoneConfig
+from app.profile.router import hr_zones_payload, pace_zones_payload
 
 
 class ProfileBFFService:
-    """Composição da tela Perfil via services de domínio."""
+    """Composição da tela Perfil via builders legados."""
 
-    def __init__(
-        self,
-        hr_zones_service: HeartRateZonesService,
-        vdot_service: VDOTService,
-        db: Session,
-    ):
-        self.hr_zones_service = hr_zones_service
-        self.vdot_service = vdot_service
+    def __init__(self, db: Session):
         self.db = db
 
     def get_zones(self, user_id: int) -> dict:
         """Retorna zonas FC + zonas ritmo para o usuário."""
-        hr_zones = self.hr_zones_service.get_hr_zones(user_id)
-        pace_zones = self._get_pace_zones(user_id)
         return {
-            "hr_zones": hr_zones.model_dump(),
-            "pace_zones": pace_zones,
-        }
-
-    def _get_pace_zones(self, user_id: int) -> dict:
-        """Obtém zonas de ritmo no formato legado (PaceZonesOut)."""
-        config = (
-            self.db.query(VdotZoneConfig)
-            .filter(VdotZoneConfig.user_id == user_id)
-            .order_by(VdotZoneConfig.valid_from.desc(), VdotZoneConfig.id.desc())
-            .first()
-        )
-        if config is None:
-            raise ValueError("zonas VDOT não configuradas")
-
-        zones_with_key = {}
-        for key, zone in config.zones.items():
-            zone_copy = dict(zone)
-            zone_copy["key"] = key
-            zones_with_key[key] = zone_copy
-
-        return {
-            "vdot": config.vdot,
-            "source": config.source,
-            "test_date": config.test_date,
-            "distancia_metros": config.distance_m,
-            "tempo_segundos": config.time_s,
-            "zones": zones_with_key,
-            "equivalencias": config.equivalencias,
+            "hr_zones": hr_zones_payload(self.db, user_id).model_dump(mode="json"),
+            "pace_zones": pace_zones_payload(self.db, user_id).model_dump(mode="json"),
         }

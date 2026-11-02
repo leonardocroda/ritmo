@@ -514,14 +514,10 @@ def test_api_dead_days_param_space_has_no_validation(session_client) -> None:
         assert response.json() == baseline, params
 
 
-def test_api_missing_zones_file_responds_500(session_client, monkeypatch) -> None:
-    """POT-16: vdot_zones.json ausente/inválido -> 500 com a mensagem exata
-    (a mesma do workouts-list — sem VDOT corrente não há painel)."""
-    def raise_missing(path):
-        raise ZoneConfigError(f"não foi possível carregar {path}")
-
-    monkeypatch.setattr(potential_router, "load_calibration", raise_missing)
-    client, _user_id = session_client
+def test_api_missing_zones_file_responds_500(no_vdot_zones) -> None:
+    """POT-16 (vdot-db-only): usuário SEM config VDOT no banco -> 500 com
+    a mensagem exata (a mesma do workouts-list - sem VDOT corrente não há painel)."""
+    client, _user_id = no_vdot_zones
     response = client.get("/api/potential")
     assert response.status_code == 500
     assert response.json()["detail"] == "zonas VDOT não configuradas"

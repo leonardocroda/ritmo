@@ -1,5 +1,12 @@
 # Tasks: Backend Decoupling — Pragmatic Hexagonal Architecture
 
+> **⚠️ STATUS REAL (02/11/2026):** a implementação está parcial e com regressões.
+> Antes de marcar qualquer task como done, leia **`audit-erros.md`** (mesma pasta):
+> inventário completo de erros introduzidos (ERR-01..16), problemas herdados da main
+> (HER-01..04), divergências vs. spec (DIV-01..05) e o plano de correção em fases
+> (F0–F8) com gates. Checkpoint de retomada: branch `refactor/backend-decoupling`
+> @ `452b1e0`, working tree limpo, 61 testes falhando (60 herdados da main + 1 novo).
+
 ## Task Breakdown
 
 ### T1: Create Domain Package Structure ✅
