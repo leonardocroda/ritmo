@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from app.auth.deps import require_session
 from app.bff.performance.dependencies import get_performance_bff_service
 from app.bff.performance.schemas import PerformanceOut
+from app.bff.performance.service import PerformanceBFFService
 from app.db.models import User
 
 router = APIRouter(prefix="/api/v1/bff/performance", tags=["bff:performance"])

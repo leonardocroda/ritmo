@@ -12,6 +12,7 @@ from app.bff.shoes.schemas import (
     ShoeUpdateIn,
     ShoesListOut,
 )
+from app.bff.shoes.service import ShoesBFFService
 from app.db.models import User
 
 router = APIRouter(prefix="/api/v1/bff/shoes", tags=["bff:shoes"])

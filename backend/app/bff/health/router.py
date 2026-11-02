@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from app.auth.deps import require_session
 from app.bff.health.dependencies import get_health_bff_service
 from app.bff.health.schemas import HealthSummaryOut
+from app.bff.health.service import HealthBFFService
 from app.core.tz import app_tz
 from app.db.models import User
 

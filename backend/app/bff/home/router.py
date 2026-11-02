@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from app.auth.deps import require_session
 from app.bff.home.dependencies import get_home_bff_service
 from app.bff.home.schemas import HomeTodayOut
+from app.bff.home.service import HomeBFFService
 from app.core.tz import app_tz
 from app.db.models import User
 

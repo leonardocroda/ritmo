@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from app.auth.deps import require_session
 from app.bff.activities.dependencies import get_activities_bff_service
 from app.bff.activities.schemas import ActivityDetailOut, ActivityListOut
+from app.bff.activities.service import ActivitiesBFFService
 from app.db.models import User
 
 router = APIRouter(prefix="/api/v1/bff/activities", tags=["bff:activities"])

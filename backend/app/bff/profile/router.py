@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from app.auth.deps import require_session
 from app.bff.profile.dependencies import get_profile_bff_service
 from app.bff.profile.schemas import ProfileZonesOut
+from app.bff.profile.service import ProfileBFFService
 from app.db.models import User
 
 router = APIRouter(prefix="/api/v1/bff/profile", tags=["bff:profile"])
