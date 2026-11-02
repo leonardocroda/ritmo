@@ -39,7 +39,8 @@ type DetailState =
   | { kind: "ready"; detail: ActivityDetailOut };
 
 /** Delta com sinal: 6 -> "+6", -2.04 -> "-2", vírgula quando tem decimal. */
-function formatSigned(value: number, decimals = 0): string {
+function formatSigned(value: number | null | undefined, decimals = 0): string {
+  if (value == null) return "—";
   const fixed = value.toFixed(decimals).replace(".", ",");
   return value > 0 ? `+${fixed}` : fixed;
 }
