@@ -130,9 +130,9 @@ def test_get_pace_zones_500_without_config(session_client) -> None:
     assert response.json()["detail"] == "zonas VDOT não configuradas"
 
 
-def test_get_pace_zones_isolated_between_users(session_client) -> None:
+def test_get_pace_zones_isolated_between_users(no_vdot_zones) -> None:
     """Isolamento A×B: usuário A não vê dados do usuário B (seed user 1)."""
-    client, user_id = session_client
+    client, user_id = no_vdot_zones
 
     # User A (novo) não tem config
     response = client.get("/api/profile/pace-zones")
@@ -154,7 +154,9 @@ def test_recalibrate_pace_zones_creates_new_config(session_client) -> None:
         db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).delete()
         db.commit()
 
-    # 10K em 40:12 → VDOT ~52.0
+    # 10K em 40:12 → VDOT 51.6 pela forma fechada de app/vdot/daniels.py
+    # (fonte de verdade do produto — a mesma que gerou a calibração 50.2;
+    # diverge ~0.2–1.3 das tabelas impressas de Daniels, registrado no audit)
     response = client.post(
         "/api/profile/pace-zones/recalibrate",
         json={"distance_km": 10.0, "time_str": "00:40:12"},
@@ -163,9 +165,9 @@ def test_recalibrate_pace_zones_creates_new_config(session_client) -> None:
     body = response.json()
 
     # Campos raiz
-    assert body["vdot"] == 52.0  # arredondado para 1 casa
-    assert "10.0km" in body["source"]
-    assert "40:12" in body["source"]
+    assert body["vdot"] == 51.6  # arredondado para 1 casa
+    assert "10.000km" in body["source"]
+    assert "00:40:12" in body["source"]
     assert body["distancia_metros"] == 10000.0
     assert body["tempo_segundos"] == 2412.0
 
@@ -189,7 +191,7 @@ def test_recalibrate_pace_zones_creates_new_config(session_client) -> None:
     with SessionLocal() as db:
         config = db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).first()
         assert config is not None
-        assert config.vdot == 52.0
+        assert config.vdot == 51.6
         assert config.distance_m == 10000.0
         assert config.time_s == 2412.0
 
@@ -204,7 +206,7 @@ def test_recalibrate_pace_zones_updates_existing_config(session_client) -> None:
         json={"distance_km": 10.0, "time_str": "00:40:12"},
     )
     assert response1.status_code == 200
-    assert response1.json()["vdot"] == 52.0
+    assert response1.json()["vdot"] == 51.6
 
     # Segundo POST com tempo diferente
     response2 = client.post(
@@ -212,15 +214,15 @@ def test_recalibrate_pace_zones_updates_existing_config(session_client) -> None:
         json={"distance_km": 10.0, "time_str": "00:42:00"},
     )
     assert response2.status_code == 200
-    # 10K em 42:00 → VDOT ~49.8
-    assert response2.json()["vdot"] == 49.8
+    # 10K em 42:00 → VDOT 49.1 pela forma fechada
+    assert response2.json()["vdot"] == 49.1
 
     # Só deve ter 1 linha no banco
     with SessionLocal() as db:
         count = db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).count()
         assert count == 1
         config = db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).first()
-        assert config.vdot == 49.8
+        assert config.vdot == 49.1
 
 
 def test_recalibrate_pace_zones_422_invalid_distance(session_client) -> None:
@@ -232,7 +234,9 @@ def test_recalibrate_pace_zones_422_invalid_distance(session_client) -> None:
         json={"distance_km": 0, "time_str": "00:40:12"},
     )
     assert response.status_code == 422
-    assert "distance_km" in response.json()["detail"]
+    # O RecalibrateIn valida gt=0 no schema — detail é a lista padrão do FastAPI
+    detail = response.json()["detail"]
+    assert any(item.get("loc", [None, None])[1] == "distance_km" for item in detail)
 
 
 def test_recalibrate_pace_zones_422_invalid_time_format(session_client) -> None:
@@ -298,7 +302,7 @@ def test_recalibrate_pace_zones_mm_ss_format(session_client) -> None:
         json={"distance_km": 10.0, "time_str": "40:12"},
     )
     assert response.status_code == 200
-    assert response.json()["vdot"] == 52.0
+    assert response.json()["vdot"] == 51.6
 
 
 def test_recalibrate_pace_zones_5k_distance(session_client) -> None:
@@ -309,13 +313,14 @@ def test_recalibrate_pace_zones_5k_distance(session_client) -> None:
         db.query(VdotZoneConfig).filter(VdotZoneConfig.user_id == user_id).delete()
         db.commit()
 
-    # 5K em 19:30 → VDOT ~50.0
+    # 5K em 19:30 → VDOT 51.3 pela forma fechada (tabelas impressas: 50.0 —
+    # divergência conhecida da fórmula, audit-erros.md HER-05)
     response = client.post(
         "/api/profile/pace-zones/recalibrate",
         json={"distance_km": 5.0, "time_str": "19:30"},
     )
     assert response.status_code == 200
     body = response.json()
-    assert body["vdot"] == 50.0
+    assert body["vdot"] == 51.3
     assert body["distancia_metros"] == 5000.0
     assert body["tempo_segundos"] == 1170.0

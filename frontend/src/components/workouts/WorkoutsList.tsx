@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 import {
-  getActivities,
+  getActivitiesBFF,
   type ActivityListItem,
   type ActivityTypeFilter,
 } from "@/lib/api";
@@ -99,7 +99,7 @@ export default function WorkoutsList() {
   // O seq descarta a resposta velha quando o filtro muda no meio do fetch.
   useEffect(() => {
     const seq = ++requestSeq.current;
-    getActivities({ activityType: filter, limit: PAGE_SIZE, offset: 0 })
+    getActivitiesBFF({ activityType: filter, limit: PAGE_SIZE, offset: 0 })
       .then((data) => {
         if (seq !== requestSeq.current) return;
         setItems(data.items);
@@ -120,7 +120,7 @@ export default function WorkoutsList() {
     setLoadingMore(true);
     setError(null);
     try {
-      const data = await getActivities({
+      const data = await getActivitiesBFF({
         activityType: filter,
         limit: PAGE_SIZE,
         offset,

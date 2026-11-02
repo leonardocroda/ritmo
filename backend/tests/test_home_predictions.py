@@ -151,10 +151,12 @@ def test_zone_config_error_predictions_null_not_500(db, fixed_today, monkeypatch
     None no payload — a Home NUNCA 500 por causa de um bloco P2; o resto
     do painel segue íntegro (o bloco degrada sozinho)."""
 
-    def raise_error(path):
-        raise ZoneConfigError(f"não foi possível carregar {path}")
+    def raise_error(db, user_id):
+        raise ZoneConfigError(f"não foi possível carregar {db}")
 
-    monkeypatch.setattr(home_service, "load_calibration", raise_error)
+    # vdot-db-only: a fonte é load_calibration_from_db (o antigo
+    # load_calibration de arquivo morreu com a migração a3e89a5)
+    monkeypatch.setattr(home_service, "load_calibration_from_db", raise_error)
     user = _new_user(db)
     db.commit()
 

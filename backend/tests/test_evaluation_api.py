@@ -104,10 +104,10 @@ def _mock_nim(monkeypatch, *, verdict: dict | None = VERDICT,
     monkeypatch.setattr("app.evaluation.nim.chat_completion", fake)
 
 
-def test_post_201_pending_e_worker_conclui(session_client, monkeypatch) -> None:
+def test_post_201_pending_e_worker_conclui(session_client_with_zones, monkeypatch) -> None:
     """EVAL-21/22: a resposta é o pending (201); ao fim do request o
     worker já concluiu — linha done com veredito, tokens e evaluated."""
-    client, user_id = session_client
+    client, user_id = session_client_with_zones
     with SessionLocal() as db:
         activity = _seed_run(db, user_id=user_id)
         activity_id = activity.id
@@ -141,10 +141,10 @@ def test_post_201_pending_e_worker_conclui(session_client, monkeypatch) -> None:
         assert fresh.evaluated is True
 
 
-def test_post_erro_nim_vira_linha_error(session_client, monkeypatch) -> None:
+def test_post_erro_nim_vira_linha_error(session_client_with_zones, monkeypatch) -> None:
     """EVAL-23: NIM fora → 201 pending na resposta + linha error com o
     motivo ao fim do request — a tentativa nunca se perde (sem 502/504)."""
-    client, user_id = session_client
+    client, user_id = session_client_with_zones
     with SessionLocal() as db:
         activity = _seed_run(db, user_id=user_id)
         activity_id = activity.id
@@ -169,10 +169,10 @@ def test_post_erro_nim_vira_linha_error(session_client, monkeypatch) -> None:
         assert fresh.evaluated is False
 
 
-def test_get_status_do_polling(session_client, monkeypatch) -> None:
+def test_get_status_do_polling(session_client_with_zones, monkeypatch) -> None:
     """EVAL-25: GET leve por id — done com veredito; 404 para id de outro
     treino ou inexistente."""
-    client, user_id = session_client
+    client, user_id = session_client_with_zones
     with SessionLocal() as db:
         activity = _seed_run(db, user_id=user_id)
         activity_id = activity.id
@@ -204,9 +204,9 @@ def test_get_status_do_polling(session_client, monkeypatch) -> None:
 # ---------------------------------------------------------------
 
 
-def test_post_404_atividade_de_outro_usuario(session_client, monkeypatch) -> None:
+def test_post_404_atividade_de_outro_usuario(session_client_with_zones, monkeypatch) -> None:
     """USR-16: atividade de outro usuário → 404, sem NIM e sem linha criada."""
-    client, _user_id = session_client
+    client, _user_id = session_client_with_zones
     with SessionLocal() as db:
         other = User(display_name="Outra", email="outro@example.com",
                      password_hash=hash_password("senha-segura-123"))
@@ -230,10 +230,10 @@ def test_post_404_atividade_de_outro_usuario(session_client, monkeypatch) -> Non
         assert db.execute(select(Evaluation)).scalars().all() == []
 
 
-def test_get_status_404_avaliacao_de_outro_usuario(session_client) -> None:
+def test_get_status_404_avaliacao_de_outro_usuario(session_client_with_zones) -> None:
     """USR-12: GET de status de avaliação de outro usuário → 404 (o
     polling alheio nunca enxerga nem a existência)."""
-    client, _user_id = session_client
+    client, _user_id = session_client_with_zones
     with SessionLocal() as db:
         other = User(display_name="Outra", email="outro@example.com",
                      password_hash=hash_password("senha-segura-123"))
@@ -271,10 +271,36 @@ def test_lifespan_recupera_pending_orfa(db, monkeypatch) -> None:
     """EVAL-24: pending criada antes do startup vira error "interrompida"
     quando o lifespan do backend roda (padrão recover_stale_jobs)."""
     settings = Settings(_env_file=None)
-    zone_config = load_zone_config(settings.vdot_zones_path)
+    # Load zone config from JSON file
+    import json
+    import os
+    zones_path = os.path.join(os.path.dirname(__file__), "..", "data", "vdot_zones.json")
+    with open(zones_path, 'r', encoding='utf-8') as f:
+        zone_data = json.load(f)
+    
+    from app.vdot.zones import ZoneConfig
+    zone_config = ZoneConfig(zone_data["zones"])
     user = User(display_name="Corredora")
     db.add(user)
     db.flush()
+    
+    # Create VDOT zone config for the user (needed for calibration)
+    from app.db.models import VdotZoneConfig
+    from datetime import date
+    vdot_config = VdotZoneConfig(
+        user_id=user.id,
+        vdot=zone_data["vdot"],
+        source=zone_data["source"],
+        test_date=date.fromisoformat(zone_data["test_date"]),
+        distance_m=zone_data["distance_m"],
+        time_s=zone_data["time_s"],
+        zones=zone_data["zones"],
+        equivalencias=zone_data["equivalencias"],
+        valid_from=date.fromisoformat(zone_data["valid_from"]),
+    )
+    db.add(vdot_config)
+    db.commit()
+    
     activity = _seed_run(db, user_id=user.id)
     _mock_nim(monkeypatch)
     created = service.create_evaluation(
@@ -291,9 +317,9 @@ def test_lifespan_recupera_pending_orfa(db, monkeypatch) -> None:
     assert "interrompida" in row.error
 
 
-def test_404_atividade_inexistente(session_client, monkeypatch) -> None:
+def test_404_atividade_inexistente(session_client_with_zones, monkeypatch) -> None:
     """EVAL-09: id inexistente → 404 com mensagem clara."""
-    client, _user_id = session_client
+    client, _user_id = session_client_with_zones
     _mock_nim(monkeypatch)
     response = client.post(
         "/api/activities/999/evaluate", json={"intent_type": "facil"}
@@ -302,9 +328,9 @@ def test_404_atividade_inexistente(session_client, monkeypatch) -> None:
     assert response.json()["detail"] == "atividade não encontrada"
 
 
-def test_422_atividade_nao_corrida(session_client, monkeypatch) -> None:
+def test_422_atividade_nao_corrida(session_client_with_zones, monkeypatch) -> None:
     """EVAL-10: yoga → 422, sem NIM e sem linha criada."""
-    client, user_id = session_client
+    client, user_id = session_client_with_zones
     with SessionLocal() as db:
         yoga = _seed_run(db, user_id=user_id, activity_type="yoga")
         yoga_id = yoga.id
@@ -322,18 +348,18 @@ def test_422_atividade_nao_corrida(session_client, monkeypatch) -> None:
         assert db.execute(select(Evaluation)).scalars().all() == []
 
 
-def test_422_intent_type_fora_dos_sete(session_client) -> None:
+def test_422_intent_type_fora_dos_sete(session_client_with_zones) -> None:
     """EVAL-11: pydantic rejeita tipo fora do enum antes do handler."""
-    client, _user_id = session_client
+    client, _user_id = session_client_with_zones
     response = client.post(
         "/api/activities/1/evaluate", json={"intent_type": "fácil"}
     )
     assert response.status_code == 422
 
 
-def test_422_intent_text_acima_de_500(session_client) -> None:
+def test_422_intent_text_acima_de_500(session_client_with_zones) -> None:
     """EVAL-11: texto livre com 501 caracteres → 422."""
-    client, _user_id = session_client
+    client, _user_id = session_client_with_zones
     response = client.post(
         "/api/activities/1/evaluate",
         json={"intent_type": "facil", "intent_text": "a" * 501},
@@ -341,9 +367,9 @@ def test_422_intent_text_acima_de_500(session_client) -> None:
     assert response.status_code == 422
 
 
-def test_503_sem_api_key(session_client, monkeypatch) -> None:
+def test_503_sem_api_key(session_client_with_zones, monkeypatch) -> None:
     """EVAL-12: key vazia → 503, sem NIM e nada criado."""
-    client, user_id = session_client
+    client, user_id = session_client_with_zones
     with SessionLocal() as db:
         activity = _seed_run(db, user_id=user_id)
         activity_id = activity.id
@@ -365,10 +391,10 @@ def test_503_sem_api_key(session_client, monkeypatch) -> None:
         assert db.execute(select(Evaluation)).scalars().all() == []
 
 
-def test_503_precede_404_com_key_vazia(session_client, monkeypatch) -> None:
+def test_503_precede_404_com_key_vazia(session_client_with_zones, monkeypatch) -> None:
     """Precedência da assumption do spec: key ausente responde 503 ANTES
     da consulta — erro de configuração não depende do dado."""
-    client, _user_id = session_client
+    client, _user_id = session_client_with_zones
     monkeypatch.setattr(
         "app.evaluation.router.get_settings",
         lambda: Settings(_env_file=None, nvidia_api_key=""),
@@ -380,13 +406,20 @@ def test_503_precede_404_com_key_vazia(session_client, monkeypatch) -> None:
 
 def test_500_zonas_nao_configuradas(session_client, monkeypatch) -> None:
     """EVAL-15: arquivo de zonas inválido → 500 (mesma mensagem do activities)."""
-    client, _user_id = session_client
-    from app.activities import router as activities_router
+    client, user_id = session_client
+    from app.vdot.zones import load_zone_config_from_db
 
-    def raise_missing(path):
-        raise ZoneConfigError(f"não foi possível carregar {path}")
+    def raise_missing(db, user_id):
+        raise ZoneConfigError("zonas VDOT não configuradas")
 
-    monkeypatch.setattr(activities_router, "load_zone_config", raise_missing)
-    response = client.post("/api/activities/1/evaluate", json={"intent_type": "facil"})
+    # vdot-db-only: o router legado resolve o loader pelo próprio namespace
+    # (import no module-level) — patchear app.vdot.zones não afeta a
+    # referência já vinculada
+    monkeypatch.setattr("app.activities.router.load_zone_config_from_db", raise_missing)
+    # Create an activity first so we test zones error, not 404
+    with SessionLocal() as db:
+        activity = _seed_run(db, user_id=user_id)
+        activity_id = activity.id
+    response = client.post(f"/api/activities/{activity_id}/evaluate", json={"intent_type": "facil"})
     assert response.status_code == 500
     assert response.json()["detail"] == "zonas VDOT não configuradas"

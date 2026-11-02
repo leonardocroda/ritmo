@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { getDegradation, type DegradationOut, type DegradationSignal } from "@/lib/api";
+import { getDegradationBFF, type DegradationOut, type DegradationSignal } from "@/lib/api";
 import { getSignalInfo, getDirection, getDirectionColor, getDirectionBg } from "@/lib/shoes/signalLabels";
 
 export interface EnrichedSignal extends DegradationSignal {
@@ -47,7 +47,7 @@ export function useShoeDegradation(initialShoeId?: number): UseShoeDegradationRe
     try {
       setLoading(true);
       setError(null);
-      const data = await getDegradation(shoeId);
+      const data = await getDegradationBFF(shoeId);
       setDegradation(data);
       setEnrichedSignals(enrichSignals(data.signals || []));
     } catch (err) {

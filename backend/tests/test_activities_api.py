@@ -391,13 +391,10 @@ def test_detail_404_unknown_id(session_client) -> None:
     assert response.json()["detail"] == "atividade não encontrada"
 
 
-def test_detail_missing_zones_file_responds_500(session_client, monkeypatch) -> None:
-    """Edge do spec: vdot_zones.json ausente/inválido -> 500 com a mensagem exata."""
-    def raise_missing(path):
-        raise ZoneConfigError(f"não foi possível carregar {path}")
-
-    monkeypatch.setattr(activities_router, "load_zone_config", raise_missing)
-    client, _user_id = session_client
+def test_detail_missing_zones_file_responds_500(no_vdot_zones) -> None:
+    """Edge do spec (vdot-db-only): usuário SEM config VDOT no banco ->
+    500 com a mensagem exata (a dependency de zonas roda antes do 404)."""
+    client, _user_id = no_vdot_zones
     response = client.get("/api/activities/1")
     assert response.status_code == 500
     assert response.json()["detail"] == "zonas VDOT não configuradas"

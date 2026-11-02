@@ -12,6 +12,9 @@ from pathlib import Path
 
 import pytest
 
+from app.domain.vdot.ports.repositories import VDOTRepository
+from app.domain.vdot.adapters.sqlalchemy_repo import SQLAlchemyVDOTRepository
+from app.domain.vdot.service import VDOTService
 from app.vdot.zones import ZoneConfigError, load_zone_config
 
 REAL_ZONES_PATH = Path(__file__).parents[1] / "data" / "vdot_zones.json"

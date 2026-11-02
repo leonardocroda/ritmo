@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { getShoes, createShoe, updateShoe, type Shoe, type ShoeCreate, type ShoeUpdate, type ShoesOut } from "@/lib/api";
+import { getShoesBFF, createShoeBFF, updateShoeBFF, type Shoe, type ShoeCreate, type ShoeUpdate, type ShoesOut } from "@/lib/api";
 import PanelSection from "@/components/PanelSection";
 import Skeleton from "@/components/Skeleton";
 import { formatKm, formatDateTime } from "@/lib/format";
@@ -271,7 +271,7 @@ export default function ShoesSection() {
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   useEffect(() => {
-    getShoes()
+    getShoesBFF()
       .then((data) => {
         if (data.items.length === 0) {
           setState({ kind: "empty" });
@@ -287,9 +287,9 @@ export default function ShoesSection() {
 
   const handleCreate = async (data: ShoeCreate) => {
     try {
-      await createShoe(data);
+      await createShoeBFF(data);
       setShowCreateForm(false);
-      const fresh = await getShoes();
+      const fresh = await getShoesBFF();
       setState(fresh.items.length === 0 ? { kind: "empty" } : { kind: "ready", data: fresh });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Erro ao criar tênis";
@@ -300,9 +300,9 @@ export default function ShoesSection() {
   const handleUpdate = async (data: ShoeUpdate) => {
     if (!editingShoe) return;
     try {
-      await updateShoe(editingShoe.id, data);
+      await updateShoeBFF(editingShoe.id, data);
       setEditingShoe(null);
-      const fresh = await getShoes();
+      const fresh = await getShoesBFF();
       setState(fresh.items.length === 0 ? { kind: "empty" } : { kind: "ready", data: fresh });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Erro ao atualizar tênis";
@@ -315,8 +315,8 @@ export default function ShoesSection() {
       return;
     }
     try {
-      await updateShoe(shoe.id, { status: "aposentado" });
-      const fresh = await getShoes();
+      await updateShoeBFF(shoe.id, { status: "aposentado" });
+      const fresh = await getShoesBFF();
       setState(fresh.items.length === 0 ? { kind: "empty" } : { kind: "ready", data: fresh });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Erro ao aposentar tênis";

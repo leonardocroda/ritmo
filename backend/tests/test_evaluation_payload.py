@@ -62,7 +62,13 @@ def settings() -> Settings:
 
 @pytest.fixture()
 def zone_config(settings: Settings):
-    return load_zone_config(settings.vdot_zones_path)
+    import json
+    import os
+    zones_path = os.path.join(os.path.dirname(__file__), "..", "data", "vdot_zones.json")
+    with open(zones_path, 'r', encoding='utf-8') as f:
+        zone_data = json.load(f)
+    from app.vdot.zones import ZoneConfig
+    return ZoneConfig(zone_data["zones"])
 
 
 def _seed_activity(db, *, name: str = "Easy Run", distance_m: float = 5000.0,
@@ -75,6 +81,29 @@ def _seed_activity(db, *, name: str = "Easy Run", distance_m: float = 5000.0,
     user = User(display_name="Corredora")
     db.add(user)
     db.flush()
+    
+    # Create VDOT zone config for the user (needed for calibration)
+    import json
+    import os
+    zones_path = os.path.join(os.path.dirname(__file__), "..", "data", "vdot_zones.json")
+    with open(zones_path, 'r', encoding='utf-8') as f:
+        zone_data = json.load(f)
+    from app.db.models import VdotZoneConfig
+    from datetime import date
+    vdot_config = VdotZoneConfig(
+        user_id=user.id,
+        vdot=zone_data["vdot"],
+        source=zone_data["source"],
+        test_date=date.fromisoformat(zone_data["test_date"]),
+        distance_m=zone_data["distance_m"],
+        time_s=zone_data["time_s"],
+        zones=zone_data["zones"],
+        equivalencias=zone_data["equivalencias"],
+        valid_from=date.fromisoformat(zone_data["valid_from"]),
+    )
+    db.add(vdot_config)
+    db.flush()
+    
     activity = Activity(
         user_id=user.id,
         garmin_id=f"payload-{name}-{distance_m}-{duration_s}",
@@ -138,11 +167,11 @@ def _seed_day(db, user_id: int) -> None:
     db.flush()
 
 
-def _payload(db, activity, settings, zone_config, *, intent_type: str,
+def _payload(db, activity, zone_config, *, intent_type: str,
              intent_text: str | None = None) -> dict:
     detail = service.get_activity_detail(db, activity.id, activity.user_id, zone_config)
     return build_evaluation_payload(
-        db, activity, activity.user_id, detail, intent_type, intent_text, settings
+        db, activity, activity.user_id, detail, intent_type, intent_text
     )
 
 
@@ -155,7 +184,7 @@ def test_payload_completo_blocos_e_matematica_exata(db, settings, zone_config) -
     _seed_day(db, activity.user_id)
     db.commit()
 
-    payload = _payload(db, activity, settings, zone_config,
+    payload = _payload(db, activity, zone_config,
                        intent_type="facil", intent_text="era pra ser 30min a 4:15")
 
     # Blocos sempre presentes + blocos com dado (EVAL-02)
@@ -251,7 +280,7 @@ def test_progressivo_e_prova_sem_zona_alvo(db, settings, zone_config) -> None:
         _seed_split(db, activity.id, idx)
     db.commit()
     for intent in ("progressivo", "prova"):
-        payload = _payload(db, activity, settings, zone_config, intent_type=intent)
+        payload = _payload(db, activity, zone_config, intent_type=intent)
         assert "zona_alvo" not in payload
         # a distribuição por zona continua no payload p/ o LLM julgar
         assert payload["tempo_por_zona_pct"]["easy"] == 100.0
@@ -281,7 +310,7 @@ def test_zona_alvo_por_intencao_mapa_completo(
     for idx in range(1, 5):
         _seed_split(db, activity.id, idx)
     db.commit()
-    payload = _payload(db, activity, settings, zone_config, intent_type=intent_type)
+    payload = _payload(db, activity, zone_config, intent_type=intent_type)
     if expected_zones is None:
         assert "zona_alvo" not in payload
     else:
@@ -293,7 +322,7 @@ def test_sem_voltas_payload_honesto(db, settings, zone_config) -> None:
     avaliação prossegue com os agregados."""
     activity = _seed_activity(db, distance_m=5000.0, duration_s=1500.0)
     db.commit()
-    payload = _payload(db, activity, settings, zone_config, intent_type="facil")
+    payload = _payload(db, activity, zone_config, intent_type="facil")
     for key in ("voltas", "tempo_por_zona_pct", "zona_alvo", "consistencia"):
         assert key not in payload
     assert payload["resumo"]["pace_medio"] == "5:00/km"  # 1500s/5km
@@ -306,7 +335,7 @@ def test_carga_do_dia_e_contexto_omitidos_sem_dado(db, settings, zone_config) ->
     for idx in range(1, 5):
         _seed_split(db, activity.id, idx, avg_temperature=None)
     db.commit()
-    payload = _payload(db, activity, settings, zone_config, intent_type="facil")
+    payload = _payload(db, activity, zone_config, intent_type="facil")
     assert "carga_do_dia" not in payload
     assert "contexto" not in payload
     assert "prs" not in payload
@@ -320,7 +349,7 @@ def test_consistencia_passthrough_com_gate_e_longao(db, settings, zone_config) -
     for idx in range(1, 9):
         _seed_split(db, activity.id, idx)
     db.commit()
-    payload = _payload(db, activity, settings, zone_config, intent_type="longao")
+    payload = _payload(db, activity, zone_config, intent_type="longao")
 
     consistency = payload["consistencia"]
     assert consistency["first_half_pace_s"] == 300.0
@@ -382,18 +411,20 @@ def test_lthr_bpm_da_metrica_vigente_na_data_do_treino(db, settings, zone_config
     _seed_fclthr(db, activity.user_id, 185, date(2024, 2, 1))
     db.commit()
 
-    payload = _payload(db, activity, settings, zone_config, intent_type="facil")
+    payload = _payload(db, activity, zone_config, intent_type="facil")
     assert payload["lthr_bpm"] == 172  # vigente em 2024-01-15, não a de fevereiro
 
 
-def test_lthr_bpm_fallback_do_env_sem_metrica(db, zone_config) -> None:
+def test_lthr_bpm_fallback_do_env_sem_metrica(db, zone_config, monkeypatch) -> None:
     """HRZ-17: sem métrica fclthr, o fallback é o env (LTHR_BPM) —
     ramo pinado com valor distinto do default."""
-    custom = Settings(_env_file=None, lthr_bpm=181)
+    from app.core.config import get_settings
+    get_settings.cache_clear()
+    monkeypatch.setenv("LTHR_BPM", "181")
     activity = _seed_activity(db)
     db.commit()
 
-    payload = _payload(db, activity, custom, zone_config, intent_type="facil")
+    payload = _payload(db, activity, zone_config, intent_type="facil")
     assert payload["lthr_bpm"] == 181
 
 
@@ -413,7 +444,7 @@ def test_zonas_fc_tempo_por_zona_exato(db, settings, zone_config) -> None:
     _seed_split(db, activity.id, 6, duration_s=60.0, avg_hr=None)  # sem FC: fora
     db.commit()
 
-    payload = _payload(db, activity, settings, zone_config, intent_type="facil")
+    payload = _payload(db, activity, zone_config, intent_type="facil")
     # 1080s de voltas com FC (3×300 + 120 + 60): 300/1080=27,8 · 120/1080=11,1 · 60/1080=5,6
     assert payload["zonas_fc"] == {
         "zonas": [
@@ -443,7 +474,7 @@ def test_zonas_fc_usa_zonas_da_epoca_do_treino(db, settings, zone_config) -> Non
     _seed_split(db, activity.id, 1, avg_hr=130)  # Z1 com fclthr 172
     db.commit()
 
-    payload = _payload(db, activity, settings, zone_config, intent_type="facil")
+    payload = _payload(db, activity, zone_config, intent_type="facil")
     zonas_fc = payload["zonas_fc"]
     assert zonas_fc["zonas"][0] == {"n": 1, "low": 112, "high": 138}  # 172, não 180
     assert zonas_fc["tempo_por_zona"][0] == {"zona": 1, "segundos": 300.0, "pct": 100.0}
@@ -460,7 +491,7 @@ def test_zonas_fc_omitido_sem_fc_nas_voltas(db, settings, zone_config) -> None:
     _seed_split(db, activity.id, 2, avg_hr=None)
     db.commit()
 
-    payload = _payload(db, activity, settings, zone_config, intent_type="facil")
+    payload = _payload(db, activity, zone_config, intent_type="facil")
     assert "zonas_fc" not in payload
     assert payload["lthr_bpm"] == 172  # o lthr chega mesmo sem o bloco
 
@@ -472,7 +503,7 @@ def test_zonas_fc_omitido_sem_config_ou_sem_metrica(db, settings, zone_config) -
     activity = _seed_activity(db)
     _seed_split(db, activity.id, 1)
     db.commit()
-    payload = _payload(db, activity, settings, zone_config, intent_type="facil")
+    payload = _payload(db, activity, zone_config, intent_type="facil")
     assert "zonas_fc" not in payload
 
     # com config lthr mas sem fclthr: zonas null (HRZ-11) -> bloco omitido
@@ -480,5 +511,5 @@ def test_zonas_fc_omitido_sem_config_ou_sem_metrica(db, settings, zone_config) -
     _seed_lthr_config(db, activity2.user_id)
     _seed_split(db, activity2.id, 1)
     db.commit()
-    payload2 = _payload(db, activity2, settings, zone_config, intent_type="facil")
+    payload2 = _payload(db, activity2, zone_config, intent_type="facil")
     assert "zonas_fc" not in payload2

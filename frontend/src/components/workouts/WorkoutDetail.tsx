@@ -11,7 +11,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 
 import {
-  getActivityDetail,
+  getActivityDetailBFF,
   getEvaluation,
   ApiError,
   type ActivityDetailOut,
@@ -39,7 +39,8 @@ type DetailState =
   | { kind: "ready"; detail: ActivityDetailOut };
 
 /** Delta com sinal: 6 -> "+6", -2.04 -> "-2", vírgula quando tem decimal. */
-function formatSigned(value: number, decimals = 0): string {
+function formatSigned(value: number | null | undefined, decimals = 0): string {
+  if (value == null) return "—";
   const fixed = value.toFixed(decimals).replace(".", ",");
   return value > 0 ? `+${fixed}` : fixed;
 }
@@ -134,7 +135,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
     setShowShoeModal(false);
     // Refetch do detail para mostrar o badge (ou remover se shoe.id === 0)
     try {
-      const fresh = await getActivityDetail(id);
+      const fresh = await getActivityDetailBFF(id);
       setState({ kind: "ready", detail: fresh });
     } catch {
       // erro silencioso - o estado atual permanece
@@ -147,7 +148,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
 
   useEffect(() => {
     let cancelled = false;
-    getActivityDetail(id)
+    getActivityDetailBFF(id)
       .then((detail) => {
         if (!cancelled) setState({ kind: "ready", detail });
       })
@@ -236,7 +237,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
     context.sleep !== null ||
     context.hrv !== null ||
     context.rhr !== null ||
-    context.temperature_c !== undefined;
+    context.temperature_c != null;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
@@ -335,7 +336,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
             {context.rhr !== null && (
               <Chip label="FC repouso" value={`${context.rhr.value} bpm`} />
             )}
-            {context.temperature_c !== undefined && (
+            {context.temperature_c != null && (
               <Chip label="Temperatura" value={formatTemp(context.temperature_c)} />
             )}
           </div>
@@ -380,7 +381,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
                     value={`${formatSigned(consistency.decoupling_pct, 1)}%`}
                   />
                 )}
-                {consistency.cadence_fade_spm !== undefined && (
+                {consistency.cadence_fade_spm != null && (
                   <ConsistencyRow
                     label="Fade de cadência"
                     value={`${formatSigned(consistency.cadence_fade_spm)} spm`}

@@ -363,11 +363,14 @@ def recalibrate_pace_zones(
     )
 
 
-def _hr_zones_payload(db: Session, user_id: int) -> HrZonesOut:
+def hr_zones_payload(db: Session, user_id: int) -> HrZonesOut:
     """Monta o shape completo (GET e resposta do PUT) a partir das
     séries vigentes hoje: métricas {value, source, valid_from}|null por
     kind, preferência de posse por kind (HRZ-22), config|null, zonas
-    derivadas|null e defaults dos 3 métodos."""
+    derivadas|null e defaults dos 3 métodos.
+
+    Público (sem underscore): reutilizado pelo BFF profile enquanto o
+    domínio heart_rate_zones não tem paridade (audit-erros.md, ERR-11)."""
     today = date.today()
     metrics = service.metrics_on(db, user_id, today)
     config = service.config_on(db, user_id, today)
@@ -410,7 +413,7 @@ def get_hr_zones(
     """HRZ-01/10/11: valores vigentes, config, zonas derivadas em bpm
     (null sem config ou sem a métrica exigida — estado vazio honesto) e
     defaults para prefill (HRZ-08). Toda leitura é do usuário da sessão."""
-    return _hr_zones_payload(db, user.id)
+    return hr_zones_payload(db, user.id)
 
 
 @router.put("/hr-zones")
@@ -485,7 +488,7 @@ def put_hr_zones(
         service.set_config(db, user.id, method, bounds, on_date=today)
 
     db.commit()
-    return _hr_zones_payload(db, user.id)
+    return hr_zones_payload(db, user.id)
 
 
 @router.get("/hr-zones/history")
@@ -538,20 +541,17 @@ def get_garmin_connection(
     return ConnectionOut(state=state, tokens_updated_at=tokens_updated_at)
 
 
-@router.get("/pace-zones")
-def get_pace_zones(
-    user: User = Depends(require_session),
-    db: Session = Depends(get_db),
-) -> PaceZonesOut:
-    """Retorna as zonas de ritmo (VDOT) do usuário logado.
+def pace_zones_payload(db: Session, user_id: int) -> PaceZonesOut:
+    """Monta o PaceZonesOut a partir da config vigente do usuário.
 
-    Inclui: VDOT, fonte, data do teste, distância, tempo, 5 zonas
-    (com pace range/pace, ms_min/ms_max/ms, descrição) e equivalências
-    de prova. 500 se não houver configuração para o usuário.
+    Público: reutilizado pelo BFF profile e pelo router de domínio
+    /api/v1/vdot enquanto o domínio vdot não tem paridade
+    (audit-erros.md, ERR-04). 500 quando sem config (mesma semântica do
+    legado — o frontend trata como "calibração pendente").
     """
     config = (
         db.query(VdotZoneConfig)
-        .filter(VdotZoneConfig.user_id == user.id)
+        .filter(VdotZoneConfig.user_id == user_id)
         .order_by(VdotZoneConfig.valid_from.desc(), VdotZoneConfig.id.desc())
         .first()
     )
@@ -576,3 +576,17 @@ def get_pace_zones(
         zones=zones_with_key,
         equivalencias=config.equivalencias,
     )
+
+
+@router.get("/pace-zones")
+def get_pace_zones(
+    user: User = Depends(require_session),
+    db: Session = Depends(get_db),
+) -> PaceZonesOut:
+    """Retorna as zonas de ritmo (VDOT) do usuário logado.
+
+    Inclui: VDOT, fonte, data do teste, distância, tempo, 5 zonas
+    (com pace range/pace, ms_min/ms_max/ms, descrição) e equivalências
+    de prova. 500 se não houver configuração para o usuário.
+    """
+    return pace_zones_payload(db, user.id)
