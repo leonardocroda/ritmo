@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, BackgroundTasks
+from sqlalchemy.orm import Session
 
 from app.auth.deps import require_session
+from app.db.engine import get_db
 from app.db.models import User
 from app.domain.garmin_sync.dependencies import get_sync_service
 from app.domain.garmin_sync.service import SyncService
-from app.domain.garmin_sync.schemas import SyncCreatedOut, LatestJobOut, SyncJobOut
+from app.domain.garmin_sync.schemas import SyncCreatedOut, LatestJobOut, SyncJobOut, ConnectionOut
 
 router = APIRouter(prefix="/api/v1/garmin-sync", tags=["garmin-sync"])
 
@@ -44,3 +46,20 @@ def get_job(
         from fastapi import HTTPException
         raise HTTPException(404, "job não encontrado")
     return job
+
+
+@router.get("/status")
+def get_connection_status(
+    user: User = Depends(require_session),
+    db: Session = Depends(get_db),
+) -> ConnectionOut:
+    """Estado da conexão Garmin do usuário da sessão (GTDB-16):
+    Conectado, Reautenticação necessária ou Não conectado — só exibição,
+    o re-login é CLI do operador. A derivação pura (3 estados) vive no
+    service; a resposta carrega apenas metadados (GTDB-17)."""
+    from app.profile.service import garmin_connection
+    state, tokens_updated_at = garmin_connection(db, user.id)
+    return ConnectionOut(
+        state=state,
+        tokens_updated_at=tokens_updated_at.isoformat() if tokens_updated_at else None,
+    )

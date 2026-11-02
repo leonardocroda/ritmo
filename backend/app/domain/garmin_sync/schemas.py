@@ -24,3 +24,8 @@ class SyncCreatedOut(BaseModel):
 
 class LatestJobOut(BaseModel):
     job: Optional[SyncJobOut]
+
+
+class ConnectionOut(BaseModel):
+    state: str  # "connected" | "reauth_needed" | "not_connected"
+    tokens_updated_at: Optional[str]
