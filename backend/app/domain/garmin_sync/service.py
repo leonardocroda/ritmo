@@ -1,13 +1,372 @@
-"""Application Service do domínio Garmin Sync."""
+"""Application Service do domínio Garmin Sync — orquestra sync completo.
+
+Fases em sequência rígida (AD-002: nunca concorrente). Atividades são
+tipo crítico: falha após os retries do gateway -> job `error` sem nada
+parcial gravado (SYNC-14). Tipos de saúde e recordes falham por tipo:
+warning em `stats_json` e o sync segue até `done` (SYNC-20);
+`sync_state` só avança em tipo bem-sucedido (SYNC-13/21).
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.core.config import get_settings
+from app.db.engine import SessionLocal
+from app.db.models import (
+    Activity,
+    BodyBattery,
+    Hrv,
+    Rhr,
+    Sleep,
+    Stress,
+    SyncJob,
+)
 from app.domain.garmin_sync.ports.client import GarminClient, TokenStore
 from app.domain.garmin_sync.schemas import SyncJobOut, SyncCreatedOut, LatestJobOut
+from app.garmin.client import (
+    GarminAuthExpiredError,
+    GarminGateway,
+    SyncBudgetExceededError,
+)
+from app.garmin.mappers import (
+    is_running,
+    map_activity,
+    map_battery,
+    map_hrv,
+    map_personal_records,
+    map_race_predictions,
+    map_rhr,
+    map_sleep,
+    map_splits,
+    map_stress,
+)
+from app.garmin.pmc import recompute
+from app.garmin.tokens_store import require_key, save_blob
+from app.garmin.upserts import (
+    get_sync_state,
+    set_sync_state,
+    update_physio_metrics,
+    upsert_activity,
+    upsert_health_rows,
+    upsert_race_predictions,
+    upsert_records,
+    upsert_splits,
+)
+
+
+class JobConflictError(Exception):
+    """Já existe um job ativo para o usuário (SYNC-02) — o endpoint devolve 409."""
+
+
+_TRANSITIONS = {"running": "pending", "done": "running", "error": "running"}
+
+
+def _today() -> date:
+    return date.today()
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+def _transition(job: SyncJob, to_status: str) -> None:
+    """SYNC-04: pending -> running -> done|error; fora dessa sequência levanta."""
+    if job.status != _TRANSITIONS[to_status]:
+        raise RuntimeError(f"Transição inválida: {job.status} -> {to_status}")
+    job.status = to_status
+    if to_status == "running":
+        job.started_at = _now()
+    else:
+        job.finished_at = _now()
+
+
+def _initial_stats() -> dict:
+    """Schema exato do stats_json (design, SYNC-05/06)."""
+    return {
+        "step": "activities",
+        "message": "Iniciando sync…",
+        "activities_new": 0,
+        "activities_updated": 0,
+        "splits": 0,
+        "sleep_days": 0,
+        "hrv_days": 0,
+        "rhr_days": 0,
+        "battery_days": 0,
+        "stress_days": 0,
+        "records": 0,
+        "predictions": 0,
+        "calls_made": 0,
+        "duration_s": 0.0,
+        "warnings": [],
+        "reauth_needed": False,
+    }
+
+
+def _save_stats(db: Session, job: SyncJob, stats: dict) -> None:
+    stats["duration_s"] = (_now() - job.started_at).total_seconds()
+    job.stats_json = dict(stats)
+    db.commit()
+
+
+def create_job(db: Session, user_id: int) -> SyncJob:
+    """Cria o job pending; job ativo existente -> JobConflictError (SYNC-02)."""
+    job = SyncJob(user_id=user_id, status="pending")
+    db.add(job)
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise JobConflictError("Já existe um sync em andamento para o usuário.") from exc
+    return job
+
+
+def _window_start(
+    db: Session, user_id: int, data_type: str, backfill_days: int, repull_days: int
+) -> date:
+    """SYNC-10/15: sem sync_state -> janela de backfill; senão last_date - repull."""
+    last = get_sync_state(db, user_id, data_type)
+    if last is None:
+        return _today() - timedelta(days=backfill_days)
+    return last - timedelta(days=repull_days)
+
+
+def _activity_db_id(db: Session, user_id: int, garmin_id: str) -> int:
+    return db.execute(
+        select(Activity.id).where(
+            Activity.user_id == user_id, Activity.garmin_id == garmin_id
+        )
+    ).scalar_one()
+
+
+def _sync_activities(db, gateway, job, stats, user_id, settings) -> date:
+    """Fase crítica (SYNC-14): atividades+splits em UMA transação."""
+    start = _window_start(
+        db,
+        user_id,
+        "activities",
+        settings.sync_backfill_activities_days,
+        settings.sync_repull_days,
+    )
+    end = _today()
+    raws = gateway.get_activities(start, end)
+    stats["step"] = "activities"
+    stats["message"] = f"Puxando {len(raws)} {'atividade' if len(raws) == 1 else 'atividades'}…"
+    stats["calls_made"] = gateway.calls_made
+    _save_stats(db, job, stats)
+    try:
+        oldest = end
+        for raw in raws:
+            data = map_activity(raw)
+            status = upsert_activity(db, user_id, data)
+            if status == "new":
+                stats["activities_new"] += 1
+            else:
+                stats["activities_updated"] += 1
+            if is_running(raw):
+                splits = map_splits(gateway.get_splits(raw["activityId"]))
+                stats["splits"] += upsert_splits(
+                    db, _activity_db_id(db, user_id, data["garmin_id"]), splits
+                )
+            stats["calls_made"] = gateway.calls_made
+            oldest = min(oldest, data["start_time"].date())
+        set_sync_state(db, user_id, "activities", end)
+        db.commit()
+    except Exception:
+        db.rollback()
+        stats["activities_new"] = 0
+        stats["activities_updated"] = 0
+        stats["splits"] = 0
+        raise
+    _save_stats(db, job, stats)
+    return oldest
+
+
+def _sync_daily_health(
+    db, gateway, job, stats, user_id, *, data_type, model, getter, mapper, counter, label, settings
+) -> None:
+    """Tipo por dia (SYNC-18): 1 chamada/dia; dia vazio é pulado (SYNC-19)."""
+    start = _window_start(
+        db, user_id, data_type, settings.sync_backfill_health_days, settings.sync_repull_days
+    )
+    end = _today()
+    stats["step"] = data_type
+    stats["message"] = f"Puxando {label}…"
+    stats["calls_made"] = gateway.calls_made
+    _save_stats(db, job, stats)
+    rows = []
+    try:
+        day = start
+        while day <= end:
+            mapped = mapper(getter(day))
+            if mapped is not None:
+                rows.append(mapped)
+            stats[counter] = len(rows)
+            days_word = "dia" if len(rows) == 1 else "dias"
+            stats["message"] = f"Puxando {label}: {len(rows)} {days_word}…"
+            stats["calls_made"] = gateway.calls_made
+            _save_stats(db, job, stats)
+            day += timedelta(days=1)
+        upsert_health_rows(db, model, user_id, rows)
+        set_sync_state(db, user_id, data_type, end)
+        db.commit()
+    except (GarminAuthExpiredError, SyncBudgetExceededError):
+        db.rollback()
+        raise
+    except Exception as exc:
+        db.rollback()
+        stats[counter] = 0
+        stats["warnings"].append({"tipo": data_type, "erro": str(exc)})
+        _save_stats(db, job, stats)
+
+
+def _sync_battery(db, gateway, job, stats, user_id, settings) -> None:
+    start = _window_start(
+        db, user_id, "body_battery", settings.sync_backfill_health_days, settings.sync_repull_days
+    )
+    end = _today()
+    stats["step"] = "body_battery"
+    stats["message"] = "Puxando body battery…"
+    stats["calls_made"] = gateway.calls_made
+    _save_stats(db, job, stats)
+    try:
+        rows = map_battery(gateway.get_body_battery(start, end))
+        upsert_health_rows(db, BodyBattery, user_id, rows)
+        stats["battery_days"] = len(rows)
+        set_sync_state(db, user_id, "body_battery", end)
+        stats["calls_made"] = gateway.calls_made
+        db.commit()
+    except (GarminAuthExpiredError, SyncBudgetExceededError):
+        db.rollback()
+        raise
+    except Exception as exc:
+        db.rollback()
+        stats["battery_days"] = 0
+        stats["warnings"].append({"tipo": "body_battery", "erro": str(exc)})
+        stats["calls_made"] = gateway.calls_made
+        _save_stats(db, job, stats)
+
+
+def _sync_records(db, gateway, job, stats, user_id) -> None:
+    stats["step"] = "records"
+    stats["message"] = "Puxando recordes…"
+    stats["calls_made"] = gateway.calls_made
+    _save_stats(db, job, stats)
+    try:
+        rows = map_personal_records(gateway.get_personal_records())
+        upsert_records(db, user_id, rows)
+        stats["records"] = len(rows)
+        stats["calls_made"] = gateway.calls_made
+        db.commit()
+    except (GarminAuthExpiredError, SyncBudgetExceededError):
+        db.rollback()
+        raise
+    except Exception as exc:
+        db.rollback()
+        stats["records"] = 0
+        stats["warnings"].append({"tipo": "records", "erro": str(exc)})
+        stats["calls_made"] = gateway.calls_made
+        _save_stats(db, job, stats)
+
+
+def _sync_predictions(db, gateway, job, stats, user_id) -> None:
+    stats["step"] = "predictions"
+    stats["message"] = "Puxando predições de prova…"
+    stats["calls_made"] = gateway.calls_made
+    _save_stats(db, job, stats)
+    try:
+        rows = map_race_predictions(gateway.get_race_predictions())
+        upsert_race_predictions(db, user_id, rows)
+        stats["predictions"] = len(rows)
+        stats["calls_made"] = gateway.calls_made
+        db.commit()
+    except (GarminAuthExpiredError, SyncBudgetExceededError):
+        db.rollback()
+        raise
+    except Exception as exc:
+        db.rollback()
+        stats["predictions"] = 0
+        stats["warnings"].append({"tipo": "predictions", "erro": str(exc)})
+        stats["calls_made"] = gateway.calls_made
+        _save_stats(db, job, stats)
+
+
+def _fcmax_from_zones(zones: object) -> int | None:
+    if not isinstance(zones, list):
+        return None
+    by_sport = {z.get("sport"): z for z in zones if isinstance(z, dict)}
+    entry = by_sport.get("RUNNING") or by_sport.get("DEFAULT")
+    value = (entry or {}).get("maxHeartRateUsed")
+    return value if isinstance(value, int) else None
+
+
+def _sync_physio(db, gateway, job, stats, user_id) -> None:
+    stats["step"] = "physio"
+    stats["message"] = "Puxando métricas fisiológicas…"
+    stats["calls_made"] = gateway.calls_made
+    _save_stats(db, job, stats)
+    try:
+        zones = gateway.get_heart_rate_zones()
+        fcmax = _fcmax_from_zones(zones)
+        lthr = gateway.get_lactate_threshold()
+        fclthr = (lthr or {}).get("speed_and_heart_rate", {}).get("heartRate")
+        fcrest = db.execute(
+            select(func.min(Rhr.value)).where(
+                Rhr.user_id == user_id,
+                Rhr.date >= _today() - timedelta(days=6),
+            )
+        ).scalar_one()
+        update_physio_metrics(db, user_id, fcmax=fcmax, fclthr=fclthr, fcrest=fcrest)
+        stats["calls_made"] = gateway.calls_made
+        db.commit()
+    except (GarminAuthExpiredError, SyncBudgetExceededError):
+        db.rollback()
+        raise
+    except Exception as exc:
+        db.rollback()
+        stats["warnings"].append({"tipo": "physio", "erro": str(exc)})
+        stats["calls_made"] = gateway.calls_made
+        _save_stats(db, job, stats)
+
+
+def _sync_pmc(db, job, stats, user_id, oldest: date) -> None:
+    stats["step"] = "pmc"
+    stats["message"] = "Recalculando carga…"
+    _save_stats(db, job, stats)
+    recompute(db, user_id, oldest, _today())
+    db.commit()
+
+
+def _finish(db, job, stats, status, error_text=None) -> None:
+    if error_text is not None:
+        stats["message"] = error_text
+        job.error = error_text
+    _transition(job, status)
+    _save_stats(db, job, stats)
+
+
+def _persist_tokens(db, job, stats, gateway) -> None:
+    try:
+        saved = save_blob(
+            db,
+            job.user_id,
+            gateway.session_blob(),
+            require_key(get_settings()),
+            expected_updated_at=gateway.tokens_loaded_at,
+        )
+    except Exception:
+        stats["warnings"].append({"tipo": "tokens", "erro": "persist-back falhou"})
+        return
+    if not saved:
+        stats["warnings"].append(
+            {"tipo": "tokens", "erro": "tokens atualizados durante o sync — preservados"}
+        )
 
 
 @dataclass
@@ -16,11 +375,88 @@ class SyncService:
     token_store: TokenStore
 
     async def start_sync(self, user_id: int, window_days: int = 3) -> SyncCreatedOut:
-        # Placeholder - implementar sync real
-        return SyncCreatedOut(id=1, status="pending")
+        with SessionLocal() as db:
+            job = create_job(db, user_id)
+            return SyncCreatedOut(id=job.id, status=job.status)
 
     def get_latest_job(self, user_id: int) -> LatestJobOut:
-        return LatestJobOut(job=None)
+        with SessionLocal() as db:
+            job = db.execute(
+                select(SyncJob)
+                .where(SyncJob.user_id == user_id)
+                .order_by(SyncJob.id.desc())
+                .limit(1)
+            ).scalar_one_or_none()
+            if job:
+                return LatestJobOut(job=self._to_job_out(job))
+            return LatestJobOut(job=None)
 
     def get_job(self, job_id: int, user_id: int) -> Optional[SyncJobOut]:
-        return None
+        with SessionLocal() as db:
+            job = db.get(SyncJob, job_id)
+            if job and job.user_id == user_id:
+                return self._to_job_out(job)
+            return None
+
+    def run_sync(self, job_id: int) -> None:
+        settings = get_settings()
+        with SessionLocal() as db:
+            job = db.get(SyncJob, job_id)
+            stats = _initial_stats()
+            _transition(job, "running")
+            _save_stats(db, job, stats)
+            gateway = None
+            try:
+                gateway = GarminGateway.from_user(db, job.user_id)
+                user_id = job.user_id
+                oldest = _sync_activities(db, gateway, job, stats, user_id, settings)
+                _sync_daily_health(
+                    db, gateway, job, stats, user_id,
+                    data_type="sleep", model=Sleep, getter=gateway.get_sleep,
+                    mapper=map_sleep, counter="sleep_days", label="sono", settings=settings,
+                )
+                _sync_daily_health(
+                    db, gateway, job, stats, user_id,
+                    data_type="hrv", model=Hrv, getter=gateway.get_hrv,
+                    mapper=map_hrv, counter="hrv_days", label="HRV", settings=settings,
+                )
+                _sync_daily_health(
+                    db, gateway, job, stats, user_id,
+                    data_type="rhr", model=Rhr, getter=gateway.get_rhr,
+                    mapper=map_rhr, counter="rhr_days", label="RHR", settings=settings,
+                )
+                _sync_daily_health(
+                    db, gateway, job, stats, user_id,
+                    data_type="stress", model=Stress, getter=gateway.get_stress,
+                    mapper=map_stress, counter="stress_days", label="stress", settings=settings,
+                )
+                _sync_battery(db, gateway, job, stats, user_id, settings)
+                _sync_records(db, gateway, job, stats, user_id)
+                _sync_predictions(db, gateway, job, stats, user_id)
+                _sync_physio(db, gateway, job, stats, user_id)
+                _sync_pmc(db, job, stats, user_id, oldest)
+                stats["message"] = "Sync concluído."
+                _persist_tokens(db, job, stats, gateway)
+                _finish(db, job, stats, "done")
+            except GarminAuthExpiredError as exc:
+                db.rollback()
+                stats["reauth_needed"] = True
+                if gateway is not None:
+                    stats["calls_made"] = gateway.calls_made
+                _finish(db, job, stats, "error", error_text=str(exc))
+            except Exception as exc:
+                db.rollback()
+                if gateway is not None:
+                    stats["calls_made"] = gateway.calls_made
+                    _persist_tokens(db, job, stats, gateway)
+                _finish(db, job, stats, "error", error_text=str(exc))
+
+    def _to_job_out(self, job: SyncJob) -> SyncJobOut:
+        return SyncJobOut(
+            id=job.id,
+            status=job.status,
+            started_at=job.started_at,
+            finished_at=job.finished_at,
+            error=job.error,
+            stats=job.stats_json,
+        )
