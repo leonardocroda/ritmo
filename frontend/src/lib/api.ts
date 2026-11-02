@@ -1085,12 +1085,12 @@ export async function updateShoe(id: number, body: ShoeUpdate): Promise<Shoe> {
   return (await res.json()) as Shoe;
 }
 
-/** Associa/desassocia tênis a uma atividade (PATCH /api/v1/activities/{id}/shoe). */
+/** Associa/desassocia tênis a uma atividade (PATCH /api/activities/{id}/shoe). */
 export async function setActivityShoe(
   activityId: number,
   shoeId: number | null,
 ): Promise<{ shoe: ShoeSummary | null }> {
-  const res = await apiFetch(`${DOMAIN_API_BASE}/activities/${activityId}/shoe`, {
+  const res = await apiFetch(`/api/activities/${activityId}/shoe`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ shoe_id: shoeId }),
