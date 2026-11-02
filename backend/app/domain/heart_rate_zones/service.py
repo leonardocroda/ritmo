@@ -8,7 +8,10 @@ from typing import Optional, List, Sequence
 
 from app.domain.heart_rate_zones.domain.entities import HRZoneConfig, HRMetric, HRSyncPref
 from app.domain.heart_rate_zones.ports.repositories import HeartRateZonesRepository
-from app.domain.heart_rate_zones.schemas import HRZonesOut, HRZonesUpdate, HRZoneConfigOut, HRMetricOut, HRZoneBoundOut
+from app.domain.heart_rate_zones.schemas import (
+    HRZonesOut, HRZonesUpdate, HRZoneConfigOut, HRMetricOut, HRZoneBoundOut,
+    HRZonesHistoryOut, MetricHistoryOut, ConfigHistoryOut
+)
 
 
 # Defaults dos 3 métodos
@@ -88,3 +91,27 @@ class HeartRateZonesService:
     def update_hr_zones(self, user_id: int, data: HRZonesUpdate) -> HRZonesOut:
         # TODO: implementar atualização real
         return self.get_hr_zones(user_id)
+
+    def get_hr_zones_history(self, user_id: int) -> HRZonesHistoryOut:
+        metric_rows = self.repo.get_hr_metrics_history(user_id)
+        config_rows = self.repo.get_hr_zone_configs_history(user_id)
+
+        return HRZonesHistoryOut(
+            metrics=[
+                MetricHistoryOut(
+                    kind=row.kind,
+                    value=row.value_bpm,
+                    source=row.source,
+                    valid_from=row.valid_from,
+                )
+                for row in metric_rows
+            ],
+            configs=[
+                ConfigHistoryOut(
+                    method=row.method,
+                    bounds=row.bounds,
+                    valid_from=row.valid_from,
+                )
+                for row in config_rows
+            ],
+        )

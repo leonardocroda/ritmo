@@ -40,6 +40,24 @@ class HRZonesUpdate(BaseModel):
     sync_modes: Optional[dict[str, str]] = None
 
 
+class MetricHistoryOut(BaseModel):
+    kind: str
+    value: int
+    source: str
+    valid_from: date
+
+
+class ConfigHistoryOut(BaseModel):
+    method: str
+    bounds: dict
+    valid_from: date
+
+
+class HRZonesHistoryOut(BaseModel):
+    metrics: List[MetricHistoryOut]
+    configs: List[ConfigHistoryOut]
+
+
 class PaceZoneOut(BaseModel):
     key: str
     pace_range: Optional[str] = None

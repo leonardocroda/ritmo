@@ -41,6 +41,20 @@ class SQLAlchemyHeartRateZonesRepository(HeartRateZonesRepository):
         ).scalars().all()
         return [self._to_hr_sync_pref(m) for m in models]
 
+    def get_hr_metrics_history(self, user_id: int) -> Sequence[HRMetric]:
+        models = self.session.execute(
+            select(UserHrMetric).where(UserHrMetric.user_id == user_id)
+            .order_by(UserHrMetric.valid_from.desc(), UserHrMetric.id.desc())
+        ).scalars().all()
+        return [self._to_hr_metric(m) for m in models]
+
+    def get_hr_zone_configs_history(self, user_id: int) -> Sequence[HRZoneConfig]:
+        models = self.session.execute(
+            select(HrZoneConfig).where(HrZoneConfig.user_id == user_id)
+            .order_by(HrZoneConfig.valid_from.desc(), HrZoneConfig.id.desc())
+        ).scalars().all()
+        return [self._to_hr_zone_config(m) for m in models]
+
     def get_pace_zone_config(self, user_id: int) -> PaceZoneConfig | None:
         model = self.session.execute(
             select(VdotZoneConfig).where(VdotZoneConfig.user_id == user_id)
