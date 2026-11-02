@@ -33,6 +33,7 @@ from app.domain.activity.schemas import (
     ContextOut,
     ShoeSummaryOut,
 )
+from app.domain.equipment.ports.repositories import ShoeRepository
 
 
 @dataclass
@@ -43,6 +44,7 @@ class ActivityService:
     split_repo: SplitRepository
     zone_provider: ZoneConfigProvider
     consistency: ConsistencyCalculator
+    shoe_repo: ShoeRepository
 
     def get_detail(self, activity_id: int, user_id: int) -> Optional[ActivityDetailOut]:
         """Obtém detalhe completo de uma atividade."""
@@ -229,5 +231,13 @@ class ActivityService:
     def _to_shoe_out(self, activity: Activity) -> Optional[ShoeSummaryOut]:
         if activity.shoe_id is None:
             return None
-        # TODO: buscar tênis do repositório
-        return None
+        shoe = self.shoe_repo.get_by_id(activity.shoe_id, activity.user_id)
+        if not shoe:
+            return None
+        return ShoeSummaryOut(
+            id=shoe.id,
+            name=shoe.name,
+            brand=shoe.brand,
+            model=shoe.model,
+            status=shoe.status,
+        )

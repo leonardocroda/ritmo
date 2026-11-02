@@ -15,6 +15,8 @@ from app.domain.activity.adapters.sqlalchemy_repo import (
 from app.domain.activity.adapters.db_zone_config import DBZoneConfigProvider
 from app.domain.activity.domain.services import ConsistencyCalculator
 from app.domain.activity.service import ActivityService
+from app.domain.equipment.ports.repositories import ShoeRepository
+from app.domain.equipment.adapters.sqlalchemy_repo import SQLAlchemyShoeRepository
 
 
 def get_activity_repo(db: Session = Depends(get_db)) -> ActivityRepository:
@@ -23,6 +25,10 @@ def get_activity_repo(db: Session = Depends(get_db)) -> ActivityRepository:
 
 def get_split_repo(db: Session = Depends(get_db)) -> SplitRepository:
     return SQLAlchemySplitRepository(db)
+
+
+def get_shoe_repo(db: Session = Depends(get_db)) -> ShoeRepository:
+    return SQLAlchemyShoeRepository(db)
 
 
 def get_zone_provider(db: Session = Depends(get_db)) -> ZoneConfigProvider:
@@ -45,5 +51,6 @@ def get_activity_service(
     split_repo: SplitRepository = Depends(get_split_repo),
     zone_provider: ZoneConfigProvider = Depends(get_zone_provider),
     consistency: ConsistencyCalculator = Depends(get_consistency),
+    shoe_repo: ShoeRepository = Depends(get_shoe_repo),
 ) -> ActivityService:
-    return ActivityService(repo, split_repo, zone_provider, consistency)
+    return ActivityService(repo, split_repo, zone_provider, consistency, shoe_repo)

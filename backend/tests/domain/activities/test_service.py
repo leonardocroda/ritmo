@@ -22,6 +22,7 @@ from app.domain.activity.ports.repositories import ActivityRepository, SplitRepo
 from app.domain.activity.ports.zone_config import ZoneConfigProvider
 from app.domain.activity.service import ActivityService
 from app.domain.activity.schemas import ActivityDetailOut, ActivityListOut, ActivityListItemOut
+from app.domain.equipment.ports.repositories import ShoeRepository
 
 
 def create_mock_activity(
@@ -76,12 +77,14 @@ class TestActivityService:
         self.mock_split_repo = Mock(spec=SplitRepository)
         self.mock_zone_provider = Mock(spec=ZoneConfigProvider)
         self.mock_consistency = Mock(spec=ConsistencyCalculator)
+        self.mock_shoe_repo = Mock(spec=ShoeRepository)
 
         self.service = ActivityService(
             repo=self.mock_repo,
             split_repo=self.mock_split_repo,
             zone_provider=self.mock_zone_provider,
             consistency=self.mock_consistency,
+            shoe_repo=self.mock_shoe_repo,
         )
 
         # Configura zone_config mock
