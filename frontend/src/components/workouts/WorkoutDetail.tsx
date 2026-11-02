@@ -237,7 +237,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
     context.sleep !== null ||
     context.hrv !== null ||
     context.rhr !== null ||
-    context.temperature_c !== undefined;
+    context.temperature_c != null;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
@@ -336,7 +336,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
             {context.rhr !== null && (
               <Chip label="FC repouso" value={`${context.rhr.value} bpm`} />
             )}
-            {context.temperature_c !== undefined && (
+            {context.temperature_c != null && (
               <Chip label="Temperatura" value={formatTemp(context.temperature_c)} />
             )}
           </div>
@@ -381,7 +381,7 @@ export default function WorkoutDetail({ id }: { id: number }) {
                     value={`${formatSigned(consistency.decoupling_pct, 1)}%`}
                   />
                 )}
-                {consistency.cadence_fade_spm !== undefined && (
+                {consistency.cadence_fade_spm != null && (
                   <ConsistencyRow
                     label="Fade de cadência"
                     value={`${formatSigned(consistency.cadence_fade_spm)} spm`}
