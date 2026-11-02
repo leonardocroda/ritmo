@@ -603,8 +603,7 @@ export type HomeToday = {
 /** O dia em 1 round-trip (HOME-01): veredito, sinais, strip, roteamento,
  * recomendações e os digests P2 abaixo da dobra. */
 export async function getHomeToday(): Promise<HomeToday> {
-  // Old endpoint still works (strangler fig pattern)
-  const res = await apiFetch("/api/home/today", { cache: "no-store" });
+  const res = await apiFetch(`${DOMAIN_API_BASE}/bff/home/today`, { cache: "no-store" });
   if (!res.ok) throw await parseError(res);
   return (await res.json()) as HomeToday;
 }

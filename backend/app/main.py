@@ -38,6 +38,7 @@ from app.profile.router import router as profile_router
 from app.shoes.router import router as shoes_router
 from app.tenis_analysis.router import router as tenis_analysis_router
 from app.tenis_degradation.router import router as tenis_degradation_router
+from app.bff.home.router import router as bff_home_router
 
 settings = get_settings()
 
@@ -95,6 +96,8 @@ all_routers = [
     (domain_equipment_router, [Depends(require_session)]),
     (domain_garmin_sync_router, [Depends(require_session)]),
     (domain_ai_evaluation_router, [Depends(require_session)]),
+    # BFF Composition Layer (v1) — composições de tela
+    (bff_home_router, [Depends(require_session)]),
 ]
 
 for item in all_routers:
