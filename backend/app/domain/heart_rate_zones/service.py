@@ -60,23 +60,17 @@ class HeartRateZonesService:
                 valid_from=config.valid_from,
             )
 
+        def metric_out(kind: str) -> HRMetricOut | None:
+            m = metrics_by_kind.get(kind)
+            if m is None:
+                return None
+            return HRMetricOut(value=m.value_bpm, source=m.source, valid_from=m.valid_from)
+
         return HRZonesOut(
             metrics={
-                "fcmax": HRMetricOut(
-                    value=metrics_by_kind.get("fcmax", HRMetric(value_bpm=0, source="", valid_from=date.today())).value_bpm,
-                    source=metrics_by_kind.get("fcmax", HRMetric(value_bpm=0, source="", valid_from=date.today())).source,
-                    valid_from=metrics_by_kind.get("fcmax", HRMetric(value_bpm=0, source="", valid_from=date.today())).valid_from,
-                ) if "fcmax" in metrics_by_kind else None,
-                "fcrest": HRMetricOut(
-                    value=metrics_by_kind.get("fcrest", HRMetric(value_bpm=0, source="", valid_from=date.today())).value_bpm,
-                    source=metrics_by_kind.get("fcrest", HRMetric(value_bpm=0, source="", valid_from=date.today())).source,
-                    valid_from=metrics_by_kind.get("fcrest", HRMetric(value_bpm=0, source="", valid_from=date.today())).valid_from,
-                ) if "fcrest" in metrics_by_kind else None,
-                "fclthr": HRMetricOut(
-                    value=metrics_by_kind.get("fclthr", HRMetric(value_bpm=0, source="", valid_from=date.today())).value_bpm,
-                    source=metrics_by_kind.get("fclthr", HRMetric(value_bpm=0, source="", valid_from=date.today())).source,
-                    valid_from=metrics_by_kind.get("fclthr", HRMetric(value_bpm=0, source="", valid_from=date.today())).valid_from,
-                ) if "fclthr" in metrics_by_kind else None,
+                "fcmax": metric_out("fcmax"),
+                "fcrest": metric_out("fcrest"),
+                "fclthr": metric_out("fclthr"),
             },
             modes={
                 "fcmax": modes_by_kind.get("fcmax", "garmin"),
