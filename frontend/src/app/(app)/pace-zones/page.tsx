@@ -12,6 +12,14 @@ type PageState =
   | { kind: "error"; message: string }
   | { kind: "ready"; data: PaceZonesOut };
 
+/** 500 "zonas VDOT não configuradas" = calibração pendente (contrato do
+ * backend — `pace_zones_payload`): o usuário nunca passou pelo
+ * RecalibrateModal, então a página oferece a calibração de entrada em
+ * vez de só o erro. */
+function isPendingCalibration(message: string): boolean {
+  return message.includes("zonas VDOT não configuradas");
+}
+
 export default function PaceZonesPage() {
   const [state, setState] = useState<PageState>({ kind: "loading" });
   const [showRecalibrate, setShowRecalibrate] = useState(false);
@@ -40,6 +48,33 @@ export default function PaceZonesPage() {
     return zone.pace || "—";
   }
 
+  // O mesmo CTA serve a primeira calibração (estado pendente) e as
+  // seguintes (painel 4) — o sucesso recarrega e troca o estado da página.
+  const recalibrateButton = (
+    <button
+      type="button"
+      onClick={() => setShowRecalibrate(true)}
+      className="flex w-full items-center gap-3 rounded-card border border-border bg-card px-4 py-3 hover:border-accent/40 text-left"
+    >
+      <div className="flex items-center gap-3">
+        <span className="flex size-9 items-center justify-center rounded-full bg-accent/15 text-accent">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 20.3C7.4 16.7 3.5 13.4 3.5 9.6 3.5 6.9 5.4 5 7.9 5c1.6 0 3.1.8 4.1 2.2C13 5.8 14.5 5 16.1 5c2.5 0 4.4 1.9 4.4 4.6 0 3.8-3.9 7.1-8.5 10.7Z" />
+            <path d="M12 8v8" />
+            <path d="M8 12h8" />
+          </svg>
+        </span>
+        <div>
+          <p className="font-medium">Recalibrar VDOT</p>
+          <p className="text-sm text-muted">Inserir distância e tempo do teste para recalcular zonas</p>
+        </div>
+      </div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-muted shrink-0">
+        <path d="M9 18l6-6-6-6" />
+      </svg>
+    </button>
+  );
+
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
       <h1 className="text-2xl font-semibold tracking-tight">Zonas de Ritmo</h1>
@@ -53,10 +88,20 @@ export default function PaceZonesPage() {
         </div>
       )}
 
-      {state.kind === "error" && (
+      {state.kind === "error" && !isPendingCalibration(state.message) && (
         <p className="mt-6 rounded-card border border-border bg-card px-4 py-3 text-sm text-muted">
           Não foi possível carregar as zonas de ritmo: {state.message}
         </p>
+      )}
+
+      {state.kind === "error" && isPendingCalibration(state.message) && (
+        <PanelSection
+          index={1}
+          title="Calibrar VDOT"
+          subtitle="Você ainda não tem zonas de ritmo definidas. Insira o resultado de um teste máximo (distância e tempo) — o VDOT e as 5 zonas de Jack Daniels são calculados na hora e valem para todos os treinos."
+        >
+          {recalibrateButton}
+        </PanelSection>
       )}
 
       {state.kind === "ready" && (
@@ -155,28 +200,7 @@ export default function PaceZonesPage() {
             title="Recalibração"
             subtitle="Atualize seu VDOT quando fizer um novo teste máximo."
           >
-            <button
-              type="button"
-              onClick={() => setShowRecalibrate(true)}
-              className="flex w-full items-center gap-3 rounded-card border border-border bg-card px-4 py-3 hover:border-accent/40 text-left"
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex size-9 items-center justify-center rounded-full bg-accent/15 text-accent">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M12 20.3C7.4 16.7 3.5 13.4 3.5 9.6 3.5 6.9 5.4 5 7.9 5c1.6 0 3.1.8 4.1 2.2C13 5.8 14.5 5 16.1 5c2.5 0 4.4 1.9 4.4 4.6 0 3.8-3.9 7.1-8.5 10.7Z" />
-                    <path d="M12 8v8" />
-                    <path d="M8 12h8" />
-                  </svg>
-                </span>
-                <div>
-                  <p className="font-medium">Recalibrar VDOT</p>
-                  <p className="text-sm text-muted">Inserir distância e tempo do teste para recalcular zonas</p>
-                </div>
-              </div>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-muted shrink-0">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
+            {recalibrateButton}
           </PanelSection>
         </>
       )}
