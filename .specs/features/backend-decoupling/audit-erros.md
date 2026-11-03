@@ -1,12 +1,10 @@
 # Auditoria de Erros — Refactor Backend Decoupling
 
 **Data:** 02/11/2026
-**Status da Fase 1 (restaurar plataforma): ✅ CONCLUÍDA** — todos os ERR-01..16 e HER-01..04
-endereçados; frontend `tsc` limpo; plataforma testada manualmente de ponta a ponta.
-Observação de processo: as duas primeiras suítes completas pós-fix foram invalidadas por
-contaminação (duas sessões pytest concorrentes no mesmo `ritmo_test` — IntegrityError em
-massa); a suíte de confirmação limpa roda em background após o merge. O squash-merge na
-main existe exatamente para tornar qualquer retrabalho um único `git revert`.
+**Status da Fase 1 (restaurar plataforma): ✅ CONCLUÍDA E VERIFICADA** — suíte completa
+limpa: **880 passed / 0 failed / 0 errors** (02/11/2026, 12m25s). Frontend `tsc` limpo;
+plataforma testada manualmente de ponta a ponta. Mergeado na main via squash
+(`e4e75ff`); reverter, se preciso: `git revert e4e75ff`.
 **Branch:** `refactor/backend-decoupling` @ `452b1e0`
 **Baseline de comparação:** `main` @ `a3e89a5` (worktree temporário em `%TEMP%\opencode\ritmo-main` — remover com `git worktree remove` quando não for mais necessário)
 **Método:** diff completo `main...HEAD`, inspeção de contratos frontend↔backend (cada função de `frontend/src/lib/api.ts` vs. routers reais), suíte pytest na branch e na main (baseline), `tsc --noEmit` no frontend, leitura linha a linha dos services/adapters novos.
@@ -301,7 +299,7 @@ classify/parse/km_label/context/evaluations na Fase 2 com parity tests.
   função que nunca existiu na era DB — cobertura do loader vive em `test_vdot_zones.py`);
 - `test_vdot_zone_configs_model`: helper `_new_user` remove o seed automático
   (testes de model assumem tabela vazia).
-**Gate:** `uv run pytest -q` → 0 failed (ver status final abaixo). ✅
+**Gate:** `uv run pytest -q` → **880 passed / 0 failed / 0 errors** ✅ (confirmação limpa pós-merge)
 
 ### F8 — Limpeza (ERR-16, parcial) ✅ (02/11/2026)
 - Removidos: `app/domain/activity/adapters/sqlalchemy_split.py` (import de pacote
